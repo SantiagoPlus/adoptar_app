@@ -75,10 +75,11 @@ async function SolicitudesRecibidasContent() {
       `
         id_solicitud,
         id_animal,
+        id_solicitante,
         mensaje,
         estado,
         fecha_solicitud
-      `
+      `,
     )
     .in("id_animal", animalIds)
     .order("fecha_solicitud", { ascending: false });
@@ -111,11 +112,14 @@ async function SolicitudesRecibidasContent() {
     .in("id_usuario", solicitanteIds);
 
   const animalesMap = new Map(
-    (animalesPublicados ?? []).map((animal) => [animal.id_animal, animal])
+    (animalesPublicados ?? []).map((animal) => [animal.id_animal, animal]),
   );
 
   const solicitantesMap = new Map(
-    (solicitantes ?? []).map((solicitante) => [solicitante.id_usuario, solicitante])
+    (solicitantes ?? []).map((solicitante) => [
+      solicitante.id_usuario,
+      solicitante,
+    ]),
   );
 
   return (
