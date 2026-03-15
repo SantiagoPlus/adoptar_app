@@ -1,5 +1,4 @@
-export const dynamic = "force-dynamic";
-
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 type FotoAnimal = {
@@ -29,6 +28,8 @@ type AnimalAdopcion = {
 };
 
 export default async function Home() {
+  await connection();
+
   const supabase = await createClient();
 
   const { data: animales, error } = await supabase
