@@ -76,7 +76,12 @@ function AnimalDetailSkeleton() {
   );
 }
 
-async function AnimalDetailContent({ id }: { id: string }) {
+async function AnimalDetailContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: animal, error } = await supabase
@@ -258,13 +263,11 @@ async function AnimalDetailContent({ id }: { id: string }) {
   );
 }
 
-export default async function AnimalDetailPage({
+export default function AnimalDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="max-w-6xl mx-auto px-6 py-10">
@@ -278,7 +281,7 @@ export default async function AnimalDetailPage({
         </div>
 
         <Suspense fallback={<AnimalDetailSkeleton />}>
-          <AnimalDetailContent id={id} />
+          <AnimalDetailContent params={params} />
         </Suspense>
       </section>
     </main>
