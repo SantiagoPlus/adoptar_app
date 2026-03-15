@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 type FotoAnimal = {
@@ -87,7 +88,7 @@ async function AnimalesList() {
   if (error) {
     return (
       <div className="border border-red-500/40 bg-red-500/10 rounded-xl p-4 mb-6">
-        <p className="font-semibold mb-2">Error al leer Supabase</p>
+        <p className="font-semibold mb-2">Error al leer animales</p>
         <p className="text-sm text-white/80">{error.message}</p>
       </div>
     );
@@ -103,7 +104,7 @@ async function AnimalesList() {
   if (animalesTipados.length === 0) {
     return (
       <div className="border border-white/10 bg-white/5 rounded-xl p-6">
-        <p>No hay animales disponibles para mostrar.</p>
+        <p>No hay animales disponibles por el momento.</p>
       </div>
     );
   }
@@ -209,20 +210,66 @@ async function AnimalesList() {
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
-      <section className="max-w-6xl mx-auto px-6 py-10">
-        <header className="mb-10">
-          <p className="text-sm text-white/60 mb-2">Adopta App</p>
-          <h1 className="text-4xl font-bold mb-3">Animales en adopción</h1>
-          <p className="text-white/70 max-w-2xl">
-            Primera integración real entre Next.js y Supabase. Esta pantalla ya
-            debería mostrar datos cargados desde la tabla{" "}
-            <span className="font-semibold">animales_adopcion</span>.
-          </p>
-        </header>
+      <nav className="border-b border-white/10">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-lg font-semibold">
+            Adopta App
+          </Link>
 
-        <Suspense fallback={<AnimalesSkeleton />}>
-          <AnimalesList />
-        </Suspense>
+          <div className="flex items-center gap-3 text-sm">
+            <Link
+              href="/auth/login"
+              className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
+            >
+              Ingresar
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <div className="max-w-3xl mb-12">
+          <p className="text-sm text-white/60 mb-3">
+            Plataforma de adopción y gestión de mascotas
+          </p>
+          <h1 className="text-5xl font-bold leading-tight mb-4">
+            Encontrá un compañero y promové adopciones responsables
+          </h1>
+          <p className="text-white/70 text-lg">
+            Explorá animales en adopción, conectá con publicadores y construí
+            una experiencia más ordenada para adoptar, publicar y gestionar la
+            información de tus mascotas.
+          </p>
+
+          <div className="flex flex-wrap gap-3 mt-6">
+            <Link
+              href="/auth/login"
+              className="px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
+            >
+              Comenzar
+            </Link>
+
+            <a
+              href="#animales"
+              className="px-5 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition"
+            >
+              Ver animales
+            </a>
+          </div>
+        </div>
+
+        <section id="animales">
+          <div className="flex items-end justify-between gap-4 mb-6">
+            <div>
+              <p className="text-sm text-white/60 mb-1">Listado actual</p>
+              <h2 className="text-2xl font-semibold">Animales disponibles</h2>
+            </div>
+          </div>
+
+          <Suspense fallback={<AnimalesSkeleton />}>
+            <AnimalesList />
+          </Suspense>
+        </section>
       </section>
     </main>
   );
