@@ -42,7 +42,7 @@ async function marcarEnRevision(formData: FormData) {
 
   const { data: animal, error: animalError } = await supabase
     .from("animales_adopcion")
-    .select("id_animal, id_publicador")
+    .select("id_animal, id_publicador, estado")
     .eq("id_animal", solicitud.id_animal)
     .single();
 
@@ -54,19 +54,34 @@ async function marcarEnRevision(formData: FormData) {
     redirect("/solicitudes/recibidas?error=sin_permisos");
   }
 
+  if (animal.estado !== "disponible") {
+    redirect("/solicitudes/recibidas?error=animal_no_disponible_para_proceso");
+  }
+
   if (solicitud.estado !== "pendiente" && solicitud.estado !== "en_revision") {
     redirect("/solicitudes/recibidas?error=estado_invalido");
   }
 
-  const { error: updateError } = await supabase
+  const { error: updateSolicitudError } = await supabase
     .from("solicitudes_adopcion")
     .update({
       estado: "en_revision",
     })
     .eq("id_solicitud", idSolicitud);
 
-  if (updateError) {
-    redirect("/solicitudes/recibidas?error=error_actualizacion");
+  if (updateSolicitudError) {
+    redirect("/solicitudes/recibidas?error=error_actualizacion_solicitud");
+  }
+
+  const { error: updateAnimalError } = await supabase
+    .from("animales_adopcion")
+    .update({
+      estado: "en_proceso",
+    })
+    .eq("id_animal", solicitud.id_animal);
+
+  if (updateAnimalError) {
+    redirect("/solicitudes/recibidas?error=error_actualizacion_animal");
   }
 
   redirect("/solicitudes/recibidas?ok=en_revision");
@@ -123,8 +138,8 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/solicitudes/recibidas?error=sin_permisos");
   }
 
-  if (animal.estado !== "disponible") {
-    redirect("/solicitudes/recibidas?error=animal_no_disponible");
+  if (animal.estado !== "en_proceso") {
+    redirect("/solicitudes/recibidas?error=animal_no_en_proceso");
   }
 
   if (
@@ -194,7 +209,7 @@ function FeedbackBanner({
   if (ok === "en_revision") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La solicitud fue marcada como en proceso.
+        La solicitud fue marcada como en proceso y el animal pasó a proceso de adopción.
       </div>
     );
   }
@@ -216,14 +231,18 @@ function FeedbackBanner({
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
     estado_invalido: "Esta solicitud no puede pasar a proceso en su estado actual.",
+    error_actualizacion_solicitud: "Ocurrió un error al actualizar la solicitud.",
+    error_actualizacion_animal: "Ocurrió un error al actualizar el estado del animal.",
+    animal_no_disponible_para_proceso:
+      "Este animal ya no está disponible para iniciar un proceso de adopción.",
     estado_invalido_adopcion:
       "Esta solicitud no puede usarse para concretar una adopción en su estado actual.",
-    error_actualizacion: "Ocurrió un error al actualizar la solicitud.",
-    animal_no_disponible: "El animal ya no se encuentra disponible.",
+    animal_no_en_proceso:
+      "El animal debe estar en proceso antes de marcarlo como adoptado.",
     error_adopcion: "Ocurrió un error al registrar la adopción.",
     adopcion_duplicada: "Esta adopción ya fue registrada previamente.",
     error_estado_animal:
-      "La adopción se intentó registrar, pero hubo un problema al actualizar el estado del animal.",
+      "La adopción se registró, pero hubo un problema al actualizar el estado del animal.",
   };
 
   return (
@@ -233,12 +252,24 @@ function FeedbackBanner({
   );
 }
 
-function formatEstado(estado: string) {
+function formatEstadoSolicitud(estado: string) {
   const labels: Record<string, string> = {
     pendiente: "Pendiente",
     en_revision: "En proceso",
     rechazada: "Rechazada",
     cancelada: "Cancelada",
+  };
+
+  return labels[estado] ?? estado;
+}
+
+function formatEstadoAnimal(estado: string) {
+  const labels: Record<string, string> = {
+    disponible: "Disponible",
+    en_proceso: "En proceso de adopción",
+    adoptado: "Adoptado",
+    pausado: "Pausado",
+    cancelado: "Cancelado",
   };
 
   return labels[estado] ?? estado;
@@ -274,7 +305,7 @@ async function SolicitudesRecibidasContent({
 
   const { data: animalesPublicados, error: animalesError } = await supabase
     .from("animales_adopcion")
-    .select("id_animal, nombre")
+    .select("id_animal, nombre, estado")
     .eq("id_publicador", usuario.id_usuario);
 
   if (animalesError) {
@@ -368,6 +399,9 @@ async function SolicitudesRecibidasContent({
           const animal = animalesMap.get(solicitud.id_animal);
           const solicitante = solicitantesMap.get(solicitud.id_solicitante);
 
+          const animalEnProceso = animal?.estado === "en_proceso";
+          const animalAdoptado = animal?.estado === "adoptado";
+
           return (
             <article
               key={solicitud.id_solicitud}
@@ -383,9 +417,16 @@ async function SolicitudesRecibidasContent({
                   </p>
                 </div>
 
-                <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
-                  {formatEstado(solicitud.estado)}
-                </span>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
+                    Solicitud: {formatEstadoSolicitud(solicitud.estado)}
+                  </span>
+                  {animal?.estado && (
+                    <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
+                      Animal: {formatEstadoAnimal(animal.estado)}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="text-sm text-white/70 space-y-1 mb-4">
@@ -408,7 +449,7 @@ async function SolicitudesRecibidasContent({
               </div>
 
               <div className="mt-4 flex items-center gap-3 flex-wrap">
-                {solicitud.estado === "pendiente" ? (
+                {!animalEnProceso && !animalAdoptado && solicitud.estado === "pendiente" && (
                   <form action={marcarEnRevision}>
                     <input
                       type="hidden"
@@ -422,23 +463,30 @@ async function SolicitudesRecibidasContent({
                       Marcar en proceso
                     </button>
                   </form>
-                ) : null}
+                )}
 
-                {(solicitud.estado === "pendiente" ||
-                  solicitud.estado === "en_revision") && (
-                  <form action={concretarAdopcion}>
-                    <input
-                      type="hidden"
-                      name="id_solicitud"
-                      value={solicitud.id_solicitud}
-                    />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
-                    >
-                      Marcar como adoptado
-                    </button>
-                  </form>
+                {animalEnProceso &&
+                  (solicitud.estado === "pendiente" ||
+                    solicitud.estado === "en_revision") && (
+                    <form action={concretarAdopcion}>
+                      <input
+                        type="hidden"
+                        name="id_solicitud"
+                        value={solicitud.id_solicitud}
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
+                      >
+                        Marcar como adoptado
+                      </button>
+                    </form>
+                  )}
+
+                {animalAdoptado && (
+                  <span className="text-sm text-white/50">
+                    Proceso finalizado
+                  </span>
                 )}
 
                 {animal?.id_animal && (
