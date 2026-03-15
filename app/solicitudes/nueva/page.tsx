@@ -99,7 +99,6 @@ function NuevaSolicitudSkeleton() {
         <div className="h-4 w-36 bg-white/10 rounded animate-pulse mb-3" />
         <div className="h-9 w-72 bg-white/10 rounded animate-pulse mb-3" />
         <div className="h-4 w-80 bg-white/10 rounded animate-pulse" />
-
         <div className="mt-5 grid sm:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
@@ -148,7 +147,7 @@ function FeedbackBanner({
       "No se pudo vincular tu sesión con tu perfil de usuario.",
     animal_no_encontrado: "No se encontró el animal seleccionado.",
     animal_no_disponible:
-      "Este animal ya no se encuentra disponible para adopción.",
+      "Este animal ya no está disponible para recibir nuevas solicitudes.",
     error_insercion:
       "Ocurrió un error al guardar la solicitud. Intentá nuevamente.",
   };
@@ -158,6 +157,18 @@ function FeedbackBanner({
       {messages[error] ?? "Ocurrió un error inesperado."}
     </div>
   );
+}
+
+function formatEstadoAnimal(estado: string) {
+  const labels: Record<string, string> = {
+    disponible: "Disponible",
+    en_proceso: "En proceso de adopción",
+    adoptado: "Adoptado",
+    pausado: "Pausado",
+    cancelado: "Cancelado",
+  };
+
+  return labels[estado] ?? estado;
 }
 
 async function NuevaSolicitudContent({
@@ -192,6 +203,8 @@ async function NuevaSolicitudContent({
     notFound();
   }
 
+  const puedeSolicitar = animal.estado === "disponible";
+
   return (
     <div className="space-y-6">
       <FeedbackBanner ok={ok} error={error} />
@@ -213,7 +226,7 @@ async function NuevaSolicitudContent({
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="text-white/60 mb-1">Estado</p>
-            <p>{animal.estado}</p>
+            <p>{formatEstadoAnimal(animal.estado)}</p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -234,33 +247,39 @@ async function NuevaSolicitudContent({
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <h2 className="text-xl font-semibold mb-4">Mensaje inicial</h2>
 
-        <form action={submitSolicitud} className="space-y-4">
-          <input type="hidden" name="animal_id" value={animal.id_animal} />
+        {puedeSolicitar ? (
+          <form action={submitSolicitud} className="space-y-4">
+            <input type="hidden" name="animal_id" value={animal.id_animal} />
 
-          <div>
-            <label
-              htmlFor="mensaje"
-              className="block text-sm text-white/70 mb-2"
+            <div>
+              <label
+                htmlFor="mensaje"
+                className="block text-sm text-white/70 mb-2"
+              >
+                Contale al publicador por qué querés adoptar a este animal
+              </label>
+              <textarea
+                id="mensaje"
+                name="mensaje"
+                rows={6}
+                placeholder="Hola, me interesa iniciar el proceso de adopción..."
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white placeholder:text-white/30 outline-none"
+                defaultValue=""
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
             >
-              Contale al publicador por qué querés adoptar a este animal
-            </label>
-            <textarea
-              id="mensaje"
-              name="mensaje"
-              rows={6}
-              placeholder="Hola, me interesa iniciar el proceso de adopción..."
-              className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-white placeholder:text-white/30 outline-none"
-              defaultValue=""
-            />
+              Enviar solicitud
+            </button>
+          </form>
+        ) : (
+          <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-white/70">
+            Este animal no está recibiendo nuevas solicitudes en este momento.
           </div>
-
-          <button
-            type="submit"
-            className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
-          >
-            Enviar solicitud
-          </button>
-        </form>
+        )}
       </div>
     </div>
   );
