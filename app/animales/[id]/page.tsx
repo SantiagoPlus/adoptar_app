@@ -32,6 +32,18 @@ type AnimalAdopcion = {
   fotos_animales: FotoAnimal[];
 };
 
+function formatEstadoAnimal(estado: string) {
+  const labels: Record<string, string> = {
+    disponible: "Disponible",
+    en_proceso: "En proceso de adopción",
+    adoptado: "Adoptado",
+    pausado: "Pausado",
+    cancelado: "Cancelado",
+  };
+
+  return labels[estado] ?? estado;
+}
+
 function AnimalDetailSkeleton() {
   return (
     <div className="grid gap-10 lg:grid-cols-2">
@@ -132,6 +144,10 @@ async function AnimalDetailContent({
     animalTipado.fotos_animales.find((foto) => foto.es_principal) ??
     animalTipado.fotos_animales[0];
 
+  const puedeSolicitar = animalTipado.estado === "disponible";
+  const enProceso = animalTipado.estado === "en_proceso";
+  const adoptado = animalTipado.estado === "adoptado";
+
   return (
     <div className="grid gap-10 lg:grid-cols-2">
       <div className="space-y-4">
@@ -171,7 +187,7 @@ async function AnimalDetailContent({
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-4xl font-bold">{animalTipado.nombre}</h1>
             <span className="text-sm px-3 py-1 rounded-full border border-white/15 bg-white/10">
-              {animalTipado.estado}
+              {formatEstadoAnimal(animalTipado.estado)}
             </span>
           </div>
         </div>
@@ -251,12 +267,27 @@ async function AnimalDetailContent({
         </div>
 
         <div className="pt-4">
-          <Link
-            href={`/solicitudes/nueva?animal_id=${animalTipado.id_animal}`}
-            className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
-          >
-            Quiero adoptarlo
-          </Link>
+          {puedeSolicitar && (
+            <Link
+              href={`/solicitudes/nueva?animal_id=${animalTipado.id_animal}`}
+              className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
+            >
+              Quiero adoptarlo
+            </Link>
+          )}
+
+          {enProceso && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+              Este animal ya se encuentra en proceso de adopción y no está
+              recibiendo nuevas solicitudes.
+            </div>
+          )}
+
+          {adoptado && (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+              Este animal ya fue adoptado.
+            </div>
+          )}
         </div>
       </div>
     </div>
