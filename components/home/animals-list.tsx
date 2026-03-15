@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
 type FotoAnimal = {
@@ -91,9 +92,10 @@ export async function AnimalsList() {
           animal.fotos_animales[0];
 
         return (
-          <article
+          <Link
             key={animal.id_animal}
-            className="rounded-2xl overflow-hidden border border-white/10 bg-white/5"
+            href={`/animales/${animal.id_animal}`}
+            className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 block hover:bg-white/[0.07] hover:border-white/20 transition"
           >
             {fotoPrincipal ? (
               <img
@@ -139,15 +141,9 @@ export async function AnimalsList() {
                   <span className="font-medium text-white">Tamaño:</span>{" "}
                   {animal.tamano ?? "No informado"}
                 </p>
-                <p>
-                  <span className="font-medium text-white">
-                    Estado de salud:
-                  </span>{" "}
-                  {animal.estado_salud ?? "No informado"}
-                </p>
               </div>
 
-              <p className="text-sm text-white/80 line-clamp-4">
+              <p className="text-sm text-white/80 line-clamp-3">
                 {animal.descripcion ?? "Sin descripción."}
               </p>
 
@@ -167,14 +163,9 @@ export async function AnimalsList() {
                     Desparasitado
                   </span>
                 )}
-                {animal.nivel_energia && (
-                  <span className="text-xs px-2 py-1 rounded-md bg-white/10 border border-white/10">
-                    Energía: {animal.nivel_energia}
-                  </span>
-                )}
               </div>
             </div>
-          </article>
+          </Link>
         );
       })}
     </div>
