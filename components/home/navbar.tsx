@@ -16,24 +16,12 @@ export async function HomeNavbar() {
         </Link>
 
         {user ? (
-          <div className="flex items-center gap-3 text-sm flex-wrap justify-end">
-            <Link
-              href="/solicitudes"
-              className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
-            >
-              Mis solicitudes
-            </Link>
-            <Link
-              href="/solicitudes/recibidas"
-              className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
-            >
-              Solicitudes recibidas
-            </Link>
+          <div className="flex items-center gap-3 text-sm">
             <Link
               href="/perfil"
               className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
             >
-              Perfil
+              Mi cuenta
             </Link>
             <LogoutButton />
           </div>
