@@ -24,6 +24,12 @@ export async function HomeNavbar() {
               Mis solicitudes
             </Link>
             <Link
+              href="/solicitudes/recibidas"
+              className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
+            >
+              Solicitudes recibidas
+            </Link>
+            <Link
               href="/perfil"
               className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 transition"
             >
