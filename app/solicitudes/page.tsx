@@ -21,6 +21,17 @@ function SolicitudesSkeleton() {
   );
 }
 
+function formatEstado(estado: string) {
+  const labels: Record<string, string> = {
+    pendiente: "Pendiente",
+    en_revision: "En proceso",
+    rechazada: "Rechazada",
+    cancelada: "Cancelada",
+  };
+
+  return labels[estado] ?? estado;
+}
+
 async function MisSolicitudesContent() {
   const supabase = await createClient();
 
@@ -60,7 +71,7 @@ async function MisSolicitudesContent() {
           ciudad,
           estado
         )
-      `
+      `,
     )
     .eq("id_solicitante", usuario.id_usuario)
     .order("fecha_solicitud", { ascending: false });
@@ -111,7 +122,7 @@ async function MisSolicitudesContent() {
               </div>
 
               <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
-                {solicitud.estado}
+                {formatEstado(solicitud.estado)}
               </span>
             </div>
 
