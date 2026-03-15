@@ -175,6 +175,19 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/solicitudes/recibidas?error=error_estado_animal");
   }
 
+  const { error: cancelRestError } = await supabase
+    .from("solicitudes_adopcion")
+    .update({
+      estado: "cancelada",
+    })
+    .eq("id_animal", solicitud.id_animal)
+    .neq("id_solicitud", solicitud.id_solicitud)
+    .in("estado", ["pendiente", "en_revision"]);
+
+  if (cancelRestError) {
+    redirect("/solicitudes/recibidas?error=error_cierre_restantes");
+  }
+
   redirect("/solicitudes/recibidas?ok=adoptado");
 }
 
@@ -214,7 +227,7 @@ function FeedbackBanner({
   if (ok === "adoptado") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La adopción fue concretada y el animal pasó a estado adoptado.
+        La adopción fue concretada, el animal pasó a adoptado y las demás solicitudes activas fueron canceladas.
       </div>
     );
   }
@@ -227,8 +240,7 @@ function FeedbackBanner({
     solicitud_no_encontrada: "No se encontró la solicitud seleccionada.",
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
-    estado_invalido:
-      "Solo una solicitud pendiente puede pasar a proceso.",
+    estado_invalido: "Solo una solicitud pendiente puede pasar a proceso.",
     error_actualizacion_solicitud:
       "Ocurrió un error al actualizar la solicitud.",
     error_actualizacion_animal:
@@ -243,6 +255,8 @@ function FeedbackBanner({
     adopcion_duplicada: "Esta adopción ya fue registrada previamente.",
     error_estado_animal:
       "La adopción se registró, pero hubo un problema al actualizar el estado del animal.",
+    error_cierre_restantes:
+      "La adopción se concretó, pero hubo un problema al cerrar las demás solicitudes activas.",
   };
 
   return (
