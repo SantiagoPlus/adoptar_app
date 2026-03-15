@@ -58,7 +58,7 @@ async function marcarEnRevision(formData: FormData) {
     redirect("/solicitudes/recibidas?error=animal_no_disponible_para_proceso");
   }
 
-  if (solicitud.estado !== "pendiente" && solicitud.estado !== "en_revision") {
+  if (solicitud.estado !== "pendiente") {
     redirect("/solicitudes/recibidas?error=estado_invalido");
   }
 
@@ -142,10 +142,7 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/solicitudes/recibidas?error=animal_no_en_proceso");
   }
 
-  if (
-    solicitud.estado !== "pendiente" &&
-    solicitud.estado !== "en_revision"
-  ) {
+  if (solicitud.estado !== "en_revision") {
     redirect("/solicitudes/recibidas?error=estado_invalido_adopcion");
   }
 
@@ -230,13 +227,16 @@ function FeedbackBanner({
     solicitud_no_encontrada: "No se encontró la solicitud seleccionada.",
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
-    estado_invalido: "Esta solicitud no puede pasar a proceso en su estado actual.",
-    error_actualizacion_solicitud: "Ocurrió un error al actualizar la solicitud.",
-    error_actualizacion_animal: "Ocurrió un error al actualizar el estado del animal.",
+    estado_invalido:
+      "Solo una solicitud pendiente puede pasar a proceso.",
+    error_actualizacion_solicitud:
+      "Ocurrió un error al actualizar la solicitud.",
+    error_actualizacion_animal:
+      "Ocurrió un error al actualizar el estado del animal.",
     animal_no_disponible_para_proceso:
       "Este animal ya no está disponible para iniciar un proceso de adopción.",
     estado_invalido_adopcion:
-      "Esta solicitud no puede usarse para concretar una adopción en su estado actual.",
+      "Solo una solicitud en proceso puede concretar la adopción.",
     animal_no_en_proceso:
       "El animal debe estar en proceso antes de marcarlo como adoptado.",
     error_adopcion: "Ocurrió un error al registrar la adopción.",
@@ -449,26 +449,10 @@ async function SolicitudesRecibidasContent({
               </div>
 
               <div className="mt-4 flex items-center gap-3 flex-wrap">
-                {!animalEnProceso && !animalAdoptado && solicitud.estado === "pendiente" && (
-                  <form action={marcarEnRevision}>
-                    <input
-                      type="hidden"
-                      name="id_solicitud"
-                      value={solicitud.id_solicitud}
-                    />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
-                    >
-                      Marcar en proceso
-                    </button>
-                  </form>
-                )}
-
-                {animalEnProceso &&
-                  (solicitud.estado === "pendiente" ||
-                    solicitud.estado === "en_revision") && (
-                    <form action={concretarAdopcion}>
+                {!animalEnProceso &&
+                  !animalAdoptado &&
+                  solicitud.estado === "pendiente" && (
+                    <form action={marcarEnRevision}>
                       <input
                         type="hidden"
                         name="id_solicitud"
@@ -476,12 +460,28 @@ async function SolicitudesRecibidasContent({
                       />
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
+                        className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
                       >
-                        Marcar como adoptado
+                        Marcar en proceso
                       </button>
                     </form>
                   )}
+
+                {animalEnProceso && solicitud.estado === "en_revision" && (
+                  <form action={concretarAdopcion}>
+                    <input
+                      type="hidden"
+                      name="id_solicitud"
+                      value={solicitud.id_solicitud}
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
+                    >
+                      Marcar como adoptado
+                    </button>
+                  </form>
+                )}
 
                 {animalAdoptado && (
                   <span className="text-sm text-white/50">
