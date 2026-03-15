@@ -72,6 +72,100 @@ async function marcarEnRevision(formData: FormData) {
   redirect("/solicitudes/recibidas?ok=en_revision");
 }
 
+async function concretarAdopcion(formData: FormData) {
+  "use server";
+
+  const idSolicitud = String(formData.get("id_solicitud") ?? "").trim();
+
+  if (!idSolicitud) {
+    redirect("/solicitudes/recibidas?error=solicitud_invalida");
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    redirect("/auth/login?next=/solicitudes/recibidas");
+  }
+
+  const { data: usuario, error: usuarioError } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (usuarioError || !usuario) {
+    redirect("/solicitudes/recibidas?error=usuario_no_encontrado");
+  }
+
+  const { data: solicitud, error: solicitudError } = await supabase
+    .from("solicitudes_adopcion")
+    .select("id_solicitud, id_animal, id_solicitante, estado")
+    .eq("id_solicitud", idSolicitud)
+    .single();
+
+  if (solicitudError || !solicitud) {
+    redirect("/solicitudes/recibidas?error=solicitud_no_encontrada");
+  }
+
+  const { data: animal, error: animalError } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador, estado")
+    .eq("id_animal", solicitud.id_animal)
+    .single();
+
+  if (animalError || !animal) {
+    redirect("/solicitudes/recibidas?error=animal_no_encontrado");
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect("/solicitudes/recibidas?error=sin_permisos");
+  }
+
+  if (animal.estado !== "disponible") {
+    redirect("/solicitudes/recibidas?error=animal_no_disponible");
+  }
+
+  if (
+    solicitud.estado !== "pendiente" &&
+    solicitud.estado !== "en_revision"
+  ) {
+    redirect("/solicitudes/recibidas?error=estado_invalido_adopcion");
+  }
+
+  const { error: insertAdopcionError } = await supabase
+    .from("adopciones")
+    .insert({
+      id_animal: solicitud.id_animal,
+      id_adoptante: solicitud.id_solicitante,
+      id_publicador: usuario.id_usuario,
+      id_solicitud: solicitud.id_solicitud,
+      fecha_adopcion: new Date().toISOString(),
+    });
+
+  if (insertAdopcionError) {
+    if (insertAdopcionError.code === "23505") {
+      redirect("/solicitudes/recibidas?error=adopcion_duplicada");
+    }
+
+    redirect("/solicitudes/recibidas?error=error_adopcion");
+  }
+
+  const { error: updateAnimalError } = await supabase
+    .from("animales_adopcion")
+    .update({
+      estado: "adoptado",
+    })
+    .eq("id_animal", solicitud.id_animal);
+
+  if (updateAnimalError) {
+    redirect("/solicitudes/recibidas?error=error_estado_animal");
+  }
+
+  redirect("/solicitudes/recibidas?ok=adoptado");
+}
+
 function SolicitudesRecibidasSkeleton() {
   return (
     <div className="space-y-4">
@@ -105,6 +199,14 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "adoptado") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La adopción fue concretada y el animal pasó a estado adoptado.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -114,7 +216,14 @@ function FeedbackBanner({
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
     estado_invalido: "Esta solicitud no puede pasar a proceso en su estado actual.",
+    estado_invalido_adopcion:
+      "Esta solicitud no puede usarse para concretar una adopción en su estado actual.",
     error_actualizacion: "Ocurrió un error al actualizar la solicitud.",
+    animal_no_disponible: "El animal ya no se encuentra disponible.",
+    error_adopcion: "Ocurrió un error al registrar la adopción.",
+    adopcion_duplicada: "Esta adopción ya fue registrada previamente.",
+    error_estado_animal:
+      "La adopción se intentó registrar, pero hubo un problema al actualizar el estado del animal.",
   };
 
   return (
@@ -313,10 +422,23 @@ async function SolicitudesRecibidasContent({
                       Marcar en proceso
                     </button>
                   </form>
-                ) : (
-                  <span className="text-sm text-white/50">
-                    Gestión disponible próximamente
-                  </span>
+                ) : null}
+
+                {(solicitud.estado === "pendiente" ||
+                  solicitud.estado === "en_revision") && (
+                  <form action={concretarAdopcion}>
+                    <input
+                      type="hidden"
+                      name="id_solicitud"
+                      value={solicitud.id_solicitud}
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
+                    >
+                      Marcar como adoptado
+                    </button>
+                  </form>
                 )}
 
                 {animal?.id_animal && (
