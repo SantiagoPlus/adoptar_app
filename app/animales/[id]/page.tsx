@@ -252,7 +252,7 @@ async function AnimalDetailContent({
 
         <div className="pt-4">
           <Link
-            href="/auth/login"
+            href={`/solicitudes/nueva?animal_id=${animalTipado.id_animal}`}
             className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
           >
             Quiero adoptarlo
