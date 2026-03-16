@@ -247,7 +247,7 @@ async function AnimalDetailContent({
         <div className="space-y-3">
           {puedeSolicitar && (
             <Link
-              href={`/solicitudes/nueva?animal=${animalTipado.id_animal}`}
+              href={`/solicitudes/nueva?animal_id=${animalTipado.id_animal}`}
               className="inline-flex items-center justify-center rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
             >
               Quiero adoptarlo
