@@ -228,6 +228,15 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/solicitudes/recibidas?error=error_adopcion");
   }
 
+  const { error: updateSolicitudGanadoraError } = await supabase
+    .from("solicitudes_adopcion")
+    .update({ estado: "adoptado" })
+    .eq("id_solicitud", solicitud.id_solicitud);
+
+  if (updateSolicitudGanadoraError) {
+    redirect("/solicitudes/recibidas?error=error_estado_solicitud_ganadora");
+  }
+
   const { error: updateAnimalError } = await supabase
     .from("animales_adopcion")
     .update({ estado: "adoptado" })
@@ -287,7 +296,7 @@ function FeedbackBanner({
   if (ok === "adoptado") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La adopción fue concretada, el animal pasó a adoptado y las demás solicitudes activas fueron canceladas.
+        La adopción fue concretada, la solicitud quedó en adoptado y las demás solicitudes activas fueron canceladas.
       </div>
     );
   }
@@ -334,6 +343,8 @@ function FeedbackBanner({
       "La adopción se registró, pero hubo un problema al actualizar el estado del animal.",
     error_cierre_restantes:
       "La adopción se concretó, pero hubo un problema al cerrar las demás solicitudes activas.",
+    error_estado_solicitud_ganadora:
+      "La adopción se registró, pero hubo un problema al actualizar la solicitud ganadora.",
   };
 
   return (
@@ -346,9 +357,10 @@ function FeedbackBanner({
 function formatEstadoSolicitud(estado: string) {
   const labels: Record<string, string> = {
     pendiente: "Pendiente",
-    en_revision: "En proceso",
+    en_revision: "En revisión",
     rechazada: "Rechazada",
     cancelada: "Cancelada",
+    adoptado: "Adoptado",
   };
 
   return labels[estado] ?? estado;
@@ -357,7 +369,7 @@ function formatEstadoSolicitud(estado: string) {
 function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
-    en_proceso: "En proceso de adopción",
+    en_proceso: "En proceso",
     adoptado: "Adoptado",
     pausado: "Pausado",
     cancelado: "Cancelado",
