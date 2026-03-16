@@ -73,18 +73,13 @@ async function marcarEnRevision(formData: FormData) {
   redirect("/solicitudes/recibidas?ok=en_revision");
 }
 
-async function actualizarEstadoSolicitud(formData: FormData) {
+async function rechazarSolicitud(formData: FormData) {
   "use server";
 
   const idSolicitud = String(formData.get("id_solicitud") ?? "").trim();
-  const nuevoEstado = String(formData.get("nuevo_estado") ?? "").trim();
 
-  if (!idSolicitud || !nuevoEstado) {
+  if (!idSolicitud) {
     redirect("/solicitudes/recibidas?error=solicitud_invalida");
-  }
-
-  if (!["rechazada", "cancelada"].includes(nuevoEstado)) {
-    redirect("/solicitudes/recibidas?error=estado_destino_invalido");
   }
 
   const supabase = await createClient();
@@ -134,14 +129,14 @@ async function actualizarEstadoSolicitud(formData: FormData) {
 
   const { error: updateError } = await supabase
     .from("solicitudes_adopcion")
-    .update({ estado: nuevoEstado })
+    .update({ estado: "rechazada" })
     .eq("id_solicitud", idSolicitud);
 
   if (updateError) {
     redirect("/solicitudes/recibidas?error=error_actualizacion_solicitud");
   }
 
-  redirect(`/solicitudes/recibidas?ok=${nuevoEstado}`);
+  redirect("/solicitudes/recibidas?ok=rechazada");
 }
 
 async function concretarAdopcion(formData: FormData) {
@@ -259,10 +254,10 @@ function SolicitudesRecibidasSkeleton() {
           key={index}
           className="rounded-2xl border border-white/10 bg-white/5 p-5"
         >
-          <div className="h-5 w-40 bg-white/10 rounded animate-pulse mb-3" />
-          <div className="h-4 w-28 bg-white/10 rounded animate-pulse mb-2" />
-          <div className="h-4 w-56 bg-white/10 rounded animate-pulse mb-2" />
-          <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
+          <div className="mb-3 h-5 w-40 animate-pulse rounded bg-white/10" />
+          <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
+          <div className="mb-2 h-4 w-56 animate-pulse rounded bg-white/10" />
+          <div className="h-4 w-full animate-pulse rounded bg-white/10" />
         </div>
       ))}
     </div>
@@ -300,14 +295,6 @@ function FeedbackBanner({
     );
   }
 
-  if (ok === "cancelada") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La solicitud fue cancelada correctamente.
-      </div>
-    );
-  }
-
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -317,7 +304,6 @@ function FeedbackBanner({
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
     estado_invalido: "La acción no se puede aplicar en el estado actual.",
-    estado_destino_invalido: "El estado de destino indicado no es válido.",
     error_actualizacion_solicitud:
       "Ocurrió un error al actualizar la solicitud.",
     animal_no_disponible_para_revision:
@@ -361,7 +347,6 @@ function formatEstadoAnimal(estado: string) {
     adoptado: "Adoptado",
     pausado: "Pausado",
     cancelado: "Cancelado",
-    en_proceso: "En proceso",
   };
 
   return labels[estado] ?? estado;
@@ -501,7 +486,7 @@ async function SolicitudesRecibidasContent({
               key={solicitud.id_solicitud}
               className="rounded-2xl border border-white/10 bg-white/5 p-5"
             >
-              <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold">
                     {animal?.nombre ?? "Animal"}
@@ -512,18 +497,18 @@ async function SolicitudesRecibidasContent({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
+                  <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
                     Solicitud: {formatEstadoSolicitud(solicitud.estado)}
                   </span>
                   {animal?.estado && (
-                    <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
+                    <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
                       Animal: {formatEstadoAnimal(animal.estado)}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="text-sm text-white/70 space-y-1 mb-4">
+              <div className="mb-4 space-y-1 text-sm text-white/70">
                 <p>
                   <span className="font-medium text-white">Solicitante:</span>{" "}
                   {solicitante?.nombre ?? "Usuario"}
@@ -542,79 +527,69 @@ async function SolicitudesRecibidasContent({
                 {solicitud.mensaje}
               </div>
 
-              <div className="mt-4 flex items-center gap-3 flex-wrap">
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 {animalDisponible && solicitud.estado === "pendiente" && (
-                  <form action={marcarEnRevision}>
-                    <input
-                      type="hidden"
-                      name="id_solicitud"
-                      value={solicitud.id_solicitud}
-                    />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
-                    >
-                      Marcar en revisión
-                    </button>
-                  </form>
-                )}
-
-                {solicitudActiva && animalDisponible && (
                   <>
-                    <form action={actualizarEstadoSolicitud}>
+                    <form action={marcarEnRevision}>
                       <input
                         type="hidden"
                         name="id_solicitud"
                         value={solicitud.id_solicitud}
                       />
-                      <input
-                        type="hidden"
-                        name="nuevo_estado"
-                        value="rechazada"
-                      />
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-200 text-sm font-medium hover:bg-red-500/20 transition"
+                        className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
                       >
-                        Rechazar
+                        Marcar en revisión
                       </button>
                     </form>
 
-                    <form action={actualizarEstadoSolicitud}>
+                    <form action={rechazarSolicitud}>
                       <input
                         type="hidden"
                         name="id_solicitud"
                         value={solicitud.id_solicitud}
                       />
-                      <input
-                        type="hidden"
-                        name="nuevo_estado"
-                        value="cancelada"
-                      />
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition"
+                        className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
                       >
-                        Cancelar
+                        Rechazar
                       </button>
                     </form>
                   </>
                 )}
 
                 {animalDisponible && solicitud.estado === "en_revision" && (
-                  <form action={concretarAdopcion}>
-                    <input
-                      type="hidden"
-                      name="id_solicitud"
-                      value={solicitud.id_solicitud}
-                    />
-                    <button
-                      type="submit"
-                      className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
-                    >
-                      Marcar como adoptado
-                    </button>
-                  </form>
+                  <>
+                    <form action={rechazarSolicitud}>
+                      <input
+                        type="hidden"
+                        name="id_solicitud"
+                        value={solicitud.id_solicitud}
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
+                      >
+                        Rechazar
+                      </button>
+                    </form>
+
+                    <form action={concretarAdopcion}>
+                      <input
+                        type="hidden"
+                        name="id_solicitud"
+                        value={solicitud.id_solicitud}
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-200 transition hover:bg-green-500/20"
+                      >
+                        Marcar como adoptado
+                      </button>
+                    </form>
+                  </>
                 )}
 
                 {animalAdoptado && (
@@ -626,7 +601,7 @@ async function SolicitudesRecibidasContent({
                 {animal?.id_animal && (
                   <Link
                     href={`/animales/${animal.id_animal}`}
-                    className="text-sm text-white/60 hover:text-white transition"
+                    className="text-sm text-white/60 transition hover:text-white"
                   >
                     Ver detalle del animal
                   </Link>
@@ -647,19 +622,19 @@ export default function SolicitudesRecibidasPage({
 }) {
   return (
     <main className="min-h-screen bg-black text-white">
-      <section className="max-w-4xl mx-auto px-6 py-10">
+      <section className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8">
           <Link
             href="/"
-            className="text-sm text-white/60 hover:text-white transition"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             ← Volver al inicio
           </Link>
         </div>
 
         <header className="mb-8">
-          <p className="text-sm text-white/60 mb-2">Gestión de adopciones</p>
-          <h1 className="text-3xl font-bold mb-3">Solicitudes recibidas</h1>
+          <p className="mb-2 text-sm text-white/60">Gestión de adopciones</p>
+          <h1 className="mb-3 text-3xl font-bold">Solicitudes recibidas</h1>
           <p className="text-white/70">
             Acá podés ver las solicitudes que llegaron a tus animales publicados.
           </p>
