@@ -54,7 +54,7 @@ async function marcarEnRevision(formData: FormData) {
   }
 
   if (animal.estado !== "disponible") {
-    redirect("/solicitudes/recibidas?error=animal_no_disponible_para_proceso");
+    redirect("/solicitudes/recibidas?error=animal_no_disponible_para_revision");
   }
 
   if (solicitud.estado !== "pendiente") {
@@ -68,15 +68,6 @@ async function marcarEnRevision(formData: FormData) {
 
   if (updateSolicitudError) {
     redirect("/solicitudes/recibidas?error=error_actualizacion_solicitud");
-  }
-
-  const { error: updateAnimalError } = await supabase
-    .from("animales_adopcion")
-    .update({ estado: "en_proceso" })
-    .eq("id_animal", solicitud.id_animal);
-
-  if (updateAnimalError) {
-    redirect("/solicitudes/recibidas?error=error_actualizacion_animal");
   }
 
   redirect("/solicitudes/recibidas?ok=en_revision");
@@ -203,8 +194,8 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/solicitudes/recibidas?error=sin_permisos");
   }
 
-  if (animal.estado !== "en_proceso") {
-    redirect("/solicitudes/recibidas?error=animal_no_en_proceso");
+  if (animal.estado !== "disponible") {
+    redirect("/solicitudes/recibidas?error=animal_no_disponible_para_adopcion");
   }
 
   if (solicitud.estado !== "en_revision") {
@@ -288,7 +279,7 @@ function FeedbackBanner({
   if (ok === "en_revision") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La solicitud fue marcada como en proceso y el animal pasó a proceso de adopción.
+        La solicitud fue marcada como en revisión.
       </div>
     );
   }
@@ -329,14 +320,12 @@ function FeedbackBanner({
     estado_destino_invalido: "El estado de destino indicado no es válido.",
     error_actualizacion_solicitud:
       "Ocurrió un error al actualizar la solicitud.",
-    error_actualizacion_animal:
-      "Ocurrió un error al actualizar el estado del animal.",
-    animal_no_disponible_para_proceso:
-      "Este animal ya no está disponible para iniciar un proceso de adopción.",
+    animal_no_disponible_para_revision:
+      "El animal ya no está disponible para continuar gestionando solicitudes.",
+    animal_no_disponible_para_adopcion:
+      "El animal ya no está disponible para concretar esta adopción.",
     estado_invalido_adopcion:
-      "Solo una solicitud en proceso puede concretar la adopción.",
-    animal_no_en_proceso:
-      "El animal debe estar en proceso antes de marcarlo como adoptado.",
+      "Solo una solicitud en revisión puede concretar la adopción.",
     error_adopcion: "Ocurrió un error al registrar la adopción.",
     adopcion_duplicada: "Esta adopción ya fue registrada previamente.",
     error_estado_animal:
@@ -369,10 +358,10 @@ function formatEstadoSolicitud(estado: string) {
 function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
-    en_proceso: "En proceso",
     adoptado: "Adoptado",
     pausado: "Pausado",
     cancelado: "Cancelado",
+    en_proceso: "En proceso",
   };
 
   return labels[estado] ?? estado;
@@ -502,7 +491,7 @@ async function SolicitudesRecibidasContent({
           const animal = animalesMap.get(solicitud.id_animal);
           const solicitante = solicitantesMap.get(solicitud.id_solicitante);
 
-          const animalEnProceso = animal?.estado === "en_proceso";
+          const animalDisponible = animal?.estado === "disponible";
           const animalAdoptado = animal?.estado === "adoptado";
           const solicitudActiva =
             solicitud.estado === "pendiente" || solicitud.estado === "en_revision";
@@ -554,25 +543,23 @@ async function SolicitudesRecibidasContent({
               </div>
 
               <div className="mt-4 flex items-center gap-3 flex-wrap">
-                {!animalEnProceso &&
-                  !animalAdoptado &&
-                  solicitud.estado === "pendiente" && (
-                    <form action={marcarEnRevision}>
-                      <input
-                        type="hidden"
-                        name="id_solicitud"
-                        value={solicitud.id_solicitud}
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
-                      >
-                        Marcar en proceso
-                      </button>
-                    </form>
-                  )}
+                {animalDisponible && solicitud.estado === "pendiente" && (
+                  <form action={marcarEnRevision}>
+                    <input
+                      type="hidden"
+                      name="id_solicitud"
+                      value={solicitud.id_solicitud}
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
+                    >
+                      Marcar en revisión
+                    </button>
+                  </form>
+                )}
 
-                {solicitudActiva && !animalAdoptado && (
+                {solicitudActiva && animalDisponible && (
                   <>
                     <form action={actualizarEstadoSolicitud}>
                       <input
@@ -614,7 +601,7 @@ async function SolicitudesRecibidasContent({
                   </>
                 )}
 
-                {animalEnProceso && solicitud.estado === "en_revision" && (
+                {animalDisponible && solicitud.estado === "en_revision" && (
                   <form action={concretarAdopcion}>
                     <input
                       type="hidden"
