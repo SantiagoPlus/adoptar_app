@@ -35,7 +35,6 @@ type AnimalAdopcion = {
 function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
-    en_proceso: "En proceso de adopción",
     adoptado: "Adoptado",
     pausado: "Pausado",
     cancelado: "Cancelado",
@@ -46,45 +45,28 @@ function formatEstadoAnimal(estado: string) {
 
 function AnimalDetailSkeleton() {
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
+    <section className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="space-y-4">
-        <div className="w-full h-[420px] rounded-2xl border border-white/10 bg-white/10 animate-pulse" />
+        <div className="aspect-[4/3] animate-pulse rounded-3xl bg-neutral-200" />
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
               key={index}
-              className="w-full h-28 rounded-xl border border-white/10 bg-white/10 animate-pulse"
+              className="aspect-[4/3] animate-pulse rounded-2xl bg-neutral-200"
             />
           ))}
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
-          <div className="h-10 w-56 bg-white/10 rounded animate-pulse" />
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div
-              key={index}
-              className="rounded-xl border border-white/10 bg-white/5 p-4"
-            >
-              <div className="h-4 w-20 bg-white/10 rounded animate-pulse mb-2" />
-              <div className="h-5 w-28 bg-white/10 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-3">
-          <div className="h-6 w-40 bg-white/10 rounded animate-pulse" />
-          <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
-          <div className="h-4 w-5/6 bg-white/10 rounded animate-pulse" />
-          <div className="h-4 w-4/6 bg-white/10 rounded animate-pulse" />
-        </div>
+      <div className="space-y-4">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-6 animate-pulse rounded-xl bg-neutral-200"
+          />
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -145,20 +127,19 @@ async function AnimalDetailContent({
     animalTipado.fotos_animales[0];
 
   const puedeSolicitar = animalTipado.estado === "disponible";
-  const enProceso = animalTipado.estado === "en_proceso";
   const adoptado = animalTipado.estado === "adoptado";
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
+    <section className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="space-y-4">
         {fotoPrincipal ? (
           <img
             src={fotoPrincipal.url_foto}
             alt={animalTipado.nombre}
-            className="w-full h-[420px] object-cover rounded-2xl border border-white/10"
+            className="aspect-[4/3] w-full rounded-3xl object-cover shadow-sm"
           />
         ) : (
-          <div className="w-full h-[420px] rounded-2xl border border-white/10 bg-white/10 flex items-center justify-center text-white/50">
+          <div className="flex aspect-[4/3] items-center justify-center rounded-3xl bg-neutral-200 text-neutral-500">
             Sin imagen
           </div>
         )}
@@ -170,7 +151,7 @@ async function AnimalDetailContent({
                 key={foto.id_foto}
                 src={foto.url_foto}
                 alt={animalTipado.nombre}
-                className="w-full h-28 object-cover rounded-xl border border-white/10"
+                className="aspect-[4/3] rounded-2xl object-cover"
               />
             ))}
           </div>
@@ -179,118 +160,108 @@ async function AnimalDetailContent({
 
       <div className="space-y-6">
         <div>
-          <p className="text-sm text-white/60 mb-2">
+          <p className="text-sm uppercase tracking-[0.2em] text-neutral-500">
             {animalTipado.especie}
             {animalTipado.raza ? ` · ${animalTipado.raza}` : ""}
           </p>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-4xl font-bold">{animalTipado.nombre}</h1>
-            <span className="text-sm px-3 py-1 rounded-full border border-white/15 bg-white/10">
-              {formatEstadoAnimal(animalTipado.estado)}
-            </span>
-          </div>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight">
+            {animalTipado.nombre}
+          </h1>
+          <p className="mt-3 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-700">
+            {formatEstadoAnimal(animalTipado.estado)}
+          </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 text-sm">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Ciudad</p>
-            <p>{animalTipado.ciudad ?? "No informada"}</p>
+        <div className="grid grid-cols-2 gap-4 rounded-3xl border border-neutral-200 p-5 text-sm text-neutral-700">
+          <div>
+            <p className="text-neutral-500">Ciudad</p>
+            <p className="font-medium">{animalTipado.ciudad ?? "No informada"}</p>
           </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Sexo</p>
-            <p>{animalTipado.sexo ?? "No informado"}</p>
+          <div>
+            <p className="text-neutral-500">Sexo</p>
+            <p className="font-medium">{animalTipado.sexo ?? "No informado"}</p>
           </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Edad</p>
-            <p>{animalTipado.edad_aproximada ?? "No informada"}</p>
+          <div>
+            <p className="text-neutral-500">Edad</p>
+            <p className="font-medium">
+              {animalTipado.edad_aproximada ?? "No informada"}
+            </p>
           </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Tamaño</p>
-            <p>{animalTipado.tamano ?? "No informado"}</p>
+          <div>
+            <p className="text-neutral-500">Tamaño</p>
+            <p className="font-medium">{animalTipado.tamano ?? "No informado"}</p>
           </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
-            <p className="text-white/60 mb-1">Estado de salud</p>
-            <p>{animalTipado.estado_salud ?? "No informado"}</p>
+          <div className="col-span-2">
+            <p className="text-neutral-500">Estado de salud</p>
+            <p className="font-medium">
+              {animalTipado.estado_salud ?? "No informado"}
+            </p>
           </div>
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-3">
-            Sobre {animalTipado.nombre}
-          </h2>
-          <p className="text-white/80 leading-7">
+          <h2 className="text-xl font-semibold">Sobre {animalTipado.nombre}</h2>
+          <p className="mt-3 leading-7 text-neutral-700">
             {animalTipado.descripcion ?? "Sin descripción disponible."}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
           {animalTipado.castrado && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Castrado
             </span>
           )}
           {animalTipado.vacunado && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Vacunado
             </span>
           )}
           {animalTipado.desparasitado && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Desparasitado
             </span>
           )}
           {animalTipado.apto_ninos && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Apto niños
             </span>
           )}
           {animalTipado.apto_gatos && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Apto gatos
             </span>
           )}
           {animalTipado.apto_perros && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Apto perros
             </span>
           )}
           {animalTipado.nivel_energia && (
-            <span className="text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/10">
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm text-neutral-700">
               Energía: {animalTipado.nivel_energia}
             </span>
           )}
         </div>
 
-        <div className="pt-4">
+        <div className="space-y-3">
           {puedeSolicitar && (
             <Link
-              href={`/solicitudes/nueva?animal_id=${animalTipado.id_animal}`}
-              className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
+              href={`/solicitudes/nueva?animal=${animalTipado.id_animal}`}
+              className="inline-flex items-center justify-center rounded-2xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
             >
               Quiero adoptarlo
             </Link>
           )}
 
-          {enProceso && (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
-              Este animal ya se encuentra en proceso de adopción y no está
-              recibiendo nuevas solicitudes.
-            </div>
-          )}
-
           {adoptado && (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/70">
+            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
               Este animal ya fue adoptado.
             </div>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -300,21 +271,16 @@ export default function AnimalDetailPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <main className="min-h-screen bg-black text-white">
-      <section className="max-w-6xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-white/60 hover:text-white transition"
-          >
-            ← Volver al listado
-          </Link>
-        </div>
+    <main className="pb-16">
+      <div className="mx-auto max-w-6xl px-4 pt-6">
+        <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
+          ← Volver al listado
+        </Link>
+      </div>
 
-        <Suspense fallback={<AnimalDetailSkeleton />}>
-          <AnimalDetailContent params={params} />
-        </Suspense>
-      </section>
+      <Suspense fallback={<AnimalDetailSkeleton />}>
+        <AnimalDetailContent params={params} />
+      </Suspense>
     </main>
   );
 }
