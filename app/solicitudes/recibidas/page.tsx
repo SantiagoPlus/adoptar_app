@@ -15,7 +15,6 @@ async function marcarEnRevision(formData: FormData) {
   const supabase = await createClient();
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
-
   if (authError || !authData.user) {
     redirect("/auth/login?next=/solicitudes/recibidas");
   }
@@ -64,9 +63,7 @@ async function marcarEnRevision(formData: FormData) {
 
   const { error: updateSolicitudError } = await supabase
     .from("solicitudes_adopcion")
-    .update({
-      estado: "en_revision",
-    })
+    .update({ estado: "en_revision" })
     .eq("id_solicitud", idSolicitud);
 
   if (updateSolicitudError) {
@@ -75,9 +72,7 @@ async function marcarEnRevision(formData: FormData) {
 
   const { error: updateAnimalError } = await supabase
     .from("animales_adopcion")
-    .update({
-      estado: "en_proceso",
-    })
+    .update({ estado: "en_proceso" })
     .eq("id_animal", solicitud.id_animal);
 
   if (updateAnimalError) {
@@ -85,6 +80,77 @@ async function marcarEnRevision(formData: FormData) {
   }
 
   redirect("/solicitudes/recibidas?ok=en_revision");
+}
+
+async function actualizarEstadoSolicitud(formData: FormData) {
+  "use server";
+
+  const idSolicitud = String(formData.get("id_solicitud") ?? "").trim();
+  const nuevoEstado = String(formData.get("nuevo_estado") ?? "").trim();
+
+  if (!idSolicitud || !nuevoEstado) {
+    redirect("/solicitudes/recibidas?error=solicitud_invalida");
+  }
+
+  if (!["rechazada", "cancelada"].includes(nuevoEstado)) {
+    redirect("/solicitudes/recibidas?error=estado_destino_invalido");
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    redirect("/auth/login?next=/solicitudes/recibidas");
+  }
+
+  const { data: usuario, error: usuarioError } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (usuarioError || !usuario) {
+    redirect("/solicitudes/recibidas?error=usuario_no_encontrado");
+  }
+
+  const { data: solicitud, error: solicitudError } = await supabase
+    .from("solicitudes_adopcion")
+    .select("id_solicitud, id_animal, estado")
+    .eq("id_solicitud", idSolicitud)
+    .single();
+
+  if (solicitudError || !solicitud) {
+    redirect("/solicitudes/recibidas?error=solicitud_no_encontrada");
+  }
+
+  const { data: animal, error: animalError } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador, estado")
+    .eq("id_animal", solicitud.id_animal)
+    .single();
+
+  if (animalError || !animal) {
+    redirect("/solicitudes/recibidas?error=animal_no_encontrado");
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect("/solicitudes/recibidas?error=sin_permisos");
+  }
+
+  if (!["pendiente", "en_revision"].includes(solicitud.estado)) {
+    redirect("/solicitudes/recibidas?error=estado_invalido");
+  }
+
+  const { error: updateError } = await supabase
+    .from("solicitudes_adopcion")
+    .update({ estado: nuevoEstado })
+    .eq("id_solicitud", idSolicitud);
+
+  if (updateError) {
+    redirect("/solicitudes/recibidas?error=error_actualizacion_solicitud");
+  }
+
+  redirect(`/solicitudes/recibidas?ok=${nuevoEstado}`);
 }
 
 async function concretarAdopcion(formData: FormData) {
@@ -99,7 +165,6 @@ async function concretarAdopcion(formData: FormData) {
   const supabase = await createClient();
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
-
   if (authError || !authData.user) {
     redirect("/auth/login?next=/solicitudes/recibidas");
   }
@@ -160,15 +225,12 @@ async function concretarAdopcion(formData: FormData) {
     if (insertAdopcionError.code === "23505") {
       redirect("/solicitudes/recibidas?error=adopcion_duplicada");
     }
-
     redirect("/solicitudes/recibidas?error=error_adopcion");
   }
 
   const { error: updateAnimalError } = await supabase
     .from("animales_adopcion")
-    .update({
-      estado: "adoptado",
-    })
+    .update({ estado: "adoptado" })
     .eq("id_animal", solicitud.id_animal);
 
   if (updateAnimalError) {
@@ -177,9 +239,7 @@ async function concretarAdopcion(formData: FormData) {
 
   const { error: cancelRestError } = await supabase
     .from("solicitudes_adopcion")
-    .update({
-      estado: "cancelada",
-    })
+    .update({ estado: "cancelada" })
     .eq("id_animal", solicitud.id_animal)
     .neq("id_solicitud", solicitud.id_solicitud)
     .in("estado", ["pendiente", "en_revision"]);
@@ -232,6 +292,22 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "rechazada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La solicitud fue rechazada correctamente.
+      </div>
+    );
+  }
+
+  if (ok === "cancelada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La solicitud fue cancelada correctamente.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -240,7 +316,8 @@ function FeedbackBanner({
     solicitud_no_encontrada: "No se encontró la solicitud seleccionada.",
     animal_no_encontrado: "No se encontró el animal asociado.",
     sin_permisos: "No tenés permisos para gestionar esta solicitud.",
-    estado_invalido: "Solo una solicitud pendiente puede pasar a proceso.",
+    estado_invalido: "La acción no se puede aplicar en el estado actual.",
+    estado_destino_invalido: "El estado de destino indicado no es válido.",
     error_actualizacion_solicitud:
       "Ocurrió un error al actualizar la solicitud.",
     error_actualizacion_animal:
@@ -415,6 +492,8 @@ async function SolicitudesRecibidasContent({
 
           const animalEnProceso = animal?.estado === "en_proceso";
           const animalAdoptado = animal?.estado === "adoptado";
+          const solicitudActiva =
+            solicitud.estado === "pendiente" || solicitud.estado === "en_revision";
 
           return (
             <article
@@ -480,6 +559,48 @@ async function SolicitudesRecibidasContent({
                       </button>
                     </form>
                   )}
+
+                {solicitudActiva && !animalAdoptado && (
+                  <>
+                    <form action={actualizarEstadoSolicitud}>
+                      <input
+                        type="hidden"
+                        name="id_solicitud"
+                        value={solicitud.id_solicitud}
+                      />
+                      <input
+                        type="hidden"
+                        name="nuevo_estado"
+                        value="rechazada"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-200 text-sm font-medium hover:bg-red-500/20 transition"
+                      >
+                        Rechazar
+                      </button>
+                    </form>
+
+                    <form action={actualizarEstadoSolicitud}>
+                      <input
+                        type="hidden"
+                        name="id_solicitud"
+                        value={solicitud.id_solicitud}
+                      />
+                      <input
+                        type="hidden"
+                        name="nuevo_estado"
+                        value="cancelada"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-lg border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition"
+                      >
+                        Cancelar
+                      </button>
+                    </form>
+                  </>
+                )}
 
                 {animalEnProceso && solicitud.estado === "en_revision" && (
                   <form action={concretarAdopcion}>
