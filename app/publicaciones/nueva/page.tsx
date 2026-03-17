@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SubmitButton } from "./submit-button";
 
 type SearchParams = Promise<{ error?: string }>;
 
@@ -26,7 +27,6 @@ async function crearPublicacion(formData: FormData) {
     redirect("/publicaciones/nueva?error=usuario_no_encontrado");
   }
 
-  const idAnimal = String(formData.get("id_animal") ?? "").trim();
   const nombre = String(formData.get("nombre") ?? "").trim();
   const especie = String(formData.get("especie") ?? "").trim();
   const raza = String(formData.get("raza") ?? "").trim();
@@ -46,10 +46,6 @@ async function crearPublicacion(formData: FormData) {
   const aptoGatos = formData.get("apto_gatos") === "on";
   const aptoPerros = formData.get("apto_perros") === "on";
 
-  if (!idAnimal) {
-    redirect("/publicaciones/nueva?error=publicacion_invalida");
-  }
-
   if (!nombre || !especie) {
     redirect("/publicaciones/nueva?error=campos_obligatorios");
   }
@@ -59,7 +55,6 @@ async function crearPublicacion(formData: FormData) {
   }
 
   const payload = {
-    id_animal: idAnimal,
     id_publicador: usuario.id_usuario,
     nombre,
     especie,
@@ -87,15 +82,7 @@ async function crearPublicacion(formData: FormData) {
     .select("id_animal")
     .single();
 
-  if (insertAnimalError) {
-    if (insertAnimalError.code === "23505") {
-      redirect(`/publicaciones/${idAnimal}?ok=publicacion_creada`);
-    }
-
-    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
-  }
-
-  if (!animalCreado) {
+  if (insertAnimalError || !animalCreado) {
     redirect("/publicaciones/nueva?error=error_creacion_publicacion");
   }
 
@@ -193,8 +180,8 @@ function FeedbackBanner({ error }: { error?: string }) {
     usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
     campos_obligatorios: "Completá al menos nombre y especie.",
     especie_invalida: "La especie debe ser perro o gato.",
-    error_creacion_publicacion: "Ocurrió un error al crear la publicación.",
-    publicacion_invalida: "No se pudo preparar correctamente la publicación.",
+    error_creacion_publicacion:
+      "Ocurrió un error al crear la publicación.",
   };
 
   return (
@@ -206,10 +193,8 @@ function FeedbackBanner({ error }: { error?: string }) {
 
 async function NuevaPublicacionContent({
   searchParams,
-  idAnimal,
 }: {
   searchParams: SearchParams;
-  idAnimal: string;
 }) {
   const { error } = await searchParams;
 
@@ -218,8 +203,6 @@ async function NuevaPublicacionContent({
       <FeedbackBanner error={error} />
 
       <form action={crearPublicacion} className="space-y-6">
-        <input type="hidden" name="id_animal" value={idAnimal} />
-
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="mb-5 text-xl font-semibold">Datos principales</h2>
 
@@ -400,12 +383,7 @@ async function NuevaPublicacionContent({
         </section>
 
         <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
-          >
-            Crear publicación
-          </button>
+          <SubmitButton />
 
           <Link
             href="/publicaciones"
@@ -419,14 +397,11 @@ async function NuevaPublicacionContent({
   );
 }
 
-export default async function NuevaPublicacionPage({
+export default function NuevaPublicacionPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  await searchParams;
-  const idAnimal = crypto.randomUUID();
-
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-4xl px-6 py-10">
@@ -448,10 +423,7 @@ export default async function NuevaPublicacionPage({
         </header>
 
         <Suspense fallback={<NuevaPublicacionSkeleton />}>
-          <NuevaPublicacionContent
-            searchParams={searchParams}
-            idAnimal={idAnimal}
-          />
+          <NuevaPublicacionContent searchParams={searchParams} />
         </Suspense>
       </section>
     </main>
