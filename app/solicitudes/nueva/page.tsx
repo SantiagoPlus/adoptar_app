@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SubmitButton } from "./submit-button";
 
 type SearchParams = Promise<{
   animal_id?: string;
@@ -51,13 +52,19 @@ async function submitSolicitud(formData: FormData) {
 
   const { data: animal, error: animalError } = await supabase
     .from("animales_adopcion")
-    .select("id_animal, estado")
+    .select("id_animal, estado, id_publicador")
     .eq("id_animal", animalId)
     .single();
 
   if (animalError || !animal) {
     redirect(
       `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=animal_no_encontrado`,
+    );
+  }
+
+  if (animal.id_publicador === usuario.id_usuario) {
+    redirect(
+      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=auto_solicitud_no_permitida`,
     );
   }
 
@@ -96,27 +103,27 @@ function NuevaSolicitudSkeleton() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="h-4 w-36 bg-white/10 rounded animate-pulse mb-3" />
-        <div className="h-9 w-72 bg-white/10 rounded animate-pulse mb-3" />
-        <div className="h-4 w-80 bg-white/10 rounded animate-pulse" />
-        <div className="mt-5 grid sm:grid-cols-2 gap-4">
+        <div className="mb-3 h-4 w-36 animate-pulse rounded bg-white/10" />
+        <div className="mb-3 h-9 w-72 animate-pulse rounded bg-white/10" />
+        <div className="h-4 w-80 animate-pulse rounded bg-white/10" />
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
               className="rounded-xl border border-white/10 bg-white/5 p-4"
             >
-              <div className="h-4 w-20 bg-white/10 rounded animate-pulse mb-2" />
-              <div className="h-5 w-28 bg-white/10 rounded animate-pulse" />
+              <div className="mb-2 h-4 w-20 animate-pulse rounded bg-white/10" />
+              <div className="h-5 w-28 animate-pulse rounded bg-white/10" />
             </div>
           ))}
         </div>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="h-6 w-40 bg-white/10 rounded animate-pulse mb-4" />
-        <div className="h-4 w-72 bg-white/10 rounded animate-pulse mb-3" />
-        <div className="w-full h-40 rounded-xl border border-white/10 bg-black/40 animate-pulse" />
-        <div className="h-11 w-52 bg-white/10 rounded-xl animate-pulse mt-4" />
+        <div className="mb-4 h-6 w-40 animate-pulse rounded bg-white/10" />
+        <div className="mb-3 h-4 w-72 animate-pulse rounded bg-white/10" />
+        <div className="h-40 w-full animate-pulse rounded-xl border border-white/10 bg-black/40" />
+        <div className="mt-4 h-11 w-52 animate-pulse rounded-xl bg-white/10" />
       </div>
     </div>
   );
@@ -148,6 +155,8 @@ function FeedbackBanner({
     animal_no_encontrado: "No se encontró el animal seleccionado.",
     animal_no_disponible:
       "Este animal ya no está disponible para recibir nuevas solicitudes.",
+    auto_solicitud_no_permitida:
+      "No podés enviar una solicitud sobre tu propia publicación.",
     error_insercion:
       "Ocurrió un error al guardar la solicitud. Intentá nuevamente.",
   };
@@ -162,10 +171,7 @@ function FeedbackBanner({
 function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
-    en_proceso: "En proceso de adopción",
     adoptado: "Adoptado",
-    pausado: "Pausado",
-    cancelado: "Cancelado",
   };
 
   return labels[estado] ?? estado;
@@ -209,28 +215,28 @@ async function NuevaSolicitudContent({
     <div className="space-y-6">
       <FeedbackBanner ok={ok} error={error} />
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 mb-6">
-        <p className="text-sm text-white/60 mb-2">Solicitud de adopción</p>
-        <h1 className="text-3xl font-bold mb-3">
+      <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <p className="mb-2 text-sm text-white/60">Solicitud de adopción</p>
+        <h1 className="mb-3 text-3xl font-bold">
           Quiero adoptar a {animal.nombre}
         </h1>
         <p className="text-white/70">
           Estás iniciando una solicitud para este animal:
         </p>
 
-        <div className="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+        <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Nombre</p>
+            <p className="mb-1 text-white/60">Nombre</p>
             <p>{animal.nombre}</p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Estado</p>
+            <p className="mb-1 text-white/60">Estado</p>
             <p>{formatEstadoAnimal(animal.estado)}</p>
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Especie</p>
+            <p className="mb-1 text-white/60">Especie</p>
             <p>
               {animal.especie}
               {animal.raza ? ` · ${animal.raza}` : ""}
@@ -238,14 +244,14 @@ async function NuevaSolicitudContent({
           </div>
 
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-white/60 mb-1">Ciudad</p>
+            <p className="mb-1 text-white/60">Ciudad</p>
             <p>{animal.ciudad ?? "No informada"}</p>
           </div>
         </div>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="text-xl font-semibold mb-4">Mensaje inicial</h2>
+        <h2 className="mb-4 text-xl font-semibold">Mensaje inicial</h2>
 
         {puedeSolicitar ? (
           <form action={submitSolicitud} className="space-y-4">
@@ -254,7 +260,7 @@ async function NuevaSolicitudContent({
             <div>
               <label
                 htmlFor="mensaje"
-                className="block text-sm text-white/70 mb-2"
+                className="mb-2 block text-sm text-white/70"
               >
                 Contale al publicador por qué querés adoptar a este animal
               </label>
@@ -268,12 +274,7 @@ async function NuevaSolicitudContent({
               />
             </div>
 
-            <button
-              type="submit"
-              className="inline-flex px-5 py-3 rounded-xl bg-white text-black font-medium hover:opacity-90 transition"
-            >
-              Enviar solicitud
-            </button>
+            <SubmitButton />
           </form>
         ) : (
           <div className="rounded-xl border border-white/10 bg-black/30 p-4 text-white/70">
@@ -292,11 +293,11 @@ export default function NuevaSolicitudPage({
 }) {
   return (
     <main className="min-h-screen bg-black text-white">
-      <section className="max-w-3xl mx-auto px-6 py-10">
+      <section className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
           <Link
             href="/"
-            className="text-sm text-white/60 hover:text-white transition"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             ← Volver al inicio
           </Link>
