@@ -1,6 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+
+type SearchParams = Promise<{ error?: string }>;
 
 async function crearPublicacion(formData: FormData) {
   "use server";
@@ -100,30 +103,6 @@ async function crearPublicacion(formData: FormData) {
   redirect(`/publicaciones/${animalCreado.id_animal}?ok=publicacion_creada`);
 }
 
-function FeedbackBanner({
-  searchParams,
-}: {
-  searchParams: { error?: string };
-}) {
-  const error = searchParams.error;
-
-  if (!error) return null;
-
-  const messages: Record<string, string> = {
-    usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
-    campos_obligatorios: "Completá al menos nombre y especie.",
-    especie_invalida: "La especie debe ser perro o gato.",
-    error_creacion_publicacion:
-      "Ocurrió un error al crear la publicación.",
-  };
-
-  return (
-    <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-      {messages[error] ?? "Ocurrió un error inesperado."}
-    </div>
-  );
-}
-
 function Campo({
   label,
   name,
@@ -154,13 +133,279 @@ function Campo({
   );
 }
 
-export default async function NuevaPublicacionPage({
+function NuevaPublicacionSkeleton() {
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-5 h-6 w-48 animate-pulse rounded bg-white/10" />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-12 animate-pulse rounded-xl bg-white/10"
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-5 h-6 w-56 animate-pulse rounded bg-white/10" />
+        <div className="space-y-4">
+          <div className="h-28 animate-pulse rounded-xl bg-white/10" />
+          <div className="h-20 animate-pulse rounded-xl bg-white/10" />
+          <div className="h-12 animate-pulse rounded-xl bg-white/10" />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-5 h-6 w-40 animate-pulse rounded bg-white/10" />
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-12 animate-pulse rounded-xl bg-white/10"
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function FeedbackBanner({ error }: { error?: string }) {
+  if (!error) return null;
+
+  const messages: Record<string, string> = {
+    usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
+    campos_obligatorios: "Completá al menos nombre y especie.",
+    especie_invalida: "La especie debe ser perro o gato.",
+    error_creacion_publicacion:
+      "Ocurrió un error al crear la publicación.",
+  };
+
+  return (
+    <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+      {messages[error] ?? "Ocurrió un error inesperado."}
+    </div>
+  );
+}
+
+async function NuevaPublicacionContent({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: SearchParams;
 }) {
-  const resolvedSearchParams = await searchParams;
+  const { error } = await searchParams;
 
+  return (
+    <>
+      <FeedbackBanner error={error} />
+
+      <form action={crearPublicacion} className="space-y-6">
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="mb-5 text-xl font-semibold">Datos principales</h2>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Campo
+              label="Nombre"
+              name="nombre"
+              placeholder="Ej. Mora"
+              required
+            />
+
+            <div>
+              <label
+                htmlFor="especie"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Especie
+              </label>
+              <select
+                id="especie"
+                name="especie"
+                required
+                defaultValue=""
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              >
+                <option value="" disabled>
+                  Seleccionar
+                </option>
+                <option value="perro">Perro</option>
+                <option value="gato">Gato</option>
+              </select>
+            </div>
+
+            <Campo label="Raza" name="raza" placeholder="Ej. mestizo" />
+
+            <div>
+              <label
+                htmlFor="sexo"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Sexo
+              </label>
+              <select
+                id="sexo"
+                name="sexo"
+                defaultValue=""
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              >
+                <option value="">No informado</option>
+                <option value="macho">Macho</option>
+                <option value="hembra">Hembra</option>
+              </select>
+            </div>
+
+            <Campo
+              label="Edad aproximada"
+              name="edad_aproximada"
+              placeholder="Ej. 2 años"
+            />
+
+            <div>
+              <label
+                htmlFor="tamano"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Tamaño
+              </label>
+              <select
+                id="tamano"
+                name="tamano"
+                defaultValue=""
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              >
+                <option value="">No informado</option>
+                <option value="pequeno">Pequeño</option>
+                <option value="mediano">Mediano</option>
+                <option value="grande">Grande</option>
+              </select>
+            </div>
+
+            <Campo
+              label="Ciudad"
+              name="ciudad"
+              placeholder="Ej. Bahía Blanca"
+            />
+
+            <div>
+              <label
+                htmlFor="nivel_energia"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Nivel de energía
+              </label>
+              <select
+                id="nivel_energia"
+                name="nivel_energia"
+                defaultValue=""
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              >
+                <option value="">No informado</option>
+                <option value="bajo">Bajo</option>
+                <option value="medio">Medio</option>
+                <option value="alto">Alto</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="mb-5 text-xl font-semibold">Descripción y salud</h2>
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="descripcion"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Descripción
+              </label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                rows={5}
+                placeholder="Contá cómo es el animal, su carácter y qué tipo de hogar buscás."
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="estado_salud"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Estado de salud
+              </label>
+              <textarea
+                id="estado_salud"
+                name="estado_salud"
+                rows={3}
+                placeholder="Ej. Buen estado general, controles al día."
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              />
+            </div>
+
+            <Campo
+              label="Foto principal (URL)"
+              name="foto_principal"
+              placeholder="https://..."
+            />
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <h2 className="mb-5 text-xl font-semibold">Características</h2>
+
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {[
+              ["castrado", "Castrado"],
+              ["vacunado", "Vacunado"],
+              ["desparasitado", "Desparasitado"],
+              ["apto_ninos", "Apto niños"],
+              ["apto_gatos", "Apto gatos"],
+              ["apto_perros", "Apto perros"],
+            ].map(([name, label]) => (
+              <label
+                key={name}
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+              >
+                <input
+                  type="checkbox"
+                  name={name}
+                  className="h-4 w-4 accent-white"
+                />
+                <span className="text-sm text-white/90">{label}</span>
+              </label>
+            ))}
+          </div>
+        </section>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
+          >
+            Crear publicación
+          </button>
+
+          <Link
+            href="/publicaciones"
+            className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+          >
+            Cancelar
+          </Link>
+        </div>
+      </form>
+    </>
+  );
+}
+
+export default function NuevaPublicacionPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-4xl px-6 py-10">
@@ -181,208 +426,9 @@ export default async function NuevaPublicacionPage({
           </p>
         </header>
 
-        <FeedbackBanner searchParams={resolvedSearchParams} />
-
-        <form action={crearPublicacion} className="space-y-6">
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="mb-5 text-xl font-semibold">Datos principales</h2>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Campo
-                label="Nombre"
-                name="nombre"
-                placeholder="Ej. Mora"
-                required
-              />
-
-              <div>
-                <label
-                  htmlFor="especie"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Especie
-                </label>
-                <select
-                  id="especie"
-                  name="especie"
-                  required
-                  defaultValue=""
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                >
-                  <option value="" disabled>
-                    Seleccionar
-                  </option>
-                  <option value="perro">Perro</option>
-                  <option value="gato">Gato</option>
-                </select>
-              </div>
-
-              <Campo
-                label="Raza"
-                name="raza"
-                placeholder="Ej. mestizo"
-              />
-
-              <div>
-                <label
-                  htmlFor="sexo"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Sexo
-                </label>
-                <select
-                  id="sexo"
-                  name="sexo"
-                  defaultValue=""
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                >
-                  <option value="">No informado</option>
-                  <option value="macho">Macho</option>
-                  <option value="hembra">Hembra</option>
-                </select>
-              </div>
-
-              <Campo
-                label="Edad aproximada"
-                name="edad_aproximada"
-                placeholder="Ej. 2 años"
-              />
-
-              <div>
-                <label
-                  htmlFor="tamano"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Tamaño
-                </label>
-                <select
-                  id="tamano"
-                  name="tamano"
-                  defaultValue=""
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                >
-                  <option value="">No informado</option>
-                  <option value="pequeno">Pequeño</option>
-                  <option value="mediano">Mediano</option>
-                  <option value="grande">Grande</option>
-                </select>
-              </div>
-
-              <Campo
-                label="Ciudad"
-                name="ciudad"
-                placeholder="Ej. Bahía Blanca"
-              />
-
-              <div>
-                <label
-                  htmlFor="nivel_energia"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Nivel de energía
-                </label>
-                <select
-                  id="nivel_energia"
-                  name="nivel_energia"
-                  defaultValue=""
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                >
-                  <option value="">No informado</option>
-                  <option value="bajo">Bajo</option>
-                  <option value="medio">Medio</option>
-                  <option value="alto">Alto</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="mb-5 text-xl font-semibold">Descripción y salud</h2>
-
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="descripcion"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Descripción
-                </label>
-                <textarea
-                  id="descripcion"
-                  name="descripcion"
-                  rows={5}
-                  placeholder="Contá cómo es el animal, su carácter y qué tipo de hogar buscás."
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="estado_salud"
-                  className="mb-2 block text-sm text-white/70"
-                >
-                  Estado de salud
-                </label>
-                <textarea
-                  id="estado_salud"
-                  name="estado_salud"
-                  rows={3}
-                  placeholder="Ej. Buen estado general, controles al día."
-                  className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
-                />
-              </div>
-
-              <Campo
-                label="Foto principal (URL)"
-                name="foto_principal"
-                placeholder="https://..."
-              />
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <h2 className="mb-5 text-xl font-semibold">Características</h2>
-
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-              {[
-                ["castrado", "Castrado"],
-                ["vacunado", "Vacunado"],
-                ["desparasitado", "Desparasitado"],
-                ["apto_ninos", "Apto niños"],
-                ["apto_gatos", "Apto gatos"],
-                ["apto_perros", "Apto perros"],
-              ].map(([name, label]) => (
-                <label
-                  key={name}
-                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
-                >
-                  <input
-                    type="checkbox"
-                    name={name}
-                    className="h-4 w-4 accent-white"
-                  />
-                  <span className="text-sm text-white/90">{label}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="submit"
-              className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
-            >
-              Crear publicación
-            </button>
-
-            <Link
-              href="/publicaciones"
-              className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-medium text-white transition hover:bg-white/10"
-            >
-              Cancelar
-            </Link>
-          </div>
-        </form>
+        <Suspense fallback={<NuevaPublicacionSkeleton />}>
+          <NuevaPublicacionContent searchParams={searchParams} />
+        </Suspense>
       </section>
     </main>
   );
