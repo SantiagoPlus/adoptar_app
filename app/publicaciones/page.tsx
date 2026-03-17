@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
+type SearchParams = Promise<{ filtro?: string }>;
+
 type FotoAnimal = {
   id_foto: string;
   url_foto: string;
@@ -24,6 +26,13 @@ type Publicacion = {
 type SolicitudResumen = {
   id_animal: string;
   estado: string;
+};
+
+type ResumenSolicitudes = {
+  total: number;
+  pendientes: number;
+  enRevision: number;
+  adoptadas: number;
 };
 
 function formatEstadoAnimal(estado: string) {
@@ -89,15 +98,42 @@ function EmptySection({
   );
 }
 
-function Toolbar() {
+function Toolbar({ filtroActivo }: { filtroActivo: string }) {
+  const filtros = [
+    { key: "todas", label: "Todas" },
+    { key: "con-solicitudes", label: "Con solicitudes" },
+    { key: "sin-solicitudes", label: "Sin solicitudes" },
+    { key: "en-revision", label: "En revisión" },
+  ];
+
   return (
-    <div className="mb-10 flex flex-wrap items-center justify-between gap-3">
-      <button
-        type="button"
-        className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
-      >
-        Filtros
-      </button>
+    <div className="mb-10 flex flex-wrap items-start justify-between gap-4">
+      <div className="space-y-3">
+        <p className="text-sm text-white/60">Filtros</p>
+        <div className="flex flex-wrap gap-2">
+          {filtros.map((filtro) => {
+            const activo = filtroActivo === filtro.key;
+
+            return (
+              <Link
+                key={filtro.key}
+                href={
+                  filtro.key === "todas"
+                    ? "/publicaciones"
+                    : `/publicaciones?filtro=${filtro.key}`
+                }
+                className={`rounded-xl border px-4 py-2 text-sm transition ${
+                  activo
+                    ? "border-white bg-white text-black"
+                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+                }`}
+              >
+                {filtro.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
 
       <Link
         href="/publicaciones/historial"
@@ -134,12 +170,7 @@ function PublicacionCard({
   resumen,
 }: {
   animal: Publicacion;
-  resumen: {
-    total: number;
-    pendientes: number;
-    enRevision: number;
-    adoptadas: number;
-  };
+  resumen: ResumenSolicitudes;
 }) {
   const fotoPrincipal =
     animal.fotos_animales.find((foto) => foto.es_principal) ??
@@ -218,7 +249,40 @@ function PublicacionCard({
   );
 }
 
-async function PublicacionesContent() {
+function filtrarActivas(
+  publicaciones: Publicacion[],
+  resumenes: Map<string, ResumenSolicitudes>,
+  filtroActivo: string,
+) {
+  if (filtroActivo === "con-solicitudes") {
+    return publicaciones.filter(
+      (animal) => (resumenes.get(animal.id_animal)?.total ?? 0) > 0,
+    );
+  }
+
+  if (filtroActivo === "sin-solicitudes") {
+    return publicaciones.filter(
+      (animal) => (resumenes.get(animal.id_animal)?.total ?? 0) === 0,
+    );
+  }
+
+  if (filtroActivo === "en-revision") {
+    return publicaciones.filter(
+      (animal) => (resumenes.get(animal.id_animal)?.enRevision ?? 0) > 0,
+    );
+  }
+
+  return publicaciones;
+}
+
+async function PublicacionesContent({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const { filtro } = await searchParams;
+  const filtroActivo = filtro ?? "todas";
+
   const supabase = await createClient();
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -278,11 +342,24 @@ async function PublicacionesContent() {
     ),
   }));
 
+  if (items.length === 0) {
+    return (
+      <>
+        <Toolbar filtroActivo={filtroActivo} />
+        <EmptySection
+          text="Todavía no tenés publicaciones."
+          ctaHref="/publicaciones/nueva"
+          ctaLabel="Crear nueva publicación"
+        />
+      </>
+    );
+  }
+
   const itemsGestion = items.filter((item) => item.estado !== "adoptado");
   const publicacionesPausadas = itemsGestion.filter(
     (item) => item.estado === "pausado",
   );
-  const publicacionesActivas = itemsGestion.filter(
+  const publicacionesActivasBase = itemsGestion.filter(
     (item) => item.estado === "disponible",
   );
 
@@ -291,17 +368,12 @@ async function PublicacionesContent() {
   const { data: solicitudes } = await supabase
     .from("solicitudes_adopcion")
     .select("id_animal, estado")
-    .in("id_animal", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    .in(
+      "id_animal",
+      ids.length ? ids : ["00000000-0000-0000-0000-000000000000"],
+    );
 
-  const solicitudesPorAnimal = new Map<
-    string,
-    {
-      total: number;
-      pendientes: number;
-      enRevision: number;
-      adoptadas: number;
-    }
-  >();
+  const solicitudesPorAnimal = new Map<string, ResumenSolicitudes>();
 
   ((solicitudes ?? []) as SolicitudResumen[]).forEach((solicitud) => {
     const actual = solicitudesPorAnimal.get(solicitud.id_animal) ?? {
@@ -319,22 +391,15 @@ async function PublicacionesContent() {
     solicitudesPorAnimal.set(solicitud.id_animal, actual);
   });
 
-  if (items.length === 0) {
-    return (
-      <>
-        <Toolbar />
-        <EmptySection
-          text="Todavía no tenés publicaciones."
-          ctaHref="/publicaciones/nueva"
-          ctaLabel="Crear nueva publicación"
-        />
-      </>
-    );
-  }
+  const publicacionesActivas = filtrarActivas(
+    publicacionesActivasBase,
+    solicitudesPorAnimal,
+    filtroActivo,
+  );
 
   return (
     <>
-      <Toolbar />
+      <Toolbar filtroActivo={filtroActivo} />
 
       <section className="mb-10">
         <SectionTitle
@@ -373,11 +438,7 @@ async function PublicacionesContent() {
         />
 
         {publicacionesActivas.length === 0 ? (
-          <EmptySection
-            text="No tenés publicaciones activas."
-            ctaHref="/publicaciones/nueva"
-            ctaLabel="Crear nueva publicación"
-          />
+          <EmptySection text="No hay publicaciones activas para este filtro." />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {publicacionesActivas.map((animal) => {
@@ -403,7 +464,11 @@ async function PublicacionesContent() {
   );
 }
 
-export default function PublicacionesPage() {
+export default function PublicacionesPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -426,7 +491,7 @@ export default function PublicacionesPage() {
         </header>
 
         <Suspense fallback={<PublicacionesSkeleton />}>
-          <PublicacionesContent />
+          <PublicacionesContent searchParams={searchParams} />
         </Suspense>
       </section>
     </main>
