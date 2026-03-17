@@ -5,6 +5,37 @@ import { createClient } from "@/lib/supabase/server";
 
 type Params = Promise<{ id: string }>;
 
+type FotoAnimal = {
+  id_foto: string;
+  url_foto: string;
+  es_principal: boolean;
+  orden: number;
+};
+
+type AnimalPublicacion = {
+  id_animal: string;
+  nombre: string;
+  especie: string;
+  raza: string | null;
+  sexo: string | null;
+  edad_aproximada: string | null;
+  tamano: string | null;
+  descripcion: string | null;
+  estado_salud: string | null;
+  ciudad: string | null;
+  estado: string;
+  fecha_publicacion: string | null;
+  id_publicador: string;
+  nivel_energia: string | null;
+  castrado: boolean | null;
+  vacunado: boolean | null;
+  desparasitado: boolean | null;
+  apto_ninos: boolean | null;
+  apto_gatos: boolean | null;
+  apto_perros: boolean | null;
+  fotos_animales: FotoAnimal[];
+};
+
 function formatEstadoSolicitud(estado: string) {
   const labels: Record<string, string> = {
     pendiente: "Pendiente",
@@ -115,7 +146,7 @@ async function actualizarEstadoSolicitud(formData: FormData) {
     redirect("/publicaciones?error=solicitud_invalida");
   }
 
-  if (!["rechazada", "cancelada"].includes(nuevoEstado)) {
+  if (!["rechazada"].includes(nuevoEstado)) {
     redirect(`/publicaciones/${idAnimal}?error=estado_destino_invalido`);
   }
 
@@ -349,7 +380,9 @@ async function actualizarEstadoPublicacion(formData: FormData) {
     .eq("id_animal", idAnimal);
 
   if (error) {
-    redirect(`/publicaciones/${idAnimal}?error=error_actualizacion_publicacion`);
+    redirect(
+      `/publicaciones/${idAnimal}?error=error_actualizacion_publicacion`,
+    );
   }
 
   redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
@@ -382,14 +415,6 @@ function FeedbackBanner({
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
         La solicitud fue rechazada correctamente.
-      </div>
-    );
-  }
-
-  if (ok === "cancelada") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La solicitud fue cancelada correctamente.
       </div>
     );
   }
@@ -471,26 +496,50 @@ function FeedbackBanner({
 function PublicacionSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="mb-3 h-7 w-48 animate-pulse rounded bg-white/10" />
-        <div className="mb-2 h-4 w-32 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-44 animate-pulse rounded bg-white/10" />
+      <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
+        <div className="h-[420px] animate-pulse rounded-2xl border border-white/10 bg-white/10" />
+        <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div className="h-8 w-52 animate-pulse rounded bg-white/10" />
+          <div className="h-4 w-40 animate-pulse rounded bg-white/10" />
+          <div className="h-4 w-60 animate-pulse rounded bg-white/10" />
+          <div className="grid gap-3 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-20 animate-pulse rounded-xl bg-white/10"
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, index) => (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-3 h-6 w-40 animate-pulse rounded bg-white/10" />
+        <div className="mb-2 h-4 w-full animate-pulse rounded bg-white/10" />
+        <div className="mb-2 h-4 w-5/6 animate-pulse rounded bg-white/10" />
+        <div className="h-4 w-4/6 animate-pulse rounded bg-white/10" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-2xl border border-white/10 bg-white/5 p-5"
+            className="rounded-2xl border border-white/10 bg-white/5 p-4"
           >
-            <div className="mb-3 h-5 w-40 animate-pulse rounded bg-white/10" />
-            <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
-            <div className="mb-2 h-4 w-56 animate-pulse rounded bg-white/10" />
-            <div className="h-4 w-full animate-pulse rounded bg-white/10" />
+            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
+            <div className="h-8 w-10 animate-pulse rounded bg-white/10" />
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+function AtributoChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/90">
+      {children}
+    </span>
   );
 }
 
@@ -533,10 +582,28 @@ async function PublicacionContent({
         nombre,
         especie,
         raza,
+        sexo,
+        edad_aproximada,
+        tamano,
+        descripcion,
+        estado_salud,
         ciudad,
         estado,
         fecha_publicacion,
-        id_publicador
+        id_publicador,
+        nivel_energia,
+        castrado,
+        vacunado,
+        desparasitado,
+        apto_ninos,
+        apto_gatos,
+        apto_perros,
+        fotos_animales (
+          id_foto,
+          url_foto,
+          es_principal,
+          orden
+        )
       `,
     )
     .eq("id_animal", id)
@@ -546,9 +613,20 @@ async function PublicacionContent({
     notFound();
   }
 
-  if (animal.id_publicador !== usuario.id_usuario) {
+  const animalTipado: AnimalPublicacion = {
+    ...animal,
+    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
+      (a, b) => a.orden - b.orden,
+    ),
+  };
+
+  if (animalTipado.id_publicador !== usuario.id_usuario) {
     redirect("/publicaciones");
   }
+
+  const fotoPrincipal =
+    animalTipado.fotos_animales.find((foto) => foto.es_principal) ??
+    animalTipado.fotos_animales[0];
 
   const { data: solicitudes, error: solicitudesError } = await supabase
     .from("solicitudes_adopcion")
@@ -561,7 +639,7 @@ async function PublicacionContent({
         fecha_solicitud
       `,
     )
-    .eq("id_animal", animal.id_animal)
+    .eq("id_animal", animalTipado.id_animal)
     .order("fecha_solicitud", { ascending: false });
 
   if (solicitudesError) {
@@ -612,110 +690,206 @@ async function PublicacionContent({
     <div className="space-y-6">
       <FeedbackBanner ok={ok} error={searchError} />
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-sm text-white/60 mb-2">Publicación</p>
-            <h1 className="text-3xl font-bold mb-2">{animal.nombre}</h1>
-            <p className="text-white/70">
-              {animal.especie}
-              {animal.raza ? ` · ${animal.raza}` : ""}
-            </p>
+      <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
+        <div className="space-y-4">
+          {fotoPrincipal ? (
+            <img
+              src={fotoPrincipal.url_foto}
+              alt={animalTipado.nombre}
+              className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
+            />
+          ) : (
+            <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/50">
+              Sin imagen
+            </div>
+          )}
+
+          {animalTipado.fotos_animales.length > 1 && (
+            <div className="grid grid-cols-3 gap-3">
+              {animalTipado.fotos_animales.map((foto) => (
+                <img
+                  key={foto.id_foto}
+                  src={foto.url_foto}
+                  alt={animalTipado.nombre}
+                  className="h-28 w-full rounded-xl border border-white/10 object-cover"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="mb-2 text-sm text-white/60">Publicación</p>
+              <h1 className="mb-2 text-3xl font-bold">{animalTipado.nombre}</h1>
+              <p className="text-white/70">
+                {animalTipado.especie}
+                {animalTipado.raza ? ` · ${animalTipado.raza}` : ""}
+              </p>
+            </div>
+
+            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+              {formatEstadoAnimal(animalTipado.estado)}
+            </span>
           </div>
 
-          <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
-            {formatEstadoAnimal(animal.estado)}
-          </span>
-        </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 text-sm">
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="mb-1 text-white/60">Ciudad</p>
+              <p>{animalTipado.ciudad ?? "No informada"}</p>
+            </div>
 
-        <div className="text-sm text-white/70 space-y-1 mt-5">
-          <p>
-            <span className="font-medium text-white">Ciudad:</span>{" "}
-            {animal.ciudad ?? "No informada"}
-          </p>
-          <p>
-            <span className="font-medium text-white">Publicado:</span>{" "}
-            {animal.fecha_publicacion
-              ? new Date(animal.fecha_publicacion).toLocaleString("es-AR")
-              : "No informado"}
-          </p>
-        </div>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="mb-1 text-white/60">Sexo</p>
+              <p>{animalTipado.sexo ?? "No informado"}</p>
+            </div>
 
-        <div className="mt-5 flex flex-wrap gap-3">
-          {animal.estado === "disponible" && (
-            <>
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="mb-1 text-white/60">Edad</p>
+              <p>{animalTipado.edad_aproximada ?? "No informada"}</p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="mb-1 text-white/60">Tamaño</p>
+              <p>{animalTipado.tamano ?? "No informado"}</p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 md:col-span-2">
+              <p className="mb-1 text-white/60">Estado de salud</p>
+              <p>{animalTipado.estado_salud ?? "No informado"}</p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 md:col-span-2">
+              <p className="mb-1 text-white/60">Publicado</p>
+              <p>
+                {animalTipado.fecha_publicacion
+                  ? new Date(animalTipado.fecha_publicacion).toLocaleString(
+                      "es-AR",
+                    )
+                  : "No informado"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {animalTipado.estado === "disponible" && (
+              <>
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="pausado" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  >
+                    Pausar publicación
+                  </button>
+                </form>
+
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="cancelado" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
+                  >
+                    Cancelar publicación
+                  </button>
+                </form>
+              </>
+            )}
+
+            {(animalTipado.estado === "pausado" ||
+              animalTipado.estado === "cancelado") && (
               <form action={actualizarEstadoPublicacion}>
-                <input type="hidden" name="id_animal" value={animal.id_animal} />
-                <input type="hidden" name="nuevo_estado" value="pausado" />
+                <input
+                  type="hidden"
+                  name="id_animal"
+                  value={animalTipado.id_animal}
+                />
+                <input type="hidden" name="nuevo_estado" value="disponible" />
                 <button
                   type="submit"
-                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
                 >
-                  Pausar publicación
+                  Reactivar publicación
                 </button>
               </form>
+            )}
 
-              <form action={actualizarEstadoPublicacion}>
-                <input type="hidden" name="id_animal" value={animal.id_animal} />
-                <input type="hidden" name="nuevo_estado" value="cancelado" />
-                <button
-                  type="submit"
-                  className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
-                >
-                  Cancelar publicación
-                </button>
-              </form>
-            </>
-          )}
-
-          {(animal.estado === "pausado" || animal.estado === "cancelado") && (
-            <form action={actualizarEstadoPublicacion}>
-              <input type="hidden" name="id_animal" value={animal.id_animal} />
-              <input type="hidden" name="nuevo_estado" value="disponible" />
-              <button
-                type="submit"
-                className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-              >
-                Reactivar publicación
-              </button>
-            </form>
-          )}
-
-          <Link
-            href={`/animales/${animal.id_animal}`}
-            className="text-sm text-white/60 hover:text-white transition self-center"
-          >
-            Ver ficha pública
-          </Link>
+            <Link
+              href={`/animales/${animalTipado.id_animal}`}
+              className="self-center text-sm text-white/60 transition hover:text-white"
+            >
+              Ver ficha pública
+            </Link>
+          </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-5">
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="mb-3 text-xl font-semibold">
+          Sobre {animalTipado.nombre}
+        </h2>
+        <p className="leading-7 text-white/80">
+          {animalTipado.descripcion ?? "Sin descripción disponible."}
+        </p>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {animalTipado.castrado && <AtributoChip>Castrado</AtributoChip>}
+          {animalTipado.vacunado && <AtributoChip>Vacunado</AtributoChip>}
+          {animalTipado.desparasitado && (
+            <AtributoChip>Desparasitado</AtributoChip>
+          )}
+          {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
+          {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
+          {animalTipado.apto_perros && (
+            <AtributoChip>Apto perros</AtributoChip>
+          )}
+          {animalTipado.nivel_energia && (
+            <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
+          )}
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm text-white/60 mb-1">Total</p>
+          <p className="mb-1 text-sm text-white/60">Total</p>
           <p className="text-2xl font-semibold">{totalSolicitudes}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm text-white/60 mb-1">Pendientes</p>
+          <p className="mb-1 text-sm text-white/60">Pendientes</p>
           <p className="text-2xl font-semibold">{pendientes}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm text-white/60 mb-1">En revisión</p>
+          <p className="mb-1 text-sm text-white/60">En revisión</p>
           <p className="text-2xl font-semibold">{enRevision}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm text-white/60 mb-1">Rechazadas</p>
+          <p className="mb-1 text-sm text-white/60">Rechazadas</p>
           <p className="text-2xl font-semibold">{rechazadas}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm text-white/60 mb-1">Canceladas / adoptada</p>
-          <p className="text-2xl font-semibold">{canceladas + adoptadas}</p>
+          <p className="mb-1 text-sm text-white/60">Canceladas</p>
+          <p className="text-2xl font-semibold">{canceladas}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="mb-1 text-sm text-white/60">Adoptada</p>
+          <p className="text-2xl font-semibold">{adoptadas}</p>
         </div>
       </section>
 
       <section>
         <div className="mb-5">
-          <p className="text-sm text-white/60 mb-2">Gestión</p>
+          <p className="mb-2 text-sm text-white/60">Gestión</p>
           <h2 className="text-2xl font-semibold">Solicitudes recibidas</h2>
         </div>
 
@@ -729,8 +903,8 @@ async function PublicacionContent({
           <div className="space-y-4">
             {solicitudes.map((solicitud) => {
               const solicitante = solicitantesMap.get(solicitud.id_solicitante);
-              const animalDisponible = animal.estado === "disponible";
-              const animalAdoptado = animal.estado === "adoptado";
+              const animalDisponible = animalTipado.estado === "disponible";
+              const animalAdoptado = animalTipado.estado === "adoptado";
               const solicitudActiva =
                 solicitud.estado === "pendiente" ||
                 solicitud.estado === "en_revision";
@@ -740,7 +914,7 @@ async function PublicacionContent({
                   key={solicitud.id_solicitud}
                   className="rounded-2xl border border-white/10 bg-white/5 p-5"
                 >
-                  <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+                  <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <h3 className="text-xl font-semibold">
                         {solicitante?.nombre ?? "Usuario"}
@@ -751,16 +925,16 @@ async function PublicacionContent({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
+                      <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
                         Solicitud: {formatEstadoSolicitud(solicitud.estado)}
                       </span>
-                      <span className="text-xs px-3 py-1 rounded-full border border-white/15 bg-white/10">
-                        Animal: {formatEstadoAnimal(animal.estado)}
+                      <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+                        Animal: {formatEstadoAnimal(animalTipado.estado)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-sm text-white/70 mb-4">
+                  <div className="mb-4 text-sm text-white/70">
                     <span className="font-medium text-white">Fecha:</span>{" "}
                     {new Date(solicitud.fecha_solicitud).toLocaleString("es-AR")}
                   </div>
@@ -769,7 +943,7 @@ async function PublicacionContent({
                     {solicitud.mensaje}
                   </div>
 
-                  <div className="mt-4 flex items-center gap-3 flex-wrap">
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
                     {animalDisponible && solicitud.estado === "pendiente" && (
                       <form action={marcarEnRevision}>
                         <input
@@ -780,11 +954,11 @@ async function PublicacionContent({
                         <input
                           type="hidden"
                           name="id_animal"
-                          value={animal.id_animal}
+                          value={animalTipado.id_animal}
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium hover:opacity-90 transition"
+                          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
                         >
                           Marcar en revisión
                         </button>
@@ -801,7 +975,7 @@ async function PublicacionContent({
                         <input
                           type="hidden"
                           name="id_animal"
-                          value={animal.id_animal}
+                          value={animalTipado.id_animal}
                         />
                         <input
                           type="hidden"
@@ -810,7 +984,7 @@ async function PublicacionContent({
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-lg border border-red-500/30 bg-red-500/10 text-red-200 text-sm font-medium hover:bg-red-500/20 transition"
+                          className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
                         >
                           Rechazar
                         </button>
@@ -827,11 +1001,11 @@ async function PublicacionContent({
                         <input
                           type="hidden"
                           name="id_animal"
-                          value={animal.id_animal}
+                          value={animalTipado.id_animal}
                         />
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-lg border border-green-500/30 bg-green-500/10 text-green-200 text-sm font-medium hover:bg-green-500/20 transition"
+                          className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-200 transition hover:bg-green-500/20"
                         >
                           Marcar como adoptado
                         </button>
@@ -863,11 +1037,11 @@ export default function PublicacionDetallePage({
 }) {
   return (
     <main className="min-h-screen bg-black text-white">
-      <section className="max-w-5xl mx-auto px-6 py-10">
+      <section className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-8">
           <Link
             href="/publicaciones"
-            className="text-sm text-white/60 hover:text-white transition"
+            className="text-sm text-white/60 transition hover:text-white"
           >
             ← Volver a publicaciones
           </Link>
