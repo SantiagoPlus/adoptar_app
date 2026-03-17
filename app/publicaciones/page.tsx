@@ -31,8 +31,6 @@ function formatEstadoAnimal(estado: string) {
     disponible: "Disponible",
     adoptado: "Adoptado",
     pausado: "Pausado",
-    cancelado: "Cancelado",
-    en_proceso: "En proceso",
   };
 
   return labels[estado] ?? estado;
@@ -40,22 +38,183 @@ function formatEstadoAnimal(estado: string) {
 
 function PublicacionesSkeleton() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
-        >
-          <div className="h-52 w-full animate-pulse bg-white/10" />
-          <div className="p-5">
-            <div className="mb-3 h-6 w-32 animate-pulse rounded bg-white/10" />
-            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
-            <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
-            <div className="mt-4 h-10 w-40 animate-pulse rounded bg-white/10" />
+    <div className="space-y-10">
+      {Array.from({ length: 2 }).map((_, sectionIndex) => (
+        <section key={sectionIndex}>
+          <div className="mb-4 h-7 w-60 animate-pulse rounded bg-white/10" />
+          <div className="mb-6 h-px w-full bg-white/10" />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 3 }).map((__, index) => (
+              <div
+                key={index}
+                className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+              >
+                <div className="h-52 w-full animate-pulse bg-white/10" />
+                <div className="p-5">
+                  <div className="mb-3 h-6 w-32 animate-pulse rounded bg-white/10" />
+                  <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
+                  <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
+                  <div className="mt-4 h-10 w-40 animate-pulse rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
       ))}
     </div>
+  );
+}
+
+function EmptySection({
+  text,
+  ctaHref,
+  ctaLabel,
+}: {
+  text: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <p className="mb-2 text-white/80">{text}</p>
+      {ctaHref && ctaLabel ? (
+        <Link
+          href={ctaHref}
+          className="text-sm text-white/60 transition hover:text-white"
+        >
+          {ctaLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function Toolbar() {
+  return (
+    <div className="mb-10 flex flex-wrap items-center justify-between gap-3">
+      <button
+        type="button"
+        className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
+      >
+        Filtros
+      </button>
+
+      <Link
+        href="/publicaciones/historial"
+        className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
+      >
+        Historial
+      </Link>
+    </div>
+  );
+}
+
+function SectionTitle({
+  title,
+  count,
+}: {
+  title: string;
+  count: number;
+}) {
+  return (
+    <div className="mb-6">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-2xl font-semibold">{title}</h2>
+        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
+          {count}
+        </span>
+      </div>
+      <div className="h-px w-full bg-white/10" />
+    </div>
+  );
+}
+
+function PublicacionCard({
+  animal,
+  resumen,
+}: {
+  animal: Publicacion;
+  resumen: {
+    total: number;
+    pendientes: number;
+    enRevision: number;
+    adoptadas: number;
+  };
+}) {
+  const fotoPrincipal =
+    animal.fotos_animales.find((foto) => foto.es_principal) ??
+    animal.fotos_animales[0];
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      {fotoPrincipal ? (
+        <img
+          src={fotoPrincipal.url_foto}
+          alt={animal.nombre}
+          className="h-56 w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-56 w-full items-center justify-center bg-white/10 text-white/50">
+          Sin imagen
+        </div>
+      )}
+
+      <div className="p-5">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">{animal.nombre}</h2>
+            <p className="text-sm text-white/60">
+              {animal.especie}
+              {animal.raza ? ` · ${animal.raza}` : ""}
+            </p>
+          </div>
+
+          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+            {formatEstadoAnimal(animal.estado)}
+          </span>
+        </div>
+
+        <div className="mb-4 space-y-1 text-sm text-white/70">
+          <p>
+            <span className="font-medium text-white">Ciudad:</span>{" "}
+            {animal.ciudad ?? "No informada"}
+          </p>
+          <p>
+            <span className="font-medium text-white">Publicado:</span>{" "}
+            {animal.fecha_publicacion
+              ? new Date(animal.fecha_publicacion).toLocaleString("es-AR")
+              : "No informado"}
+          </p>
+        </div>
+
+        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-white/60">Solicitudes</p>
+            <p className="text-lg font-semibold">{resumen.total}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-white/60">En revisión</p>
+            <p className="text-lg font-semibold">{resumen.enRevision}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={`/publicaciones/${animal.id_animal}`}
+            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+          >
+            Ver publicación
+          </Link>
+
+          <Link
+            href={`/animales/${animal.id_animal}`}
+            className="text-sm text-white/60 transition hover:text-white"
+          >
+            Ver ficha pública
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -119,26 +278,20 @@ async function PublicacionesContent() {
     ),
   }));
 
-  if (items.length === 0) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <p className="mb-2 text-white/80">Todavía no tenés publicaciones.</p>
-        <Link
-          href="/publicaciones/nueva"
-          className="text-sm text-white/60 transition hover:text-white"
-        >
-          Crear nueva publicación
-        </Link>
-      </div>
-    );
-  }
+  const itemsGestion = items.filter((item) => item.estado !== "adoptado");
+  const publicacionesPausadas = itemsGestion.filter(
+    (item) => item.estado === "pausado",
+  );
+  const publicacionesActivas = itemsGestion.filter(
+    (item) => item.estado === "disponible",
+  );
 
-  const ids = items.map((item) => item.id_animal);
+  const ids = itemsGestion.map((item) => item.id_animal);
 
   const { data: solicitudes } = await supabase
     .from("solicitudes_adopcion")
     .select("id_animal, estado")
-    .in("id_animal", ids);
+    .in("id_animal", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
 
   const solicitudesPorAnimal = new Map<
     string,
@@ -166,96 +319,87 @@ async function PublicacionesContent() {
     solicitudesPorAnimal.set(solicitud.id_animal, actual);
   });
 
+  if (items.length === 0) {
+    return (
+      <>
+        <Toolbar />
+        <EmptySection
+          text="Todavía no tenés publicaciones."
+          ctaHref="/publicaciones/nueva"
+          ctaLabel="Crear nueva publicación"
+        />
+      </>
+    );
+  }
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {items.map((animal) => {
-        const fotoPrincipal =
-          animal.fotos_animales.find((foto) => foto.es_principal) ??
-          animal.fotos_animales[0];
+    <>
+      <Toolbar />
 
-        const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
-          total: 0,
-          pendientes: 0,
-          enRevision: 0,
-          adoptadas: 0,
-        };
+      <section className="mb-10">
+        <SectionTitle
+          title="Publicaciones pausadas"
+          count={publicacionesPausadas.length}
+        />
 
-        return (
-          <article
-            key={animal.id_animal}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
-          >
-            {fotoPrincipal ? (
-              <img
-                src={fotoPrincipal.url_foto}
-                alt={animal.nombre}
-                className="h-56 w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-56 w-full items-center justify-center bg-white/10 text-white/50">
-                Sin imagen
-              </div>
-            )}
+        {publicacionesPausadas.length === 0 ? (
+          <EmptySection text="No tenés publicaciones pausadas." />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {publicacionesPausadas.map((animal) => {
+              const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
+                total: 0,
+                pendientes: 0,
+                enRevision: 0,
+                adoptadas: 0,
+              };
 
-            <div className="p-5">
-              <div className="mb-3 flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-xl font-semibold">{animal.nombre}</h2>
-                  <p className="text-sm text-white/60">
-                    {animal.especie}
-                    {animal.raza ? ` · ${animal.raza}` : ""}
-                  </p>
-                </div>
+              return (
+                <PublicacionCard
+                  key={animal.id_animal}
+                  animal={animal}
+                  resumen={resumen}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-                <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
-                  {formatEstadoAnimal(animal.estado)}
-                </span>
-              </div>
+      <section>
+        <SectionTitle
+          title="Publicaciones activas"
+          count={publicacionesActivas.length}
+        />
 
-              <div className="mb-4 space-y-1 text-sm text-white/70">
-                <p>
-                  <span className="font-medium text-white">Ciudad:</span>{" "}
-                  {animal.ciudad ?? "No informada"}
-                </p>
-                <p>
-                  <span className="font-medium text-white">Publicado:</span>{" "}
-                  {animal.fecha_publicacion
-                    ? new Date(animal.fecha_publicacion).toLocaleString("es-AR")
-                    : "No informado"}
-                </p>
-              </div>
+        {publicacionesActivas.length === 0 ? (
+          <EmptySection
+            text="No tenés publicaciones activas."
+            ctaHref="/publicaciones/nueva"
+            ctaLabel="Crear nueva publicación"
+          />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {publicacionesActivas.map((animal) => {
+              const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
+                total: 0,
+                pendientes: 0,
+                enRevision: 0,
+                adoptadas: 0,
+              };
 
-              <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-white/60">Solicitudes</p>
-                  <p className="text-lg font-semibold">{resumen.total}</p>
-                </div>
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-                  <p className="text-white/60">En revisión</p>
-                  <p className="text-lg font-semibold">{resumen.enRevision}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/publicaciones/${animal.id_animal}`}
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                >
-                  Ver publicación
-                </Link>
-
-                <Link
-                  href={`/animales/${animal.id_animal}`}
-                  className="text-sm text-white/60 transition hover:text-white"
-                >
-                  Ver ficha pública
-                </Link>
-              </div>
-            </div>
-          </article>
-        );
-      })}
-    </div>
+              return (
+                <PublicacionCard
+                  key={animal.id_animal}
+                  animal={animal}
+                  resumen={resumen}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </>
   );
 }
 
