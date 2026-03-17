@@ -420,11 +420,12 @@ async function NuevaPublicacionContent({
   );
 }
 
-export default function NuevaPublicacionPage({
+export default async function NuevaPublicacionPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
+  await searchParams;
   const idAnimal = crypto.randomUUID();
 
   return (
