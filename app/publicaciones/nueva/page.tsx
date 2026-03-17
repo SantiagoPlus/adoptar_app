@@ -26,6 +26,7 @@ async function crearPublicacion(formData: FormData) {
     redirect("/publicaciones/nueva?error=usuario_no_encontrado");
   }
 
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
   const nombre = String(formData.get("nombre") ?? "").trim();
   const especie = String(formData.get("especie") ?? "").trim();
   const raza = String(formData.get("raza") ?? "").trim();
@@ -45,6 +46,10 @@ async function crearPublicacion(formData: FormData) {
   const aptoGatos = formData.get("apto_gatos") === "on";
   const aptoPerros = formData.get("apto_perros") === "on";
 
+  if (!idAnimal) {
+    redirect("/publicaciones/nueva?error=publicacion_invalida");
+  }
+
   if (!nombre || !especie) {
     redirect("/publicaciones/nueva?error=campos_obligatorios");
   }
@@ -54,6 +59,7 @@ async function crearPublicacion(formData: FormData) {
   }
 
   const payload = {
+    id_animal: idAnimal,
     id_publicador: usuario.id_usuario,
     nombre,
     especie,
@@ -81,7 +87,15 @@ async function crearPublicacion(formData: FormData) {
     .select("id_animal")
     .single();
 
-  if (insertAnimalError || !animalCreado) {
+  if (insertAnimalError) {
+    if (insertAnimalError.code === "23505") {
+      redirect(`/publicaciones/${idAnimal}?ok=publicacion_creada`);
+    }
+
+    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
+  }
+
+  if (!animalCreado) {
     redirect("/publicaciones/nueva?error=error_creacion_publicacion");
   }
 
@@ -181,6 +195,7 @@ function FeedbackBanner({ error }: { error?: string }) {
     especie_invalida: "La especie debe ser perro o gato.",
     error_creacion_publicacion:
       "Ocurrió un error al crear la publicación.",
+    publicacion_invalida: "No se pudo preparar correctamente la publicación.",
   };
 
   return (
@@ -192,8 +207,10 @@ function FeedbackBanner({ error }: { error?: string }) {
 
 async function NuevaPublicacionContent({
   searchParams,
+  idAnimal,
 }: {
   searchParams: SearchParams;
+  idAnimal: string;
 }) {
   const { error } = await searchParams;
 
@@ -202,6 +219,8 @@ async function NuevaPublicacionContent({
       <FeedbackBanner error={error} />
 
       <form action={crearPublicacion} className="space-y-6">
+        <input type="hidden" name="id_animal" value={idAnimal} />
+
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="mb-5 text-xl font-semibold">Datos principales</h2>
 
@@ -406,6 +425,8 @@ export default function NuevaPublicacionPage({
 }: {
   searchParams: SearchParams;
 }) {
+  const idAnimal = crypto.randomUUID();
+
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-4xl px-6 py-10">
@@ -427,7 +448,10 @@ export default function NuevaPublicacionPage({
         </header>
 
         <Suspense fallback={<NuevaPublicacionSkeleton />}>
-          <NuevaPublicacionContent searchParams={searchParams} />
+          <NuevaPublicacionContent
+            searchParams={searchParams}
+            idAnimal={idAnimal}
+          />
         </Suspense>
       </section>
     </main>
