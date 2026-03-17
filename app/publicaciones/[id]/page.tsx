@@ -52,6 +52,7 @@ function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
     adoptado: "Adoptado",
+    pausado: "Pausado",
   };
 
   return labels[estado] ?? estado;
@@ -318,6 +319,73 @@ async function concretarAdopcion(formData: FormData) {
   redirect(`/publicaciones/${idAnimal}?ok=adoptado`);
 }
 
+async function actualizarEstadoPublicacion(formData: FormData) {
+  "use server";
+
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
+  const nuevoEstado = String(formData.get("nuevo_estado") ?? "").trim();
+
+  if (!idAnimal || !nuevoEstado) {
+    redirect("/publicaciones?error=publicacion_invalida");
+  }
+
+  if (!["pausado", "disponible"].includes(nuevoEstado)) {
+    redirect(`/publicaciones/${idAnimal}?error=estado_publicacion_invalido`);
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
+  }
+
+  const { data: usuario } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (!usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
+  }
+
+  const { data: animal } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador, estado")
+    .eq("id_animal", idAnimal)
+    .single();
+
+  if (!animal) {
+    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
+  }
+
+  if (animal.estado === "adoptado") {
+    redirect(`/publicaciones/${idAnimal}?error=publicacion_adoptada_bloqueada`);
+  }
+
+  if (animal.estado === nuevoEstado) {
+    redirect(`/publicaciones/${idAnimal}?ok=sin_cambios_publicacion`);
+  }
+
+  const { error } = await supabase
+    .from("animales_adopcion")
+    .update({ estado: nuevoEstado })
+    .eq("id_animal", idAnimal);
+
+  if (error) {
+    redirect(
+      `/publicaciones/${idAnimal}?error=error_actualizacion_publicacion`,
+    );
+  }
+
+  redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
+}
+
 function FeedbackBanner({
   ok,
   error,
@@ -350,6 +418,30 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "publicacion_pausado") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue pausada y dejó de mostrarse en el flujo público.
+      </div>
+    );
+  }
+
+  if (ok === "publicacion_disponible") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue reactivada y volvió a estar disponible.
+      </div>
+    );
+  }
+
+  if (ok === "sin_cambios_publicacion") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación ya se encontraba en ese estado.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -376,6 +468,13 @@ function FeedbackBanner({
       "La adopción se concretó, pero hubo un problema al cerrar las demás solicitudes activas.",
     error_estado_solicitud_ganadora:
       "La adopción se registró, pero hubo un problema al actualizar la solicitud ganadora.",
+    publicacion_invalida: "La publicación indicada no es válida.",
+    estado_publicacion_invalido:
+      "El estado de publicación indicado no es válido.",
+    error_actualizacion_publicacion:
+      "Ocurrió un error al actualizar el estado de la publicación.",
+    publicacion_adoptada_bloqueada:
+      "Una publicación adoptada no puede volver a cambiar de estado.",
   };
 
   return (
@@ -665,9 +764,43 @@ async function PublicacionContent({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
+            {animalTipado.estado === "disponible" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input
+                  type="hidden"
+                  name="id_animal"
+                  value={animalTipado.id_animal}
+                />
+                <input type="hidden" name="nuevo_estado" value="pausado" />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                >
+                  Pausar / Ocultar publicación
+                </button>
+              </form>
+            )}
+
+            {animalTipado.estado === "pausado" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input
+                  type="hidden"
+                  name="id_animal"
+                  value={animalTipado.id_animal}
+                />
+                <input type="hidden" name="nuevo_estado" value="disponible" />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+                >
+                  Reactivar publicación
+                </button>
+              </form>
+            )}
+
             <Link
               href={`/animales/${animalTipado.id_animal}`}
-              className="text-sm text-white/60 transition hover:text-white"
+              className="self-center text-sm text-white/60 transition hover:text-white"
             >
               Ver ficha pública
             </Link>
