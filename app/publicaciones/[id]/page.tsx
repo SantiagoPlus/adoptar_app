@@ -52,9 +52,6 @@ function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
     adoptado: "Adoptado",
-    pausado: "Pausado",
-    cancelado: "Cancelado",
-    en_proceso: "En proceso",
   };
 
   return labels[estado] ?? estado;
@@ -321,73 +318,6 @@ async function concretarAdopcion(formData: FormData) {
   redirect(`/publicaciones/${idAnimal}?ok=adoptado`);
 }
 
-async function actualizarEstadoPublicacion(formData: FormData) {
-  "use server";
-
-  const idAnimal = String(formData.get("id_animal") ?? "").trim();
-  const nuevoEstado = String(formData.get("nuevo_estado") ?? "").trim();
-
-  if (!idAnimal || !nuevoEstado) {
-    redirect("/publicaciones?error=publicacion_invalida");
-  }
-
-  if (!["pausado", "cancelado", "disponible"].includes(nuevoEstado)) {
-    redirect(`/publicaciones/${idAnimal}?error=estado_publicacion_invalido`);
-  }
-
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (animal.estado === "adoptado") {
-    redirect(`/publicaciones/${idAnimal}?error=publicacion_adoptada_bloqueada`);
-  }
-
-  if (animal.estado === nuevoEstado) {
-    redirect(`/publicaciones/${idAnimal}?ok=sin_cambios_publicacion`);
-  }
-
-  const { error } = await supabase
-    .from("animales_adopcion")
-    .update({ estado: nuevoEstado })
-    .eq("id_animal", idAnimal);
-
-  if (error) {
-    redirect(
-      `/publicaciones/${idAnimal}?error=error_actualizacion_publicacion`,
-    );
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
-}
-
 function FeedbackBanner({
   ok,
   error,
@@ -406,7 +336,8 @@ function FeedbackBanner({
   if (ok === "adoptado") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La adopción fue concretada, la solicitud quedó en adoptado y las demás solicitudes activas fueron canceladas.
+        La adopción fue concretada, la solicitud quedó en adoptado y las demás
+        solicitudes activas fueron canceladas.
       </div>
     );
   }
@@ -415,38 +346,6 @@ function FeedbackBanner({
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
         La solicitud fue rechazada correctamente.
-      </div>
-    );
-  }
-
-  if (ok === "publicacion_pausado") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue pausada correctamente.
-      </div>
-    );
-  }
-
-  if (ok === "publicacion_cancelado") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue cancelada correctamente.
-      </div>
-    );
-  }
-
-  if (ok === "publicacion_disponible") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue reactivada y volvió a estar disponible.
-      </div>
-    );
-  }
-
-  if (ok === "sin_cambios_publicacion") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación ya se encontraba en ese estado.
       </div>
     );
   }
@@ -477,13 +376,6 @@ function FeedbackBanner({
       "La adopción se concretó, pero hubo un problema al cerrar las demás solicitudes activas.",
     error_estado_solicitud_ganadora:
       "La adopción se registró, pero hubo un problema al actualizar la solicitud ganadora.",
-    publicacion_invalida: "La publicación indicada no es válida.",
-    estado_publicacion_invalido:
-      "El estado de publicación indicado no es válido.",
-    error_actualizacion_publicacion:
-      "Ocurrió un error al actualizar el estado de la publicación.",
-    publicacion_adoptada_bloqueada:
-      "Una publicación adoptada no puede volver a cambiar de estado.",
   };
 
   return (
@@ -719,7 +611,7 @@ async function PublicacionContent({
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="mb-2 text-sm text-white/60">Publicación</p>
               <h1 className="mb-2 text-3xl font-bold">{animalTipado.nombre}</h1>
@@ -734,7 +626,7 @@ async function PublicacionContent({
             </span>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 text-sm">
+          <div className="mt-6 grid gap-4 text-sm md:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <p className="mb-1 text-white/60">Ciudad</p>
               <p>{animalTipado.ciudad ?? "No informada"}</p>
@@ -773,61 +665,9 @@ async function PublicacionContent({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            {animalTipado.estado === "disponible" && (
-              <>
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="pausado" />
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                  >
-                    Pausar publicación
-                  </button>
-                </form>
-
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="cancelado" />
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
-                  >
-                    Cancelar publicación
-                  </button>
-                </form>
-              </>
-            )}
-
-            {(animalTipado.estado === "pausado" ||
-              animalTipado.estado === "cancelado") && (
-              <form action={actualizarEstadoPublicacion}>
-                <input
-                  type="hidden"
-                  name="id_animal"
-                  value={animalTipado.id_animal}
-                />
-                <input type="hidden" name="nuevo_estado" value="disponible" />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                >
-                  Reactivar publicación
-                </button>
-              </form>
-            )}
-
             <Link
               href={`/animales/${animalTipado.id_animal}`}
-              className="self-center text-sm text-white/60 transition hover:text-white"
+              className="text-sm text-white/60 transition hover:text-white"
             >
               Ver ficha pública
             </Link>
@@ -851,9 +691,7 @@ async function PublicacionContent({
           )}
           {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
           {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
-          {animalTipado.apto_perros && (
-            <AtributoChip>Apto perros</AtributoChip>
-          )}
+          {animalTipado.apto_perros && <AtributoChip>Apto perros</AtributoChip>}
           {animalTipado.nivel_energia && (
             <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
           )}
