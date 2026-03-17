@@ -193,8 +193,7 @@ function FeedbackBanner({ error }: { error?: string }) {
     usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
     campos_obligatorios: "Completá al menos nombre y especie.",
     especie_invalida: "La especie debe ser perro o gato.",
-    error_creacion_publicacion:
-      "Ocurrió un error al crear la publicación.",
+    error_creacion_publicacion: "Ocurrió un error al crear la publicación.",
     publicacion_invalida: "No se pudo preparar correctamente la publicación.",
   };
 
