@@ -40,7 +40,7 @@ async function submitSolicitud(formData: FormData) {
 
   const { data: usuario, error: usuarioError } = await supabase
     .from("usuarios")
-    .select("id_usuario")
+    .select("id_usuario, nombre")
     .eq("auth_user_id", authData.user.id)
     .single();
 
@@ -79,6 +79,7 @@ async function submitSolicitud(formData: FormData) {
     .insert({
       id_animal: animalId,
       id_solicitante: usuario.id_usuario,
+      nombre_solicitante: usuario.nombre ?? "Usuario",
       mensaje,
       estado: "pendiente",
       fecha_solicitud: new Date().toISOString(),
@@ -172,6 +173,7 @@ function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
     adoptado: "Adoptado",
+    pausado: "Pausado",
   };
 
   return labels[estado] ?? estado;
