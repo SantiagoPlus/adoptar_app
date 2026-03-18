@@ -36,6 +36,15 @@ type AnimalPublicacion = {
   fotos_animales: FotoAnimal[];
 };
 
+type SolicitudItem = {
+  id_solicitud: string;
+  id_solicitante: string;
+  nombre_solicitante: string | null;
+  mensaje: string;
+  estado: string;
+  fecha_solicitud: string;
+};
+
 function formatEstadoSolicitud(estado: string) {
   const labels: Record<string, string> = {
     pendiente: "Pendiente",
@@ -706,6 +715,7 @@ async function PublicacionContent({
       `
         id_solicitud,
         id_solicitante,
+        nombre_solicitante,
         mensaje,
         estado,
         fecha_solicitud
@@ -725,38 +735,19 @@ async function PublicacionContent({
     );
   }
 
-  const solicitanteIds = [
-    ...new Set((solicitudes ?? []).map((s) => s.id_solicitante)),
-  ];
+  const solicitudesTipadas = (solicitudes ?? []) as SolicitudItem[];
 
-  const { data: solicitantes } = await supabase
-    .from("usuarios")
-    .select("id_usuario, nombre, email")
-    .in(
-      "id_usuario",
-      solicitanteIds.length
-        ? solicitanteIds
-        : ["00000000-0000-0000-0000-000000000000"],
-    );
-
-  const solicitantesMap = new Map(
-    (solicitantes ?? []).map((solicitante) => [
-      solicitante.id_usuario,
-      solicitante,
-    ]),
-  );
-
-  const totalSolicitudes = solicitudes?.length ?? 0;
+  const totalSolicitudes = solicitudesTipadas.length;
   const pendientes =
-    solicitudes?.filter((s) => s.estado === "pendiente").length ?? 0;
+    solicitudesTipadas.filter((s) => s.estado === "pendiente").length ?? 0;
   const enRevision =
-    solicitudes?.filter((s) => s.estado === "en_revision").length ?? 0;
+    solicitudesTipadas.filter((s) => s.estado === "en_revision").length ?? 0;
   const rechazadas =
-    solicitudes?.filter((s) => s.estado === "rechazada").length ?? 0;
+    solicitudesTipadas.filter((s) => s.estado === "rechazada").length ?? 0;
   const canceladas =
-    solicitudes?.filter((s) => s.estado === "cancelada").length ?? 0;
+    solicitudesTipadas.filter((s) => s.estado === "cancelada").length ?? 0;
   const adoptadas =
-    solicitudes?.filter((s) => s.estado === "adoptado").length ?? 0;
+    solicitudesTipadas.filter((s) => s.estado === "adoptado").length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -947,7 +938,7 @@ async function PublicacionContent({
           <h2 className="text-2xl font-semibold">Solicitudes recibidas</h2>
         </div>
 
-        {!solicitudes || solicitudes.length === 0 ? (
+        {solicitudesTipadas.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
             <p className="text-white/80">
               Esta publicación todavía no recibió solicitudes.
@@ -955,8 +946,7 @@ async function PublicacionContent({
           </div>
         ) : (
           <div className="space-y-4">
-            {solicitudes.map((solicitud) => {
-              const solicitante = solicitantesMap.get(solicitud.id_solicitante);
+            {solicitudesTipadas.map((solicitud) => {
               const animalDisponible = animalTipado.estado === "disponible";
               const animalAdoptado = animalTipado.estado === "adoptado";
               const solicitudActiva =
@@ -971,11 +961,8 @@ async function PublicacionContent({
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {solicitante?.nombre ?? "Usuario"}
+                        {solicitud.nombre_solicitante ?? "Usuario"}
                       </h3>
-                      <p className="text-sm text-white/60">
-                        {solicitante?.email ?? "Email no informado"}
-                      </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
