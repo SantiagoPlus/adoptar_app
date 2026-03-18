@@ -48,7 +48,7 @@ function formatEstadoAnimal(estado: string) {
 function PublicacionesSkeleton() {
   return (
     <div className="space-y-10">
-      {Array.from({ length: 2 }).map((_, sectionIndex) => (
+      {Array.from({ length: 3 }).map((_, sectionIndex) => (
         <section key={sectionIndex}>
           <div className="mb-4 h-7 w-60 animate-pulse rounded bg-white/10" />
           <div className="mb-6 h-px w-full bg-white/10" />
@@ -58,11 +58,11 @@ function PublicacionesSkeleton() {
                 key={index}
                 className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
               >
-                <div className="h-44 w-full animate-pulse bg-white/10" />
+                <div className="h-40 w-full animate-pulse bg-white/10" />
                 <div className="p-4">
                   <div className="mb-3 h-6 w-32 animate-pulse rounded bg-white/10" />
                   <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
-                  <div className="mt-4 h-14 w-full animate-pulse rounded bg-white/10" />
+                  <div className="mt-3 h-12 w-full animate-pulse rounded bg-white/10" />
                 </div>
               </div>
             ))}
@@ -102,6 +102,7 @@ function Toolbar({ filtroActivo }: { filtroActivo: string }) {
     { key: "todas", label: "Todas" },
     { key: "con-solicitudes", label: "Con solicitudes" },
     { key: "sin-solicitudes", label: "Sin solicitudes" },
+    { key: "pendientes", label: "Pendientes" },
     { key: "en-revision", label: "En revisión" },
   ];
 
@@ -182,10 +183,10 @@ function PublicacionCard({
           <img
             src={fotoPrincipal.url_foto}
             alt={animal.nombre}
-            className="h-40 w-full object-cover"
+            className="h-36 w-full object-cover"
           />
         ) : (
-          <div className="flex h-40 w-full items-center justify-center bg-white/10 text-white/50">
+          <div className="flex h-36 w-full items-center justify-center bg-white/10 text-white/50">
             Sin imagen
           </div>
         )}
@@ -205,7 +206,7 @@ function PublicacionCard({
             </span>
           </div>
 
-          <div className="mb-4 text-sm text-white/70">
+          <div className="mb-3 text-sm text-white/70">
             <p>
               <span className="font-medium text-white">Ciudad:</span>{" "}
               {animal.ciudad ?? "No informada"}
@@ -213,23 +214,29 @@ function PublicacionCard({
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
-              <p className="text-[11px] text-white/60">Solicitudes</p>
-              <p className="text-base font-semibold leading-tight">
+            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
+              <p className="text-[10px] leading-none text-white/60">
+                Solicitudes
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-none">
                 {resumen.total}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
-              <p className="text-[11px] text-white/60">Pendientes</p>
-              <p className="text-base font-semibold leading-tight">
+            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
+              <p className="text-[10px] leading-none text-white/60">
+                Pendientes
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-none">
                 {resumen.pendientes}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
-              <p className="text-[11px] text-white/60">En revisión</p>
-              <p className="text-base font-semibold leading-tight">
+            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
+              <p className="text-[10px] leading-none text-white/60">
+                En revisión
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-none">
                 {resumen.enRevision}
               </p>
             </div>
@@ -263,6 +270,12 @@ function filtrarActivas(
   if (filtroActivo === "sin-solicitudes") {
     return publicaciones.filter(
       (animal) => (resumenes.get(animal.id_animal)?.total ?? 0) === 0,
+    );
+  }
+
+  if (filtroActivo === "pendientes") {
+    return publicaciones.filter(
+      (animal) => (resumenes.get(animal.id_animal)?.pendientes ?? 0) > 0,
     );
   }
 
@@ -356,7 +369,7 @@ async function PublicacionesContent({
   }
 
   const itemsGestion = items.filter((item) => item.estado !== "adoptado");
-  const publicacionesPausadas = itemsGestion.filter(
+  const publicacionesPausadasBase = itemsGestion.filter(
     (item) => item.estado === "pausado",
   );
   const publicacionesActivasBase = itemsGestion.filter(
@@ -391,11 +404,24 @@ async function PublicacionesContent({
     solicitudesPorAnimal.set(solicitud.id_animal, actual);
   });
 
+  const publicacionesPausadas = filtrarActivas(
+    publicacionesPausadasBase,
+    solicitudesPorAnimal,
+    filtroActivo,
+  );
+
   const publicacionesActivas = filtrarActivas(
     publicacionesActivasBase,
     solicitudesPorAnimal,
     filtroActivo,
   );
+
+  const publicacionesPendientes = publicacionesActivasBase.filter(
+    (animal) => (solicitudesPorAnimal.get(animal.id_animal)?.pendientes ?? 0) > 0,
+  );
+
+  const mostrarBloquePendientes =
+    filtroActivo === "todas" || filtroActivo === "pendientes";
 
   return (
     <>
@@ -408,7 +434,7 @@ async function PublicacionesContent({
         />
 
         {publicacionesPausadas.length === 0 ? (
-          <EmptySection text="No tenés publicaciones pausadas." />
+          <EmptySection text="No tenés publicaciones pausadas para este filtro." />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {publicacionesPausadas.map((animal) => {
@@ -431,7 +457,7 @@ async function PublicacionesContent({
         )}
       </section>
 
-      <section>
+      <section className="mb-10">
         <SectionTitle
           title="Publicaciones activas"
           count={publicacionesActivas.length}
@@ -460,6 +486,38 @@ async function PublicacionesContent({
           </div>
         )}
       </section>
+
+      {mostrarBloquePendientes ? (
+        <section>
+          <SectionTitle
+            title="Publicaciones pendientes"
+            count={publicacionesPendientes.length}
+          />
+
+          {publicacionesPendientes.length === 0 ? (
+            <EmptySection text="No hay publicaciones con solicitudes pendientes." />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {publicacionesPendientes.map((animal) => {
+                const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
+                  total: 0,
+                  pendientes: 0,
+                  enRevision: 0,
+                  adoptadas: 0,
+                };
+
+                return (
+                  <PublicacionCard
+                    key={animal.id_animal}
+                    animal={animal}
+                    resumen={resumen}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
+      ) : null}
     </>
   );
 }
