@@ -386,6 +386,81 @@ async function actualizarEstadoPublicacion(formData: FormData) {
   redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
 }
 
+async function eliminarPublicacion(formData: FormData) {
+  "use server";
+
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
+
+  if (!idAnimal) {
+    redirect("/publicaciones?error=publicacion_invalida");
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
+  }
+
+  const { data: usuario } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (!usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
+  }
+
+  const { data: animal } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador, estado")
+    .eq("id_animal", idAnimal)
+    .single();
+
+  if (!animal) {
+    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
+  }
+
+  if (animal.estado === "adoptado") {
+    redirect(`/publicaciones/${idAnimal}?error=publicacion_adoptada_bloqueada`);
+  }
+
+  const { data: adopcionExistente } = await supabase
+    .from("adopciones")
+    .select("id_adopcion")
+    .eq("id_animal", idAnimal)
+    .maybeSingle();
+
+  if (adopcionExistente) {
+    redirect(`/publicaciones/${idAnimal}?error=publicacion_con_adopcion`);
+  }
+
+  const { error: deleteFotosError } = await supabase
+    .from("fotos_animales")
+    .delete()
+    .eq("id_animal", idAnimal);
+
+  if (deleteFotosError) {
+    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_fotos`);
+  }
+
+  const { error: deleteAnimalError } = await supabase
+    .from("animales_adopcion")
+    .delete()
+    .eq("id_animal", idAnimal);
+
+  if (deleteAnimalError) {
+    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_publicacion`);
+  }
+
+  redirect("/publicaciones?ok=publicacion_eliminada");
+}
+
 function FeedbackBanner({
   ok,
   error,
@@ -474,7 +549,13 @@ function FeedbackBanner({
     error_actualizacion_publicacion:
       "Ocurrió un error al actualizar el estado de la publicación.",
     publicacion_adoptada_bloqueada:
-      "Una publicación adoptada no puede volver a cambiar de estado.",
+      "Una publicación adoptada no puede cambiar de estado ni eliminarse.",
+    publicacion_con_adopcion:
+      "No se puede eliminar una publicación que ya tuvo una adopción registrada.",
+    error_eliminacion_fotos:
+      "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
+    error_eliminacion_publicacion:
+      "Ocurrió un error al eliminar la publicación.",
   };
 
   return (
@@ -824,7 +905,9 @@ async function PublicacionContent({
           )}
           {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
           {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
-          {animalTipado.apto_perros && <AtributoChip>Apto perros</AtributoChip>}
+          {animalTipado.apto_perros && (
+            <AtributoChip>Apto perros</AtributoChip>
+          )}
           {animalTipado.nivel_energia && (
             <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
           )}
@@ -995,6 +1078,26 @@ async function PublicacionContent({
           </div>
         )}
       </section>
+
+      {animalTipado.estado !== "adoptado" && (
+        <section className="border-t border-white/10 pt-8">
+          <div className="flex justify-end">
+            <form action={eliminarPublicacion}>
+              <input
+                type="hidden"
+                name="id_animal"
+                value={animalTipado.id_animal}
+              />
+              <button
+                type="submit"
+                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
+              >
+                Eliminar publicación
+              </button>
+            </form>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
