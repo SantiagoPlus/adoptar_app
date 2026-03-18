@@ -58,12 +58,11 @@ function PublicacionesSkeleton() {
                 key={index}
                 className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
               >
-                <div className="h-52 w-full animate-pulse bg-white/10" />
-                <div className="p-5">
+                <div className="h-44 w-full animate-pulse bg-white/10" />
+                <div className="p-4">
                   <div className="mb-3 h-6 w-32 animate-pulse rounded bg-white/10" />
                   <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
-                  <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
-                  <div className="mt-4 h-10 w-40 animate-pulse rounded bg-white/10" />
+                  <div className="mt-4 h-14 w-full animate-pulse rounded bg-white/10" />
                 </div>
               </div>
             ))}
@@ -177,73 +176,74 @@ function PublicacionCard({
     animal.fotos_animales[0];
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-      {fotoPrincipal ? (
-        <img
-          src={fotoPrincipal.url_foto}
-          alt={animal.nombre}
-          className="h-56 w-full object-cover"
-        />
-      ) : (
-        <div className="flex h-56 w-full items-center justify-center bg-white/10 text-white/50">
-          Sin imagen
-        </div>
-      )}
+    <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]">
+      <Link href={`/publicaciones/${animal.id_animal}`} className="block">
+        {fotoPrincipal ? (
+          <img
+            src={fotoPrincipal.url_foto}
+            alt={animal.nombre}
+            className="h-40 w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-40 w-full items-center justify-center bg-white/10 text-white/50">
+            Sin imagen
+          </div>
+        )}
 
-      <div className="p-5">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold">{animal.nombre}</h2>
-            <p className="text-sm text-white/60">
-              {animal.especie}
-              {animal.raza ? ` · ${animal.raza}` : ""}
+        <div className="p-4">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-semibold">{animal.nombre}</h2>
+              <p className="truncate text-sm text-white/60">
+                {animal.especie}
+                {animal.raza ? ` · ${animal.raza}` : ""}
+              </p>
+            </div>
+
+            <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px]">
+              {formatEstadoAnimal(animal.estado)}
+            </span>
+          </div>
+
+          <div className="mb-4 text-sm text-white/70">
+            <p>
+              <span className="font-medium text-white">Ciudad:</span>{" "}
+              {animal.ciudad ?? "No informada"}
             </p>
           </div>
 
-          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
-            {formatEstadoAnimal(animal.estado)}
-          </span>
-        </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
+              <p className="text-[11px] text-white/60">Solicitudes</p>
+              <p className="text-base font-semibold leading-tight">
+                {resumen.total}
+              </p>
+            </div>
 
-        <div className="mb-4 space-y-1 text-sm text-white/70">
-          <p>
-            <span className="font-medium text-white">Ciudad:</span>{" "}
-            {animal.ciudad ?? "No informada"}
-          </p>
-          <p>
-            <span className="font-medium text-white">Publicado:</span>{" "}
-            {animal.fecha_publicacion
-              ? new Date(animal.fecha_publicacion).toLocaleString("es-AR")
-              : "No informado"}
-          </p>
-        </div>
+            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
+              <p className="text-[11px] text-white/60">Pendientes</p>
+              <p className="text-base font-semibold leading-tight">
+                {resumen.pendientes}
+              </p>
+            </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-            <p className="text-white/60">Solicitudes</p>
-            <p className="text-lg font-semibold">{resumen.total}</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-            <p className="text-white/60">En revisión</p>
-            <p className="text-lg font-semibold">{resumen.enRevision}</p>
+            <div className="rounded-xl border border-white/10 bg-black/20 px-2 py-2">
+              <p className="text-[11px] text-white/60">En revisión</p>
+              <p className="text-base font-semibold leading-tight">
+                {resumen.enRevision}
+              </p>
+            </div>
           </div>
         </div>
+      </Link>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href={`/publicaciones/${animal.id_animal}`}
-            className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-          >
-            Ver publicación
-          </Link>
-
-          <Link
-            href={`/animales/${animal.id_animal}`}
-            className="text-sm text-white/60 transition hover:text-white"
-          >
-            Ver ficha pública
-          </Link>
-        </div>
+      <div className="px-4 pb-4">
+        <Link
+          href={`/animales/${animal.id_animal}`}
+          className="text-sm text-white/60 transition hover:text-white"
+        >
+          Ver ficha pública
+        </Link>
       </div>
     </article>
   );
