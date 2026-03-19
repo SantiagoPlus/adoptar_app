@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -625,7 +625,7 @@ function PublicacionSkeleton() {
   );
 }
 
-function AtributoChip({ children }: { children: React.ReactNode }) {
+function AtributoChip({ children }: { children: ReactNode }) {
   return (
     <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/90">
       {children}
