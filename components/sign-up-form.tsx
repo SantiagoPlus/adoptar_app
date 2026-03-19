@@ -46,31 +46,20 @@ export function SignUpForm() {
     setLoading(true);
 
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: emailLimpio,
         password,
+        options: {
+          data: {
+            nombre: nombreLimpio,
+            apellido: apellidoLimpio,
+            direccion: direccionLimpia,
+          },
+        },
       });
 
       if (signUpError) {
         throw signUpError;
-      }
-
-      const authUserId = data.user?.id;
-
-      if (!authUserId) {
-        throw new Error("No se pudo obtener el usuario creado.");
-      }
-
-      const { error: insertUsuarioError } = await supabase.from("usuarios").insert({
-        auth_user_id: authUserId,
-        nombre: nombreLimpio,
-        apellido: apellidoLimpio,
-        direccion: direccionLimpia,
-        email: emailLimpio,
-      });
-
-      if (insertUsuarioError) {
-        throw insertUsuarioError;
       }
 
       router.push("/auth/sign-up-success");
