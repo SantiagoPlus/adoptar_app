@@ -125,16 +125,23 @@ export default function PerfilPage() {
             <Card
               eyebrow="Gestión personal"
               title="Mis mascotas"
-              description="Acá vas a poder registrar tus mascotas y acceder a la información de cada una."
+              description="Acá vas a poder registrar tus mascotas, acceder a la información de cada una y gestionar su seguimiento."
               cta="Próximamente"
             />
 
-            <Card
-              eyebrow="Salud y seguimiento"
-              title="Libreta sanitaria dentro de cada mascota"
-              description="La libreta sanitaria no funciona como módulo independiente: va a estar dentro de cada ficha de mascota, junto con vacunas, controles y seguimiento."
-              cta="Definido en arquitectura"
-            />
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
+                Arquitectura definida
+              </p>
+              <h3 className="mb-2 text-lg font-semibold text-white">
+                Libreta sanitaria dentro de cada mascota
+              </h3>
+              <p className="text-sm leading-6 text-white/70">
+                La libreta sanitaria no funciona como módulo independiente. Va a
+                estar dentro de cada ficha de mascota, junto con vacunas,
+                controles, observaciones y seguimiento.
+              </p>
+            </div>
           </div>
         </section>
 
