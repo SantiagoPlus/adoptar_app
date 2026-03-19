@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { EditProfileForm } from "@/components/perfil/edit-profile-form";
 
 function Card({
   eyebrow,
@@ -145,50 +146,63 @@ async function PerfilPersonalContent() {
         <div className="h-px w-full bg-white/10" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
-              {perfil?.foto_perfil ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={perfil.foto_perfil}
-                  alt="Foto de perfil"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span>{iniciales}</span>
-              )}
-            </div>
+      <div className="grid gap-4">
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <div className="flex items-center gap-4">
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
+                {perfil?.foto_perfil ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={perfil.foto_perfil}
+                    alt="Foto de perfil"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{iniciales}</span>
+                )}
+              </div>
 
-            <div>
-              <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                Perfil
-              </p>
-              <h3 className="text-lg font-semibold">
-                {nombreCompleto || "Usuario"}
-              </h3>
-              <p className="mt-1 text-sm text-white/70">
-                Estos son los datos personales actualmente guardados en tu
-                cuenta.
-              </p>
+              <div>
+                <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                  Perfil
+                </p>
+                <h3 className="text-lg font-semibold">
+                  {nombreCompleto || "Usuario"}
+                </h3>
+                <p className="mt-1 text-sm text-white/70">
+                  Estos son los datos personales actualmente guardados en tu
+                  cuenta.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <div className="grid gap-3 md:grid-cols-2">
+              <ProfileField label="Nombre" value={perfil?.nombre} />
+              <ProfileField label="Apellido" value={perfil?.apellido} />
+              <ProfileField label="Correo" value={perfil?.email ?? user.email} />
+              <ProfileField label="Dirección" value={perfil?.direccion} />
+              <ProfileField label="Ciudad" value={perfil?.ciudad} />
+              <ProfileField
+                label="Foto de perfil"
+                value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
+              />
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="grid gap-3 md:grid-cols-2">
-            <ProfileField label="Nombre" value={perfil?.nombre} />
-            <ProfileField label="Apellido" value={perfil?.apellido} />
-            <ProfileField label="Correo" value={perfil?.email ?? user.email} />
-            <ProfileField label="Dirección" value={perfil?.direccion} />
-            <ProfileField label="Ciudad" value={perfil?.ciudad} />
-            <ProfileField
-              label="Foto de perfil"
-              value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
-            />
-          </div>
-        </div>
+        <EditProfileForm
+          authUserId={user.id}
+          initialData={{
+            nombre: perfil?.nombre,
+            apellido: perfil?.apellido,
+            direccion: perfil?.direccion,
+            ciudad: perfil?.ciudad,
+            foto_perfil: perfil?.foto_perfil,
+          }}
+        />
       </div>
     </section>
   );
