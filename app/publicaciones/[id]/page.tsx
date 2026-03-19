@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 type Params = Promise<{ id: string }>;
 
@@ -526,6 +527,14 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "publicacion_eliminada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue eliminada correctamente.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -835,47 +844,60 @@ async function PublicacionContent({
             </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            {animalTipado.estado === "disponible" && (
-              <form action={actualizarEstadoPublicacion}>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {animalTipado.estado === "disponible" && (
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="pausado" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  >
+                    Pausar / Ocultar publicación
+                  </button>
+                </form>
+              )}
+
+              {animalTipado.estado === "pausado" && (
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="disponible" />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+                  >
+                    Reactivar publicación
+                  </button>
+                </form>
+              )}
+
+              <Link
+                href={`/animales/${animalTipado.id_animal}`}
+                className="text-sm text-white/60 transition hover:text-white"
+              >
+                Ver ficha pública
+              </Link>
+            </div>
+
+            {animalTipado.estado !== "adoptado" && (
+              <form action={eliminarPublicacion}>
                 <input
                   type="hidden"
                   name="id_animal"
                   value={animalTipado.id_animal}
                 />
-                <input type="hidden" name="nuevo_estado" value="pausado" />
-                <button
-                  type="submit"
-                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                >
-                  Pausar / Ocultar publicación
-                </button>
+                <ConfirmDeleteButton />
               </form>
             )}
-
-            {animalTipado.estado === "pausado" && (
-              <form action={actualizarEstadoPublicacion}>
-                <input
-                  type="hidden"
-                  name="id_animal"
-                  value={animalTipado.id_animal}
-                />
-                <input type="hidden" name="nuevo_estado" value="disponible" />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                >
-                  Reactivar publicación
-                </button>
-              </form>
-            )}
-
-            <Link
-              href={`/animales/${animalTipado.id_animal}`}
-              className="self-center text-sm text-white/60 transition hover:text-white"
-            >
-              Ver ficha pública
-            </Link>
           </div>
         </div>
       </section>
@@ -1065,26 +1087,6 @@ async function PublicacionContent({
           </div>
         )}
       </section>
-
-      {animalTipado.estado !== "adoptado" && (
-        <section className="border-t border-white/10 pt-8">
-          <div className="flex justify-end">
-            <form action={eliminarPublicacion}>
-              <input
-                type="hidden"
-                name="id_animal"
-                value={animalTipado.id_animal}
-              />
-              <button
-                type="submit"
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
-              >
-                Eliminar publicación
-              </button>
-            </form>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
