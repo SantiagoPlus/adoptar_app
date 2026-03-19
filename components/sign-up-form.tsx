@@ -21,6 +21,9 @@ export function SignUpForm() {
 
   const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (loading) return;
+
     setError(null);
 
     const nombreLimpio = nombre.trim();
@@ -66,15 +69,23 @@ export function SignUpForm() {
       router.refresh();
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Ocurrió un error al crear la cuenta.";
+        err instanceof Error
+          ? err.message
+          : "Ocurrió un error al crear la cuenta.";
+
       setError(message);
-    } finally {
       setLoading(false);
     }
   };
 
+  const inputClassName =
+    "w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-60";
+
   return (
-    <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+    <form
+      onSubmit={handleSignUp}
+      className={`flex flex-col gap-4 ${loading ? "cursor-wait" : ""}`}
+    >
       <div>
         <label htmlFor="nombre" className="mb-2 block text-sm text-white/70">
           Nombre
@@ -84,9 +95,10 @@ export function SignUpForm() {
           type="text"
           value={nombre}
           onChange={(event) => setNombre(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="Tu nombre"
           required
+          disabled={loading}
         />
       </div>
 
@@ -99,9 +111,10 @@ export function SignUpForm() {
           type="text"
           value={apellido}
           onChange={(event) => setApellido(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="Tu apellido"
           required
+          disabled={loading}
         />
       </div>
 
@@ -114,24 +127,26 @@ export function SignUpForm() {
           type="text"
           value={direccion}
           onChange={(event) => setDireccion(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="Tu dirección"
           required
+          disabled={loading}
         />
       </div>
 
       <div>
         <label htmlFor="email" className="mb-2 block text-sm text-white/70">
-          Mail
+          Correo
         </label>
         <input
           id="email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="tu@email.com"
           required
+          disabled={loading}
         />
       </div>
 
@@ -144,9 +159,10 @@ export function SignUpForm() {
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="********"
           required
+          disabled={loading}
         />
       </div>
 
@@ -162,9 +178,10 @@ export function SignUpForm() {
           type="password"
           value={repeatPassword}
           onChange={(event) => setRepeatPassword(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          className={inputClassName}
           placeholder="********"
           required
+          disabled={loading}
         />
       </div>
 
@@ -174,12 +191,23 @@ export function SignUpForm() {
         </div>
       ) : null}
 
+      {loading ? (
+        <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+            <span>
+              Creando cuenta... no cierres ni recargues esta página.
+            </span>
+          </div>
+        </div>
+      ) : null}
+
       <button
         type="submit"
         disabled={loading}
         className="rounded-lg bg-white px-4 py-3 font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Creando cuenta..." : "Crear cuenta"}
+        {loading ? "Procesando..." : "Crear cuenta"}
       </button>
 
       <p className="text-sm text-white/60">
