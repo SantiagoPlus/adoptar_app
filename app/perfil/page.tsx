@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 function Card({
   eyebrow,
@@ -33,7 +35,28 @@ function Card({
   );
 }
 
-export default function PerfilPage() {
+type UsuarioPerfilBasico = {
+  nombre: string | null;
+  email: string | null;
+};
+
+export default async function PerfilPage() {
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    redirect("/auth/login?next=/perfil");
+  }
+
+  const { data: usuario, error: usuarioError } = await supabase
+    .from("usuarios")
+    .select("nombre, email")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  const perfil: UsuarioPerfilBasico | null = usuarioError ? null : usuario;
+
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -60,54 +83,71 @@ export default function PerfilPage() {
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-2xl font-semibold">Perfil personal</h2>
               <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-                Próximamente
+                Datos actuales
               </span>
             </div>
             <div className="h-px w-full bg-white/10" />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm text-white/50">
-                  Foto
-                </div>
+          {!perfil ? (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-red-200">
+              No se pudo cargar la información de tu perfil.
+            </div>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
+                    {perfil.nombre?.trim()?.[0]?.toUpperCase() ?? "?"}
+                  </div>
 
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Perfil
-                  </p>
-                  <h3 className="text-lg font-semibold">Datos personales</h3>
-                  <p className="mt-1 text-sm text-white/70">
-                    Acá vas a poder completar tu información personal y agregar
-                    una imagen de perfil si querés.
-                  </p>
+                  <div>
+                    <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                      Perfil
+                    </p>
+                    <h3 className="text-lg font-semibold">
+                      {perfil.nombre?.trim() || "Usuario sin nombre"}
+                    </h3>
+                    <p className="mt-1 text-sm text-white/70">
+                      {perfil.email?.trim() || "Sin mail registrado"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                      Nombre
+                    </p>
+                    <p className="text-sm text-white/80">
+                      {perfil.nombre?.trim() || "No informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                      Mail
+                    </p>
+                    <p className="text-sm text-white/80">
+                      {perfil.email?.trim() || "No informado"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4 md:col-span-2">
+                    <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                      Estado del perfil
+                    </p>
+                    <p className="text-sm text-white/70">
+                      Próximamente vas a poder completar apellido, dirección,
+                      ciudad e imagen de perfil.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Información
-                  </p>
-                  <p className="text-sm text-white/70">
-                    Nombre, ciudad, contacto y datos básicos de la cuenta.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Imagen
-                  </p>
-                  <p className="text-sm text-white/70">
-                    Foto de perfil opcional para identificar al usuario.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </section>
 
         <section className="mb-10">
