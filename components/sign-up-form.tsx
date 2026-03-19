@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -19,7 +19,7 @@ export function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (loading) return;
@@ -195,9 +195,7 @@ export function SignUpForm() {
         <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
           <div className="flex items-center gap-3">
             <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-            <span>
-              Creando cuenta... no cierres ni recargues esta página.
-            </span>
+            <span>Creando cuenta... no cierres ni recargues esta página.</span>
           </div>
         </div>
       ) : null}
@@ -212,7 +210,10 @@ export function SignUpForm() {
 
       <p className="text-sm text-white/60">
         ¿Ya tenés cuenta?{" "}
-        <Link href="/auth/login" className="text-white transition hover:opacity-80">
+        <Link
+          href="/auth/login"
+          className="text-white transition hover:opacity-80"
+        >
           Iniciar sesión
         </Link>
       </p>
