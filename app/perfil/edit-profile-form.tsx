@@ -66,7 +66,7 @@ export function EditProfileForm({
       .eq("auth_user_id", authUserId);
 
     if (updateError) {
-      setError("No se pudo guardar el perfil.");
+      setError(updateError.message || "No se pudo guardar el perfil.");
       setLoading(false);
       return;
     }
