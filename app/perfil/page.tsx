@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -42,19 +43,63 @@ function ProfileField({
   label: string;
   value?: string | null;
 }) {
+  const displayValue =
+    value && value.trim() !== "" ? value : "Sin completar";
+
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
       <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
         {label}
       </p>
-      <p className="text-sm text-white/80">
-        {value && value.trim() !== "" ? value : "Sin completar"}
-      </p>
+      <p className="text-sm text-white/80">{displayValue}</p>
     </div>
   );
 }
 
-export default async function PerfilPage() {
+function PerfilPersonalSkeleton() {
+  return (
+    <section className="mb-10">
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Perfil personal</h2>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
+            Cargando...
+          </span>
+        </div>
+        <div className="h-px w-full bg-white/10" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center gap-4">
+            <div className="h-20 w-20 rounded-full border border-white/10 bg-white/10" />
+            <div className="flex-1">
+              <div className="mb-2 h-3 w-16 rounded bg-white/10" />
+              <div className="mb-2 h-6 w-40 rounded bg-white/10" />
+              <div className="h-4 w-56 rounded bg-white/10" />
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="grid gap-3 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-xl border border-white/10 bg-black/20 p-4"
+              >
+                <div className="mb-2 h-3 w-20 rounded bg-white/10" />
+                <div className="h-4 w-28 rounded bg-white/10" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+async function PerfilPersonalContent() {
   const supabase = await createClient();
 
   const {
@@ -82,12 +127,74 @@ export default async function PerfilPage() {
 
   const iniciales =
     nombreCompleto
-      ?.split(" ")
+      .split(" ")
       .map((parte) => parte[0])
       .join("")
       .slice(0, 2)
       .toUpperCase() || "US";
 
+  return (
+    <section className="mb-10">
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Perfil personal</h2>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+            Conectado
+          </span>
+        </div>
+        <div className="h-px w-full bg-white/10" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
+              {perfil?.foto_perfil ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={perfil.foto_perfil}
+                  alt="Foto de perfil"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{iniciales}</span>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+                Perfil
+              </p>
+              <h3 className="text-lg font-semibold">
+                {nombreCompleto || "Usuario"}
+              </h3>
+              <p className="mt-1 text-sm text-white/70">
+                Estos son los datos personales actualmente guardados en tu
+                cuenta.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+          <div className="grid gap-3 md:grid-cols-2">
+            <ProfileField label="Nombre" value={perfil?.nombre} />
+            <ProfileField label="Apellido" value={perfil?.apellido} />
+            <ProfileField label="Correo" value={perfil?.email ?? user.email} />
+            <ProfileField label="Dirección" value={perfil?.direccion} />
+            <ProfileField label="Ciudad" value={perfil?.ciudad} />
+            <ProfileField
+              label="Foto de perfil"
+              value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function PerfilPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -109,63 +216,9 @@ export default async function PerfilPage() {
           </p>
         </header>
 
-        <section className="mb-10">
-          <div className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-2xl font-semibold">Perfil personal</h2>
-              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
-                Conectado
-              </span>
-            </div>
-            <div className="h-px w-full bg-white/10" />
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
-                  {perfil?.foto_perfil ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={perfil.foto_perfil}
-                      alt="Foto de perfil"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span>{iniciales}</span>
-                  )}
-                </div>
-
-                <div>
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Perfil
-                  </p>
-                  <h3 className="text-lg font-semibold">
-                    {nombreCompleto || "Usuario"}
-                  </h3>
-                  <p className="mt-1 text-sm text-white/70">
-                    Estos son los datos personales actualmente guardados en tu
-                    cuenta.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="grid gap-3 md:grid-cols-2">
-                <ProfileField label="Nombre" value={perfil?.nombre} />
-                <ProfileField label="Apellido" value={perfil?.apellido} />
-                <ProfileField label="Correo" value={perfil?.email ?? user.email} />
-                <ProfileField label="Dirección" value={perfil?.direccion} />
-                <ProfileField label="Ciudad" value={perfil?.ciudad} />
-                <ProfileField
-                  label="Foto de perfil"
-                  value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<PerfilPersonalSkeleton />}>
+          <PerfilPersonalContent />
+        </Suspense>
 
         <section className="mb-10">
           <div className="mb-6">
