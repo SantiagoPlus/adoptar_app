@@ -1,120 +1,204 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
-export function SignUpForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function SignUpForm() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [direccion, setDireccion] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const supabase = createClient();
-    setIsLoading(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError(null);
 
-    if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
+    const nombreLimpio = nombre.trim();
+    const apellidoLimpio = apellido.trim();
+    const direccionLimpia = direccion.trim();
+    const emailLimpio = email.trim().toLowerCase();
+
+    if (!nombreLimpio || !apellidoLimpio || !direccionLimpia || !emailLimpio) {
+      setError("Completá todos los campos.");
       return;
     }
 
+    if (password !== repeatPassword) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: emailLimpio,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
-        },
       });
-      if (error) throw error;
+
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      const authUserId = data.user?.id;
+
+      if (!authUserId) {
+        throw new Error("No se pudo obtener el usuario creado.");
+      }
+
+      const { error: insertUsuarioError } = await supabase.from("usuarios").insert({
+        auth_user_id: authUserId,
+        nombre: nombreLimpio,
+        apellido: apellidoLimpio,
+        direccion: direccionLimpia,
+        email: emailLimpio,
+      });
+
+      if (insertUsuarioError) {
+        throw insertUsuarioError;
+      }
+
       router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Ocurrió un error al crear la cuenta.";
+      setError(message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+      <div>
+        <label htmlFor="nombre" className="mb-2 block text-sm text-white/70">
+          Nombre
+        </label>
+        <input
+          id="nombre"
+          type="text"
+          value={nombre}
+          onChange={(event) => setNombre(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="Tu nombre"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="apellido" className="mb-2 block text-sm text-white/70">
+          Apellido
+        </label>
+        <input
+          id="apellido"
+          type="text"
+          value={apellido}
+          onChange={(event) => setApellido(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="Tu apellido"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="direccion" className="mb-2 block text-sm text-white/70">
+          Dirección
+        </label>
+        <input
+          id="direccion"
+          type="text"
+          value={direccion}
+          onChange={(event) => setDireccion(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="Tu dirección"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="email" className="mb-2 block text-sm text-white/70">
+          Mail
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="tu@email.com"
+          required
+        />
+      </div>
+
+      <div>
+        <label htmlFor="password" className="mb-2 block text-sm text-white/70">
+          Contraseña
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="********"
+          required
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="repeatPassword"
+          className="mb-2 block text-sm text-white/70"
+        >
+          Repetir contraseña
+        </label>
+        <input
+          id="repeatPassword"
+          type="password"
+          value={repeatPassword}
+          onChange={(event) => setRepeatPassword(event.target.value)}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-white/30"
+          placeholder="********"
+          required
+        />
+      </div>
+
+      {error ? (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          {error}
+        </div>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="rounded-lg bg-white px-4 py-3 font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "Creando cuenta..." : "Crear cuenta"}
+      </button>
+
+      <p className="text-sm text-white/60">
+        ¿Ya tenés cuenta?{" "}
+        <Link href="/auth/login" className="text-white transition hover:opacity-80">
+          Iniciar sesión
+        </Link>
+      </p>
+    </form>
   );
 }
