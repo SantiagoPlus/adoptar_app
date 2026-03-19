@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 function Card({
   eyebrow,
@@ -33,7 +35,59 @@ function Card({
   );
 }
 
-export default function PerfilPage() {
+function ProfileField({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+      <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+        {label}
+      </p>
+      <p className="text-sm text-white/80">
+        {value && value.trim() !== "" ? value : "Sin completar"}
+      </p>
+    </div>
+  );
+}
+
+export default async function PerfilPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const { data: perfil, error } = await supabase
+    .from("usuarios")
+    .select("nombre, apellido, email, direccion, ciudad, foto_perfil")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error al cargar perfil:", error.message);
+  }
+
+  const nombreCompleto = [perfil?.nombre, perfil?.apellido]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const iniciales =
+    nombreCompleto
+      ?.split(" ")
+      .map((parte) => parte[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "US";
+
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -59,8 +113,8 @@ export default function PerfilPage() {
           <div className="mb-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <h2 className="text-2xl font-semibold">Perfil personal</h2>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-                Próximamente
+              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                Conectado
               </span>
             </div>
             <div className="h-px w-full bg-white/10" />
@@ -69,18 +123,29 @@ export default function PerfilPage() {
           <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/10 text-sm text-white/50">
-                  Foto
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
+                  {perfil?.foto_perfil ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={perfil.foto_perfil}
+                      alt="Foto de perfil"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span>{iniciales}</span>
+                  )}
                 </div>
 
                 <div>
                   <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
                     Perfil
                   </p>
-                  <h3 className="text-lg font-semibold">Datos personales</h3>
+                  <h3 className="text-lg font-semibold">
+                    {nombreCompleto || "Usuario"}
+                  </h3>
                   <p className="mt-1 text-sm text-white/70">
-                    Acá vas a poder completar tu información personal y agregar
-                    una imagen de perfil si querés.
+                    Estos son los datos personales actualmente guardados en tu
+                    cuenta.
                   </p>
                 </div>
               </div>
@@ -88,23 +153,15 @@ export default function PerfilPage() {
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Información
-                  </p>
-                  <p className="text-sm text-white/70">
-                    Nombre, ciudad, contacto y datos básicos de la cuenta.
-                  </p>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-                    Imagen
-                  </p>
-                  <p className="text-sm text-white/70">
-                    Foto de perfil opcional para identificar al usuario.
-                  </p>
-                </div>
+                <ProfileField label="Nombre" value={perfil?.nombre} />
+                <ProfileField label="Apellido" value={perfil?.apellido} />
+                <ProfileField label="Correo" value={perfil?.email ?? user.email} />
+                <ProfileField label="Dirección" value={perfil?.direccion} />
+                <ProfileField label="Ciudad" value={perfil?.ciudad} />
+                <ProfileField
+                  label="Foto de perfil"
+                  value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
+                />
               </div>
             </div>
           </div>
