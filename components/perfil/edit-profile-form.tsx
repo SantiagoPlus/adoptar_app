@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -29,9 +29,37 @@ export function EditProfileForm({
   const [ciudad, setCiudad] = useState(initialData.ciudad ?? "");
   const [fotoPerfil, setFotoPerfil] = useState(initialData.foto_perfil ?? "");
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setSelectedFile(file);
+  }
+
+  async function subirFotoPerfil() {
+    if (!selectedFile) return fotoPerfil || null;
+
+    const extension = selectedFile.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `perfil.${extension}`;
+    const filePath = `${authUserId}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, selectedFile, {
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(uploadError.message || "No se pudo subir la foto.");
+    }
+
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+    return data.publicUrl;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,7 +73,6 @@ export function EditProfileForm({
     const apellidoLimpio = apellido.trim();
     const direccionLimpia = direccion.trim();
     const ciudadLimpia = ciudad.trim();
-    const fotoPerfilLimpia = fotoPerfil.trim();
 
     if (!nombreLimpio || !apellidoLimpio || !direccionLimpia) {
       setError("Nombre, apellido y dirección son obligatorios.");
@@ -53,28 +80,37 @@ export function EditProfileForm({
       return;
     }
 
-    const { error: updateError } = await supabase
-      .from("usuarios")
-      .update({
-        nombre: nombreLimpio,
-        apellido: apellidoLimpio,
-        direccion: direccionLimpia,
-        ciudad: ciudadLimpia || null,
-        foto_perfil: fotoPerfilLimpia || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("auth_user_id", authUserId);
+    try {
+      const fotoSubida = await subirFotoPerfil();
 
-    if (updateError) {
-      setError(updateError.message || "No se pudo guardar el perfil.");
+      const { error: updateError } = await supabase
+        .from("usuarios")
+        .update({
+          nombre: nombreLimpio,
+          apellido: apellidoLimpio,
+          direccion: direccionLimpia,
+          ciudad: ciudadLimpia || null,
+          foto_perfil: fotoSubida || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("auth_user_id", authUserId);
+
+      if (updateError) {
+        throw new Error(updateError.message || "No se pudo guardar el perfil.");
+      }
+
+      setMessage("Perfil actualizado correctamente.");
+      setSelectedFile(null);
       setLoading(false);
-      return;
-    }
+      setOpen(false);
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo guardar el perfil.";
 
-    setMessage("Perfil actualizado correctamente.");
-    setLoading(false);
-    setOpen(false);
-    router.refresh();
+      setError(message);
+      setLoading(false);
+    }
   }
 
   const inputClassName =
@@ -174,17 +210,21 @@ export function EditProfileForm({
 
           <div>
             <label htmlFor="foto_perfil" className="mb-2 block text-sm text-white/70">
-              URL foto de perfil
+              Foto de perfil
             </label>
             <input
               id="foto_perfil"
-              type="text"
-              value={fotoPerfil}
-              onChange={(event) => setFotoPerfil(event.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
               className={inputClassName}
-              placeholder="https://..."
               disabled={loading}
             />
+            {selectedFile ? (
+              <p className="mt-2 text-sm text-white/60">
+                Archivo seleccionado: {selectedFile.name}
+              </p>
+            ) : null}
           </div>
 
           {error ? (
