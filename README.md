@@ -104,6 +104,91 @@ Please file feedback and issues over on the [Supabase GitHub org](https://github
 
 ## More Supabase examples
 
+
+# Adopta App
+
+Adopta App es una aplicación web orientada a la gestión de adopciones responsables.  
+Permite publicar animales en adopción, recibir y administrar solicitudes, y construir perfiles de usuario para acompañar el proceso.
+
+## Estado actual del proyecto
+
+Actualmente el proyecto ya cuenta con:
+
+- Home pública
+- Listado de animales en adopción
+- Ficha pública de cada animal
+- Registro e inicio de sesión con Supabase Auth
+- Creación automática de perfil de usuario en `public.usuarios`
+- Vista de perfil con lectura real desde Supabase
+- Edición básica de perfil
+- Gestión de publicaciones
+- Gestión de solicitudes
+
+## Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase
+- Vercel
+
+## Arquitectura base
+
+### Autenticación
+La autenticación se resuelve con Supabase Auth.
+
+### Perfil de usuario
+Los datos personales del usuario se almacenan en la tabla:
+
+- `public.usuarios`
+
+La relación con Auth se hace mediante:
+
+- `usuarios.auth_user_id -> auth.users.id`
+
+### Tablas principales
+Entre las tablas actuales del proyecto se encuentran:
+
+- `usuarios`
+- `animales_adopcion`
+- `fotos_animales`
+- `solicitudes_adopcion`
+- `adopciones`
+- `mascotas`
+- `historial_salud`
+
+## Objetivo del producto
+
+Construir una plataforma escalable para:
+
+- publicar animales en adopción
+- conectar adoptantes y publicadores
+- gestionar solicitudes y estados del proceso
+- centralizar información de perfil y, en etapas posteriores, mascotas e historial sanitario
+
+## Variables de entorno
+
+Crear un archivo `.env.local` con:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=TU_URL_DE_SUPABASE
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICA
 - [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
 - [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
 - [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+
+
+npm run dev
+npm run build
+npm run start
+npm run lint
+
+
+
+
+
+
+
+
+
