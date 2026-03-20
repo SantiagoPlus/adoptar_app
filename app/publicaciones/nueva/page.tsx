@@ -37,7 +37,7 @@ async function crearPublicacion(formData: FormData) {
   const descripcion = String(formData.get("descripcion") ?? "").trim();
   const estadoSalud = String(formData.get("estado_salud") ?? "").trim();
   const nivelEnergia = String(formData.get("nivel_energia") ?? "").trim();
-  const fotoPrincipal = String(formData.get("foto_principal") ?? "").trim();
+  const fotoPrincipalFile = formData.get("foto_principal");
 
   const castrado = formData.get("castrado") === "on";
   const vacunado = formData.get("vacunado") === "on";
@@ -86,10 +86,32 @@ async function crearPublicacion(formData: FormData) {
     redirect("/publicaciones/nueva?error=error_creacion_publicacion");
   }
 
-  if (fotoPrincipal) {
+  if (fotoPrincipalFile instanceof File && fotoPrincipalFile.size > 0) {
+    const extension =
+      fotoPrincipalFile.name.split(".").pop()?.toLowerCase() || "jpg";
+    const fileName = `principal.${extension}`;
+    const filePath = `${authData.user.id}/${animalCreado.id_animal}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("animales")
+      .upload(filePath, fotoPrincipalFile, {
+        upsert: true,
+        contentType: fotoPrincipalFile.type || undefined,
+      });
+
+    if (uploadError) {
+      redirect(
+        `/publicaciones/${animalCreado.id_animal}?error=publicacion_creada_sin_foto`,
+      );
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("animales")
+      .getPublicUrl(filePath);
+
     const { error: fotoError } = await supabase.from("fotos_animales").insert({
       id_animal: animalCreado.id_animal,
-      url_foto: fotoPrincipal,
+      url_foto: publicUrlData.publicUrl,
       es_principal: true,
       orden: 1,
     });
@@ -182,6 +204,8 @@ function FeedbackBanner({ error }: { error?: string }) {
     especie_invalida: "La especie debe ser perro o gato.",
     error_creacion_publicacion:
       "Ocurrió un error al crear la publicación.",
+    publicacion_creada_sin_foto:
+      "La publicación se creó, pero no se pudo guardar la foto.",
   };
 
   return (
@@ -347,11 +371,21 @@ async function NuevaPublicacionContent({
               />
             </div>
 
-            <Campo
-              label="Foto principal (URL)"
-              name="foto_principal"
-              placeholder="https://..."
-            />
+            <div>
+              <label
+                htmlFor="foto_principal"
+                className="mb-2 block text-sm text-white/70"
+              >
+                Foto principal
+              </label>
+              <input
+                id="foto_principal"
+                name="foto_principal"
+                type="file"
+                accept="image/*"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
+              />
+            </div>
           </div>
         </section>
 
