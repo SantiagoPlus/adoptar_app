@@ -10,6 +10,47 @@ type UploadAnimalPhotosFormProps = {
   existingPhotosCount: number;
 };
 
+async function compressImage(file: File): Promise<File> {
+  const imageBitmap = await createImageBitmap(file);
+
+  const maxWidth = 1600;
+  const maxHeight = 1600;
+
+  let { width, height } = imageBitmap;
+
+  const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return file;
+  }
+
+  context.drawImage(imageBitmap, 0, 0, width, height);
+
+  const blob: Blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) resolve(result);
+        else reject(new Error("No se pudo comprimir la imagen."));
+      },
+      "image/jpeg",
+      0.8,
+    );
+  });
+
+  const originalName = file.name.replace(/\.[^.]+$/, "");
+  return new File([blob], `${originalName}.jpg`, {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+
 export default function UploadAnimalPhotosForm({
   animalId,
   authUserId,
@@ -43,16 +84,17 @@ export default function UploadAnimalPhotosForm({
       const rows = [];
 
       for (let index = 0; index < files.length; index += 1) {
-        const file = files[index];
-        const extension = file.name.split(".").pop()?.toLowerCase() || "jpg";
-        const fileName = `${Date.now()}-${index}.${extension}`;
+        const originalFile = files[index];
+        const file = await compressImage(originalFile);
+
+        const fileName = `${Date.now()}-${index}.jpg`;
         const filePath = `${authUserId}/${animalId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("animales")
           .upload(filePath, file, {
             upsert: false,
-            contentType: file.type || undefined,
+            contentType: "image/jpeg",
           });
 
         if (uploadError) {
