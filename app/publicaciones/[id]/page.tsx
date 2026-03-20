@@ -451,6 +451,40 @@ async function eliminarPublicacion(formData: FormData) {
     redirect(`/publicaciones/${idAnimal}?error=publicacion_con_adopcion`);
   }
 
+  const { data: fotos } = await supabase
+    .from("fotos_animales")
+    .select("url_foto")
+    .eq("id_animal", idAnimal);
+
+  const storagePaths =
+    fotos
+      ?.map((foto) => {
+        try {
+          const url = new URL(foto.url_foto);
+          const marker = "/storage/v1/object/public/animales/";
+          const index = url.pathname.indexOf(marker);
+
+          if (index === -1) return null;
+
+          return decodeURIComponent(
+            url.pathname.slice(index + marker.length),
+          );
+        } catch {
+          return null;
+        }
+      })
+      .filter((path): path is string => Boolean(path)) ?? [];
+
+  if (storagePaths.length > 0) {
+    const { error: removeStorageError } = await supabase.storage
+      .from("animales")
+      .remove(storagePaths);
+
+    if (removeStorageError) {
+      redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_storage`);
+    }
+  }
+
   const { error: deleteFotosError } = await supabase
     .from("fotos_animales")
     .delete()
