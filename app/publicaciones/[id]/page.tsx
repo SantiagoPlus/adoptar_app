@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import UploadAnimalPhotosForm from "@/components/publicaciones/upload-animal-photos-form";
 
 type Params = Promise<{ id: string }>;
 
@@ -478,6 +479,14 @@ function FeedbackBanner({
   ok?: string;
   error?: string;
 }) {
+  if (ok === "continuar_con_imagenes") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue creada. Ahora podés cargar imágenes.
+      </div>
+    );
+  }
+
   if (ok === "en_revision") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
@@ -765,14 +774,30 @@ async function PublicacionContent({
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
           {fotoPrincipal ? (
-            <img
-              src={fotoPrincipal.url_foto}
-              alt={animalTipado.nombre}
-              className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
-            />
+            <>
+              <img
+                src={fotoPrincipal.url_foto}
+                alt={animalTipado.nombre}
+                className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
+              />
+
+              <UploadAnimalPhotosForm
+                animalId={animalTipado.id_animal}
+                authUserId={authData.user.id}
+                existingPhotosCount={animalTipado.fotos_animales.length}
+              />
+            </>
           ) : (
-            <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/50">
-              Sin imagen
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
+              <div className="flex h-[320px] w-full items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/10 text-white/50">
+                Sin imagen principal
+              </div>
+
+              <UploadAnimalPhotosForm
+                animalId={animalTipado.id_animal}
+                authUserId={authData.user.id}
+                existingPhotosCount={animalTipado.fotos_animales.length}
+              />
             </div>
           )}
 
