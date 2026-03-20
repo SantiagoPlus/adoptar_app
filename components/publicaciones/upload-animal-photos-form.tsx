@@ -66,6 +66,7 @@ export default function UploadAnimalPhotosForm({
         rows.push({
           id_animal: animalId,
           url_foto: publicUrlData.publicUrl,
+          storage_path: filePath,
           es_principal: existingPhotosCount === 0 && index === 0,
           orden: existingPhotosCount + index + 1,
         });
@@ -99,7 +100,9 @@ export default function UploadAnimalPhotosForm({
           htmlFor="animal_photos"
           className="mb-2 block text-sm text-white/70"
         >
-          {existingPhotosCount === 0 ? "Subir imagen" : "Agregar / cambiar imágenes"}
+          {existingPhotosCount === 0
+            ? "Subir imagen"
+            : "Agregar / cambiar imágenes"}
         </label>
 
         <input
@@ -130,7 +133,11 @@ export default function UploadAnimalPhotosForm({
         disabled={loading}
         className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Cargando..." : existingPhotosCount === 0 ? "Subir imagen" : "Agregar imágenes"}
+        {loading
+          ? "Cargando..."
+          : existingPhotosCount === 0
+            ? "Subir imagen"
+            : "Agregar imágenes"}
       </button>
     </form>
   );
