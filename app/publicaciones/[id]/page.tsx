@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import UploadAnimalPhotosForm from "@/components/publicaciones/upload-animal-photos-form";
+import AnimalPhotosManager from "@/components/publicaciones/animal-photos-manager";
 
 type Params = Promise<{ id: string }>;
 
@@ -926,39 +926,25 @@ async function PublicacionContent({
     redirect("/publicaciones");
   }
 
-  const fotoPrincipal =
-    animalTipado.fotos_animales.find((foto) => foto.es_principal) ??
-    animalTipado.fotos_animales[0];
+  const totalSolicitudes = (
+    await supabase
+      .from("solicitudes_adopcion")
+      .select(
+        `
+          id_solicitud,
+          id_solicitante,
+          nombre_solicitante,
+          mensaje,
+          estado,
+          fecha_solicitud
+        `,
+      )
+      .eq("id_animal", animalTipado.id_animal)
+      .order("fecha_solicitud", { ascending: false })
+  ).data as SolicitudItem[] | null;
 
-  const { data: solicitudes, error: solicitudesError } = await supabase
-    .from("solicitudes_adopcion")
-    .select(
-      `
-        id_solicitud,
-        id_solicitante,
-        nombre_solicitante,
-        mensaje,
-        estado,
-        fecha_solicitud
-      `,
-    )
-    .eq("id_animal", animalTipado.id_animal)
-    .order("fecha_solicitud", { ascending: false });
+  const solicitudesTipadas = totalSolicitudes ?? [];
 
-  if (solicitudesError) {
-    return (
-      <div className="space-y-6">
-        <FeedbackBanner ok={ok} error={searchError} />
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-          Ocurrió un error al cargar las solicitudes de esta publicación.
-        </div>
-      </div>
-    );
-  }
-
-  const solicitudesTipadas = (solicitudes ?? []) as SolicitudItem[];
-
-  const totalSolicitudes = solicitudesTipadas.length;
   const pendientes =
     solicitudesTipadas.filter((s) => s.estado === "pendiente").length ?? 0;
   const enRevision =
@@ -976,96 +962,13 @@ async function PublicacionContent({
 
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
-          {fotoPrincipal ? (
-            <>
-              <img
-                src={fotoPrincipal.url_foto}
-                alt={animalTipado.nombre}
-                className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
-              />
-
-              <UploadAnimalPhotosForm
-                animalId={animalTipado.id_animal}
-                authUserId={authData.user.id}
-                existingPhotosCount={animalTipado.fotos_animales.length}
-              />
-            </>
-          ) : (
-            <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-              <div className="flex h-[320px] w-full items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/10 text-white/50">
-                Sin imagen principal
-              </div>
-
-              <UploadAnimalPhotosForm
-                animalId={animalTipado.id_animal}
-                authUserId={authData.user.id}
-                existingPhotosCount={animalTipado.fotos_animales.length}
-              />
-            </div>
-          )}
-
-          {animalTipado.fotos_animales.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {animalTipado.fotos_animales.map((foto) => (
-                <div
-                  key={foto.id_foto}
-                  className="rounded-xl border border-white/10 bg-white/5 p-2"
-                >
-                  <img
-                    src={foto.url_foto}
-                    alt={animalTipado.nombre}
-                    className="mb-2 h-28 w-full rounded-lg object-cover"
-                  />
-
-                  <div className="flex flex-col gap-2">
-                    {foto.es_principal ? (
-                      <span className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-center text-xs text-green-200">
-                        Foto principal
-                      </span>
-                    ) : (
-                      <form action={marcarFotoPrincipal}>
-                        <input
-                          type="hidden"
-                          name="id_animal"
-                          value={animalTipado.id_animal}
-                        />
-                        <input
-                          type="hidden"
-                          name="id_foto"
-                          value={foto.id_foto}
-                        />
-                        <button
-                          type="submit"
-                          className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-white transition hover:bg-white/15"
-                        >
-                          Marcar principal
-                        </button>
-                      </form>
-                    )}
-
-                    <form action={eliminarFotoIndividual}>
-                      <input
-                        type="hidden"
-                        name="id_animal"
-                        value={animalTipado.id_animal}
-                      />
-                      <input
-                        type="hidden"
-                        name="id_foto"
-                        value={foto.id_foto}
-                      />
-                      <button
-                        type="submit"
-                        className="w-full rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/20"
-                      >
-                        Eliminar imagen
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <AnimalPhotosManager
+            animalId={animalTipado.id_animal}
+            authUserId={authData.user.id}
+            fotos={animalTipado.fotos_animales}
+            marcarFotoPrincipalAction={marcarFotoPrincipal}
+            eliminarFotoIndividualAction={eliminarFotoIndividual}
+          />
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -1208,7 +1111,7 @@ async function PublicacionContent({
       <section className="grid gap-4 md:grid-cols-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="mb-1 text-sm text-white/60">Total</p>
-          <p className="text-2xl font-semibold">{totalSolicitudes}</p>
+          <p className="text-2xl font-semibold">{solicitudesTipadas.length}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="mb-1 text-sm text-white/60">Pendientes</p>
