@@ -398,6 +398,163 @@ async function actualizarEstadoPublicacion(formData: FormData) {
   redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
 }
 
+async function marcarFotoPrincipal(formData: FormData) {
+  "use server";
+
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
+  const idFoto = String(formData.get("id_foto") ?? "").trim();
+
+  if (!idAnimal || !idFoto) {
+    redirect(`/publicaciones/${idAnimal}?error=foto_invalida`);
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
+  }
+
+  const { data: usuario } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (!usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
+  }
+
+  const { data: animal } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador")
+    .eq("id_animal", idAnimal)
+    .single();
+
+  if (!animal) {
+    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
+  }
+
+  const { error: clearError } = await supabase
+    .from("fotos_animales")
+    .update({ es_principal: false })
+    .eq("id_animal", idAnimal);
+
+  if (clearError) {
+    redirect(`/publicaciones/${idAnimal}?error=error_foto_principal`);
+  }
+
+  const { error: setError } = await supabase
+    .from("fotos_animales")
+    .update({ es_principal: true })
+    .eq("id_foto", idFoto)
+    .eq("id_animal", idAnimal);
+
+  if (setError) {
+    redirect(`/publicaciones/${idAnimal}?error=error_foto_principal`);
+  }
+
+  redirect(`/publicaciones/${idAnimal}?ok=foto_principal_actualizada`);
+}
+
+async function eliminarFotoIndividual(formData: FormData) {
+  "use server";
+
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
+  const idFoto = String(formData.get("id_foto") ?? "").trim();
+
+  if (!idAnimal || !idFoto) {
+    redirect(`/publicaciones/${idAnimal}?error=foto_invalida`);
+  }
+
+  const supabase = await createClient();
+
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) {
+    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
+  }
+
+  const { data: usuario } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", authData.user.id)
+    .single();
+
+  if (!usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
+  }
+
+  const { data: animal } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador")
+    .eq("id_animal", idAnimal)
+    .single();
+
+  if (!animal) {
+    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
+  }
+
+  if (animal.id_publicador !== usuario.id_usuario) {
+    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
+  }
+
+  const { data: foto } = await supabase
+    .from("fotos_animales")
+    .select("id_foto, storage_path, es_principal")
+    .eq("id_foto", idFoto)
+    .eq("id_animal", idAnimal)
+    .single();
+
+  if (!foto) {
+    redirect(`/publicaciones/${idAnimal}?error=foto_no_encontrada`);
+  }
+
+  if (foto.storage_path) {
+    const { error: removeStorageError } = await supabase.storage
+      .from("animales")
+      .remove([foto.storage_path]);
+
+    if (removeStorageError) {
+      redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_storage`);
+    }
+  }
+
+  const { error: deleteFotoError } = await supabase
+    .from("fotos_animales")
+    .delete()
+    .eq("id_foto", idFoto)
+    .eq("id_animal", idAnimal);
+
+  if (deleteFotoError) {
+    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_foto`);
+  }
+
+  if (foto.es_principal) {
+    const { data: restantes } = await supabase
+      .from("fotos_animales")
+      .select("id_foto")
+      .eq("id_animal", idAnimal)
+      .order("orden", { ascending: true })
+      .limit(1);
+
+    const siguiente = restantes?.[0];
+
+    if (siguiente) {
+      await supabase
+        .from("fotos_animales")
+        .update({ es_principal: true })
+        .eq("id_foto", siguiente.id_foto)
+        .eq("id_animal", idAnimal);
+    }
+  }
+
+  redirect(`/publicaciones/${idAnimal}?ok=foto_eliminada`);
+}
+
 async function eliminarPublicacion(formData: FormData) {
   "use server";
 
@@ -565,6 +722,22 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "foto_principal_actualizada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La foto principal fue actualizada.
+      </div>
+    );
+  }
+
+  if (ok === "foto_eliminada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La imagen fue eliminada correctamente.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -606,6 +779,12 @@ function FeedbackBanner({
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
       "Ocurrió un error al eliminar la publicación.",
+    foto_invalida: "La imagen indicada no es válida.",
+    foto_no_encontrada: "No se encontró la imagen seleccionada.",
+    error_foto_principal:
+      "Ocurrió un error al actualizar la foto principal.",
+    error_eliminacion_foto:
+      "Ocurrió un error al eliminar la imagen seleccionada.",
   };
 
   return (
@@ -825,15 +1004,65 @@ async function PublicacionContent({
             </div>
           )}
 
-          {animalTipado.fotos_animales.length > 1 && (
-            <div className="grid grid-cols-3 gap-3">
+          {animalTipado.fotos_animales.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {animalTipado.fotos_animales.map((foto) => (
-                <img
+                <div
                   key={foto.id_foto}
-                  src={foto.url_foto}
-                  alt={animalTipado.nombre}
-                  className="h-28 w-full rounded-xl border border-white/10 object-cover"
-                />
+                  className="rounded-xl border border-white/10 bg-white/5 p-2"
+                >
+                  <img
+                    src={foto.url_foto}
+                    alt={animalTipado.nombre}
+                    className="mb-2 h-28 w-full rounded-lg object-cover"
+                  />
+
+                  <div className="flex flex-col gap-2">
+                    {foto.es_principal ? (
+                      <span className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-center text-xs text-green-200">
+                        Foto principal
+                      </span>
+                    ) : (
+                      <form action={marcarFotoPrincipal}>
+                        <input
+                          type="hidden"
+                          name="id_animal"
+                          value={animalTipado.id_animal}
+                        />
+                        <input
+                          type="hidden"
+                          name="id_foto"
+                          value={foto.id_foto}
+                        />
+                        <button
+                          type="submit"
+                          className="w-full rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-xs text-white transition hover:bg-white/15"
+                        >
+                          Marcar principal
+                        </button>
+                      </form>
+                    )}
+
+                    <form action={eliminarFotoIndividual}>
+                      <input
+                        type="hidden"
+                        name="id_animal"
+                        value={animalTipado.id_animal}
+                      />
+                      <input
+                        type="hidden"
+                        name="id_foto"
+                        value={foto.id_foto}
+                      />
+                      <button
+                        type="submit"
+                        className="w-full rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/20"
+                      >
+                        Eliminar imagen
+                      </button>
+                    </form>
+                  </div>
+                </div>
               ))}
             </div>
           )}
