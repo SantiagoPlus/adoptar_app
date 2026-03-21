@@ -12,6 +12,7 @@ type FotoAnimal = {
   url_foto: string;
   es_principal: boolean;
   orden: number;
+  storage_path?: string | null;
 };
 
 type AnimalPublicacion = {
@@ -453,27 +454,13 @@ async function eliminarPublicacion(formData: FormData) {
 
   const { data: fotos } = await supabase
     .from("fotos_animales")
-    .select("url_foto")
+    .select("storage_path")
     .eq("id_animal", idAnimal);
 
   const storagePaths =
     fotos
-      ?.map((foto) => {
-        try {
-          const url = new URL(foto.url_foto);
-          const marker = "/storage/v1/object/public/animales/";
-          const index = url.pathname.indexOf(marker);
-
-          if (index === -1) return null;
-
-          return decodeURIComponent(
-            url.pathname.slice(index + marker.length),
-          );
-        } catch {
-          return null;
-        }
-      })
-      .filter((path): path is string => Boolean(path)) ?? [];
+      ?.map((foto) => foto.storage_path)
+      .filter((path): path is string => Boolean(path && path.trim())) ?? [];
 
   if (storagePaths.length > 0) {
     const { error: removeStorageError } = await supabase.storage
@@ -613,6 +600,8 @@ function FeedbackBanner({
       "Una publicación adoptada no puede cambiar de estado ni eliminarse.",
     publicacion_con_adopcion:
       "No se puede eliminar una publicación que ya tuvo una adopción registrada.",
+    error_eliminacion_storage:
+      "Ocurrió un error al eliminar las imágenes del almacenamiento.",
     error_eliminacion_fotos:
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
@@ -735,7 +724,8 @@ async function PublicacionContent({
           id_foto,
           url_foto,
           es_principal,
-          orden
+          orden,
+          storage_path
         )
       `,
     )
