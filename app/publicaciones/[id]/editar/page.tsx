@@ -257,7 +257,9 @@ async function eliminarFotoIndividual(formData: FormData) {
       .remove([foto.storage_path]);
 
     if (removeStorageError) {
-      redirect(`/publicaciones/${idAnimal}/editar?error=error_eliminacion_storage`);
+      redirect(
+        `/publicaciones/${idAnimal}/editar?error=error_eliminacion_storage`,
+      );
     }
   }
 
@@ -334,8 +336,7 @@ function FeedbackBanner({
     error_guardado: "Ocurrió un error al guardar los cambios.",
     foto_invalida: "La imagen indicada no es válida.",
     foto_no_encontrada: "No se encontró la imagen seleccionada.",
-    error_foto_principal:
-      "Ocurrió un error al actualizar la portada.",
+    error_foto_principal: "Ocurrió un error al actualizar la portada.",
     error_eliminacion_storage:
       "Ocurrió un error al eliminar la imagen del almacenamiento.",
     error_eliminacion_foto:
@@ -385,7 +386,10 @@ function EditarPublicacionSkeleton() {
       <div className="h-[420px] animate-pulse rounded-2xl border border-white/10 bg-white/10" />
       <div className="grid gap-4 md:grid-cols-2">
         {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="h-12 animate-pulse rounded-xl bg-white/10" />
+          <div
+            key={index}
+            className="h-12 animate-pulse rounded-xl bg-white/10"
+          />
         ))}
       </div>
     </div>
@@ -501,7 +505,10 @@ async function EditarPublicacionContent({
             />
 
             <div>
-              <label htmlFor="especie" className="mb-2 block text-sm text-white/70">
+              <label
+                htmlFor="especie"
+                className="mb-2 block text-sm text-white/70"
+              >
                 Especie
               </label>
               <select
@@ -518,7 +525,10 @@ async function EditarPublicacionContent({
             <Campo label="Raza" name="raza" defaultValue={animalTipado.raza} />
 
             <div>
-              <label htmlFor="sexo" className="mb-2 block text-sm text-white/70">
+              <label
+                htmlFor="sexo"
+                className="mb-2 block text-sm text-white/70"
+              >
                 Sexo
               </label>
               <select
@@ -540,7 +550,10 @@ async function EditarPublicacionContent({
             />
 
             <div>
-              <label htmlFor="tamano" className="mb-2 block text-sm text-white/70">
+              <label
+                htmlFor="tamano"
+                className="mb-2 block text-sm text-white/70"
+              >
                 Tamaño
               </label>
               <select
@@ -556,7 +569,11 @@ async function EditarPublicacionContent({
               </select>
             </div>
 
-            <Campo label="Ciudad" name="ciudad" defaultValue={animalTipado.ciudad} />
+            <Campo
+              label="Ciudad"
+              name="ciudad"
+              defaultValue={animalTipado.ciudad}
+            />
 
             <div>
               <label
@@ -689,13 +706,16 @@ export default function EditarPublicacionPage({
           <p className="mb-2 text-sm text-white/60">Publicaciones</p>
           <h1 className="mb-3 text-3xl font-bold">Editar publicación</h1>
           <p className="text-white/70">
-            Desde acá podés modificar los datos de la publicación y gestionar sus
-            imágenes.
+            Desde acá podés modificar los datos de la publicación y gestionar
+            sus imágenes.
           </p>
         </header>
 
         <Suspense fallback={<EditarPublicacionSkeleton />}>
-          <EditarPublicacionContent params={params} searchParams={searchParams} />
+          <EditarPublicacionContent
+            params={params}
+            searchParams={searchParams}
+          />
         </Suspense>
       </section>
     </main>
