@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -58,33 +58,25 @@ export default function UploadAnimalPhotosForm({
 }: UploadAnimalPhotosFormProps) {
   const router = useRouter();
   const supabase = createClient();
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  function handleFilesChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []);
-    setFiles(selectedFiles);
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function uploadFiles(selectedFiles: File[]) {
     if (loading) return;
-
-    if (files.length === 0) {
-      setError("Seleccioná al menos una imagen.");
-      return;
-    }
+    if (selectedFiles.length === 0) return;
 
     setLoading(true);
     setError(null);
+    setSelectedCount(selectedFiles.length);
 
     try {
       const rows = [];
 
-      for (let index = 0; index < files.length; index += 1) {
-        const originalFile = files[index];
+      for (let index = 0; index < selectedFiles.length; index += 1) {
+        const originalFile = selectedFiles[index];
         const file = await compressImage(originalFile);
 
         const fileName = `${Date.now()}-${index}.jpg`;
@@ -124,7 +116,12 @@ export default function UploadAnimalPhotosForm({
         );
       }
 
-      setFiles([]);
+      setSelectedCount(0);
+
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+
       router.refresh();
     } catch (err) {
       const message =
@@ -135,8 +132,13 @@ export default function UploadAnimalPhotosForm({
     }
   }
 
+  async function handleFilesChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    await uploadFiles(selectedFiles);
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <div className="space-y-3">
       <div>
         <label
           htmlFor="animal_photos"
@@ -146,6 +148,7 @@ export default function UploadAnimalPhotosForm({
         </label>
 
         <input
+          ref={inputRef}
           id="animal_photos"
           type="file"
           accept="image/*"
@@ -156,10 +159,10 @@ export default function UploadAnimalPhotosForm({
         />
       </div>
 
-      {files.length > 0 ? (
-        <p className="text-sm text-white/60">
-          {files.length} archivo(s) seleccionado(s)
-        </p>
+      {loading ? (
+        <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/80">
+          Subiendo {selectedCount} archivo(s)...
+        </div>
       ) : null}
 
       {error ? (
@@ -167,14 +170,6 @@ export default function UploadAnimalPhotosForm({
           {error}
         </div>
       ) : null}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {loading ? "Subiendo..." : "Subir archivos"}
-      </button>
-    </form>
+    </div>
   );
 }
