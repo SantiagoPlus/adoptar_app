@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AnimalPhotosManager from "@/components/publicaciones/animal-photos-manager";
 
+export const dynamic = "force-dynamic";
+
 type Params = Promise<{ id: string }>;
 type SearchParams = Promise<{ ok?: string; error?: string }>;
 
