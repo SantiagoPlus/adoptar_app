@@ -1,34 +1,36 @@
-import Link from "next/link";
+import { Suspense } from "react";
+import { EditarPublicacionContent } from "./editar-publicacion-content";
+
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ id: string }>;
+type SearchParams = Promise<{ ok?: string; error?: string }>;
 
-export default async function EditarPublicacionPage({
-  params,
-}: {
-  params: Params;
-}) {
-  const { id } = await params;
-
+function EditarPublicacionSkeleton() {
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mb-8 h-5 w-40 animate-pulse rounded bg-white/10" />
         <div className="mb-8">
-          <Link
-            href={`/publicaciones/${id}`}
-            className="text-sm text-white/60 transition hover:text-white"
-          >
-            ← Volver a gestión
-          </Link>
+          <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
+          <div className="mb-3 h-10 w-72 animate-pulse rounded bg-white/10" />
+          <div className="h-5 w-[28rem] animate-pulse rounded bg-white/10" />
         </div>
-
-        <header className="mb-8">
-          <p className="mb-2 text-sm text-white/60">Publicaciones</p>
-          <h1 className="mb-3 text-3xl font-bold">Editar publicación</h1>
-          <p className="text-white/70">
-            Esta es la nueva pantalla de edición separada de la gestión.
-          </p>
-        </header>
       </section>
     </main>
+  );
+}
+
+export default function EditarPublicacionPage({
+  params,
+  searchParams,
+}: {
+  params: Params;
+  searchParams: SearchParams;
+}) {
+  return (
+    <Suspense fallback={<EditarPublicacionSkeleton />}>
+      <EditarPublicacionContent params={params} searchParams={searchParams} />
+    </Suspense>
   );
 }
