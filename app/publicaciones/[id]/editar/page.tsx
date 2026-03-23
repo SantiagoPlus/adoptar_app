@@ -520,6 +520,21 @@ async function EditarPublicacionContent({
     <>
       <FeedbackBanner ok={ok} error={error} />
 
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-5">
+          <p className="mb-2 text-sm text-white/60">Edición</p>
+          <h2 className="text-2xl font-semibold">Imágenes de la publicación</h2>
+        </div>
+
+        <AnimalPhotosManager
+          animalId={animalTipado.id_animal}
+          authUserId={authData.user.id}
+          fotos={animalTipado.fotos_animales}
+          marcarFotoPrincipalAction={marcarFotoPrincipal}
+          eliminarFotoIndividualAction={eliminarFotoIndividual}
+        />
+      </section>
+
       <form action={actualizarPublicacion} className="space-y-6">
         <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
 
@@ -744,21 +759,6 @@ async function EditarPublicacionContent({
           </Link>
         </div>
       </form>
-
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="mb-5">
-          <p className="mb-2 text-sm text-white/60">Edición</p>
-          <h2 className="text-2xl font-semibold">Imágenes de la publicación</h2>
-        </div>
-
-        <AnimalPhotosManager
-          animalId={animalTipado.id_animal}
-          authUserId={authData.user.id}
-          fotos={animalTipado.fotos_animales}
-          marcarFotoPrincipalAction={marcarFotoPrincipal}
-          eliminarFotoIndividualAction={eliminarFotoIndividual}
-        />
-      </section>
     </>
   );
 }
