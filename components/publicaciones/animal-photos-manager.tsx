@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import UploadAnimalPhotosForm from "@/components/publicaciones/upload-animal-photos-form";
 
 type FotoAnimal = {
@@ -8,7 +8,6 @@ type FotoAnimal = {
   url_foto: string;
   es_principal: boolean;
   orden: number;
-  storage_path?: string | null;
 };
 
 type Props = {
@@ -30,10 +29,7 @@ export default function AnimalPhotosManager({
 }: Props) {
   const [mode, setMode] = useState<Mode>("none");
 
-  const fotoPrincipal = useMemo(
-    () => fotos.find((foto) => foto.es_principal) ?? fotos[0],
-    [fotos],
-  );
+  const fotoPrincipal = fotos.find((foto) => foto.es_principal) ?? fotos[0];
 
   function getCardStyle(foto: FotoAnimal) {
     if (foto.es_principal) {
@@ -81,7 +77,9 @@ export default function AnimalPhotosManager({
 
           <button
             type="button"
-            onClick={() => setMode((prev) => (prev === "cover" ? "none" : "cover"))}
+            onClick={() =>
+              setMode((prev) => (prev === "cover" ? "none" : "cover"))
+            }
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               mode === "cover"
                 ? "bg-white text-black"
@@ -93,7 +91,9 @@ export default function AnimalPhotosManager({
 
           <button
             type="button"
-            onClick={() => setMode((prev) => (prev === "delete" ? "none" : "delete"))}
+            onClick={() =>
+              setMode((prev) => (prev === "delete" ? "none" : "delete"))
+            }
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               mode === "delete"
                 ? "bg-red-500/90 text-white"
