@@ -10,6 +10,14 @@ type UploadAnimalPhotosFormProps = {
   existingPhotosCount: number;
 };
 
+type FotoInsertRow = {
+  id_animal: string;
+  url_foto: string;
+  storage_path: string;
+  es_principal: boolean;
+  orden: number;
+};
+
 async function compressImage(file: File): Promise<File> {
   const imageBitmap = await createImageBitmap(file);
 
@@ -36,8 +44,12 @@ async function compressImage(file: File): Promise<File> {
   const blob: Blob = await new Promise((resolve, reject) => {
     canvas.toBlob(
       (result) => {
-        if (result) resolve(result);
-        else reject(new Error("No se pudo comprimir la imagen."));
+        if (result) {
+          resolve(result);
+          return;
+        }
+
+        reject(new Error("No se pudo comprimir la imagen."));
       },
       "image/jpeg",
       0.8,
@@ -45,6 +57,7 @@ async function compressImage(file: File): Promise<File> {
   });
 
   const originalName = file.name.replace(/\.[^.]+$/, "");
+
   return new File([blob], `${originalName}.jpg`, {
     type: "image/jpeg",
     lastModified: Date.now(),
@@ -65,15 +78,14 @@ export default function UploadAnimalPhotosForm({
   const [error, setError] = useState<string | null>(null);
 
   async function uploadFiles(selectedFiles: File[]) {
-    if (loading) return;
-    if (selectedFiles.length === 0) return;
+    if (loading || selectedFiles.length === 0) return;
 
     setLoading(true);
     setError(null);
     setSelectedCount(selectedFiles.length);
 
     try {
-      const rows = [];
+      const rows: FotoInsertRow[] = [];
 
       for (let index = 0; index < selectedFiles.length; index += 1) {
         const originalFile = selectedFiles[index];
