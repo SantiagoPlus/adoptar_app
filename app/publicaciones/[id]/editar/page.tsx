@@ -173,7 +173,7 @@ async function actualizarPublicacion(formData: FormData) {
     );
   }
 
-  redirect(`/publicaciones/${idAnimal}/editar?ok=publicacion_actualizada`);
+  redirect(`/publicaciones/${idAnimal}?ok=publicacion_actualizada`);
 }
 
 async function marcarFotoPrincipal(formData: FormData) {
