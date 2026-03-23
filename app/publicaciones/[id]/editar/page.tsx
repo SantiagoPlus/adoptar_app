@@ -82,7 +82,6 @@ async function actualizarPublicacion(formData: FormData) {
   const supabase = await createClient();
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
-
   if (authError || !authData.user) {
     redirect(`/auth/login?next=/publicaciones/${idAnimal}/editar`);
   }
@@ -336,14 +335,6 @@ async function eliminarFotoIndividual(formData: FormData) {
 }
 
 function FeedbackBanner({ ok, error }: { ok?: string; error?: string }) {
-  if (ok === "publicacion_actualizada") {
-    return (
-      <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue actualizada correctamente.
-      </div>
-    );
-  }
-
   if (ok === "foto_principal_actualizada") {
     return (
       <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
