@@ -149,7 +149,7 @@ export default function PerfilPage() {
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <Card
-              href="/animales"
+              href="/"
               eyebrow="Explorar"
               title="Buscar animal"
               description="Volvé al listado general para explorar animales disponibles."
