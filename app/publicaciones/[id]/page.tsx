@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
-import AnimalPhotosManager from "@/components/publicaciones/animal-photos-manager";
 
 type Params = Promise<{ id: string }>;
 
@@ -398,163 +397,6 @@ async function actualizarEstadoPublicacion(formData: FormData) {
   redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
 }
 
-async function marcarFotoPrincipal(formData: FormData) {
-  "use server";
-
-  const idAnimal = String(formData.get("id_animal") ?? "").trim();
-  const idFoto = String(formData.get("id_foto") ?? "").trim();
-
-  if (!idAnimal || !idFoto) {
-    redirect(`/publicaciones/${idAnimal}?error=foto_invalida`);
-  }
-
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  const { error: clearError } = await supabase
-    .from("fotos_animales")
-    .update({ es_principal: false })
-    .eq("id_animal", idAnimal);
-
-  if (clearError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_foto_principal`);
-  }
-
-  const { error: setError } = await supabase
-    .from("fotos_animales")
-    .update({ es_principal: true })
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal);
-
-  if (setError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_foto_principal`);
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=foto_principal_actualizada`);
-}
-
-async function eliminarFotoIndividual(formData: FormData) {
-  "use server";
-
-  const idAnimal = String(formData.get("id_animal") ?? "").trim();
-  const idFoto = String(formData.get("id_foto") ?? "").trim();
-
-  if (!idAnimal || !idFoto) {
-    redirect(`/publicaciones/${idAnimal}?error=foto_invalida`);
-  }
-
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  const { data: foto } = await supabase
-    .from("fotos_animales")
-    .select("id_foto, storage_path, es_principal")
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!foto) {
-    redirect(`/publicaciones/${idAnimal}?error=foto_no_encontrada`);
-  }
-
-  if (foto.storage_path) {
-    const { error: removeStorageError } = await supabase.storage
-      .from("animales")
-      .remove([foto.storage_path]);
-
-    if (removeStorageError) {
-      redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_storage`);
-    }
-  }
-
-  const { error: deleteFotoError } = await supabase
-    .from("fotos_animales")
-    .delete()
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal);
-
-  if (deleteFotoError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_foto`);
-  }
-
-  if (foto.es_principal) {
-    const { data: restantes } = await supabase
-      .from("fotos_animales")
-      .select("id_foto")
-      .eq("id_animal", idAnimal)
-      .order("orden", { ascending: true })
-      .limit(1);
-
-    const siguiente = restantes?.[0];
-
-    if (siguiente) {
-      await supabase
-        .from("fotos_animales")
-        .update({ es_principal: true })
-        .eq("id_foto", siguiente.id_foto)
-        .eq("id_animal", idAnimal);
-    }
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=foto_eliminada`);
-}
-
 async function eliminarPublicacion(formData: FormData) {
   "use server";
 
@@ -660,7 +502,7 @@ function FeedbackBanner({
   if (ok === "continuar_con_imagenes") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue creada. Ahora podés cargar imágenes.
+        La publicación fue creada. Ahora podés terminar de editarla y cargar imágenes.
       </div>
     );
   }
@@ -722,22 +564,6 @@ function FeedbackBanner({
     );
   }
 
-  if (ok === "foto_principal_actualizada") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La foto principal fue actualizada.
-      </div>
-    );
-  }
-
-  if (ok === "foto_eliminada") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La imagen fue eliminada correctamente.
-      </div>
-    );
-  }
-
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -779,12 +605,6 @@ function FeedbackBanner({
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
       "Ocurrió un error al eliminar la publicación.",
-    foto_invalida: "La imagen indicada no es válida.",
-    foto_no_encontrada: "No se encontró la imagen seleccionada.",
-    error_foto_principal:
-      "Ocurrió un error al actualizar la foto principal.",
-    error_eliminacion_foto:
-      "Ocurrió un error al eliminar la imagen seleccionada.",
   };
 
   return (
@@ -926,6 +746,11 @@ async function PublicacionContent({
     redirect("/publicaciones");
   }
 
+  const fotoPrincipal =
+    animalTipado.fotos_animales.find((foto) => foto.es_principal) ??
+    animalTipado.fotos_animales[0] ??
+    null;
+
   const totalSolicitudes = (
     await supabase
       .from("solicitudes_adopcion")
@@ -962,13 +787,90 @@ async function PublicacionContent({
 
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
-          <AnimalPhotosManager
-            animalId={animalTipado.id_animal}
-            authUserId={authData.user.id}
-            fotos={animalTipado.fotos_animales}
-            marcarFotoPrincipalAction={marcarFotoPrincipal}
-            eliminarFotoIndividualAction={eliminarFotoIndividual}
-          />
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-3 flex flex-wrap gap-3">
+              {animalTipado.estado === "disponible" && (
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="pausado" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  >
+                    Pausar / Ocultar publicación
+                  </button>
+                </form>
+              )}
+
+              {animalTipado.estado === "pausado" && (
+                <form action={actualizarEstadoPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <input type="hidden" name="nuevo_estado" value="disponible" />
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  >
+                    Reactivar publicación
+                  </button>
+                </form>
+              )}
+
+              {animalTipado.estado !== "adoptado" && (
+                <Link
+                  href={`/publicaciones/${animalTipado.id_animal}/editar`}
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+                >
+                  Editar publicación
+                </Link>
+              )}
+
+              {animalTipado.estado !== "adoptado" && (
+                <form action={eliminarPublicacion}>
+                  <input
+                    type="hidden"
+                    name="id_animal"
+                    value={animalTipado.id_animal}
+                  />
+                  <ConfirmDeleteButton />
+                </form>
+              )}
+            </div>
+
+            {fotoPrincipal ? (
+              <img
+                src={fotoPrincipal.url_foto}
+                alt={`Imagen principal de ${animalTipado.nombre}`}
+                className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
+              />
+            ) : (
+              <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/10 text-white/50">
+                Sin imagen principal
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
+              <span>
+                {animalTipado.fotos_animales.length} imagen
+                {animalTipado.fotos_animales.length === 1 ? "" : "es"} cargada
+                {animalTipado.fotos_animales.length === 1 ? "" : "s"}
+              </span>
+
+              <Link
+                href={`/animales/${animalTipado.id_animal}`}
+                className="transition hover:text-white"
+              >
+                Ver ficha pública
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -1023,62 +925,6 @@ async function PublicacionContent({
                   : "No informado"}
               </p>
             </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              {animalTipado.estado === "disponible" && (
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="pausado" />
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                  >
-                    Pausar / Ocultar publicación
-                  </button>
-                </form>
-              )}
-
-              {animalTipado.estado === "pausado" && (
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="disponible" />
-                  <button
-                    type="submit"
-                    className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                  >
-                    Reactivar publicación
-                  </button>
-                </form>
-              )}
-
-              <Link
-                href={`/animales/${animalTipado.id_animal}`}
-                className="text-sm text-white/60 transition hover:text-white"
-              >
-                Ver ficha pública
-              </Link>
-            </div>
-
-            {animalTipado.estado !== "adoptado" && (
-              <form action={eliminarPublicacion}>
-                <input
-                  type="hidden"
-                  name="id_animal"
-                  value={animalTipado.id_animal}
-                />
-                <ConfirmDeleteButton />
-              </form>
-            )}
           </div>
         </div>
       </section>
