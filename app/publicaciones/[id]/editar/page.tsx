@@ -112,7 +112,9 @@ async function actualizarPublicacion(formData: FormData) {
   }
 
   if (animal.estado === "adoptado") {
-    redirect(`/publicaciones/${idAnimal}/editar?error=publicacion_adoptada_bloqueada`);
+    redirect(
+      `/publicaciones/${idAnimal}/editar?error=publicacion_adoptada_bloqueada`,
+    );
   }
 
   const nombre = String(formData.get("nombre") ?? "").trim();
@@ -166,7 +168,9 @@ async function actualizarPublicacion(formData: FormData) {
     .eq("id_animal", idAnimal);
 
   if (updateError) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=error_actualizacion_publicacion`);
+    redirect(
+      `/publicaciones/${idAnimal}/editar?error=error_actualizacion_publicacion`,
+    );
   }
 
   redirect(`/publicaciones/${idAnimal}/editar?ok=publicacion_actualizada`);
@@ -293,7 +297,9 @@ async function eliminarFotoIndividual(formData: FormData) {
       .remove([foto.storage_path]);
 
     if (removeStorageError) {
-      redirect(`/publicaciones/${idAnimal}/editar?error=error_eliminacion_storage`);
+      redirect(
+        `/publicaciones/${idAnimal}/editar?error=error_eliminacion_storage`,
+      );
     }
   }
 
@@ -505,7 +511,9 @@ async function EditarPublicacionContent({
   }
 
   if (animalTipado.estado === "adoptado") {
-    redirect(`/publicaciones/${animalTipado.id_animal}?error=publicacion_adoptada_bloqueada`);
+    redirect(
+      `/publicaciones/${animalTipado.id_animal}?error=publicacion_adoptada_bloqueada`,
+    );
   }
 
   return (
@@ -673,20 +681,44 @@ async function EditarPublicacionContent({
 
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {[
-              ["castrado", "Castrado", animalTipado.castrado],
-              ["vacunado", "Vacunado", animalTipado.vacunado],
-              ["desparasitado", "Desparasitado", animalTipado.desparasitado],
-              ["apto_ninos", "Apto niños", animalTipado.apto_ninos],
-              ["apto_gatos", "Apto gatos", animalTipado.apto_gatos],
-              ["apto_perros", "Apto perros", animalTipado.apto_perros],
-            ].map(([name, label, checked]) => (
+              {
+                name: "castrado",
+                label: "Castrado",
+                checked: animalTipado.castrado,
+              },
+              {
+                name: "vacunado",
+                label: "Vacunado",
+                checked: animalTipado.vacunado,
+              },
+              {
+                name: "desparasitado",
+                label: "Desparasitado",
+                checked: animalTipado.desparasitado,
+              },
+              {
+                name: "apto_ninos",
+                label: "Apto niños",
+                checked: animalTipado.apto_ninos,
+              },
+              {
+                name: "apto_gatos",
+                label: "Apto gatos",
+                checked: animalTipado.apto_gatos,
+              },
+              {
+                name: "apto_perros",
+                label: "Apto perros",
+                checked: animalTipado.apto_perros,
+              },
+            ].map(({ name, label, checked }) => (
               <label
                 key={name}
                 className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
               >
                 <input
                   type="checkbox"
-                  name={String(name)}
+                  name={name}
                   defaultChecked={Boolean(checked)}
                   className="h-4 w-4 accent-white"
                 />
@@ -759,7 +791,10 @@ export default function EditarPublicacionPage({
         </header>
 
         <Suspense fallback={<EditarPublicacionSkeleton />}>
-          <EditarPublicacionContent params={params} searchParams={searchParams} />
+          <EditarPublicacionContent
+            params={params}
+            searchParams={searchParams}
+          />
         </Suspense>
       </section>
     </main>
