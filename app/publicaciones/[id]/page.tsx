@@ -1,51 +1,18 @@
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import ConfirmDeleteButton from "./ConfirmDeleteButton";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import {
+  getPublicacionDelPublicador,
+  getSolicitudesDePublicacion,
+  setEstadoPublicacion,
+  deletePublicacionSegura,
+  type AnimalPublicacion,
+  type SolicitudItem,
+} from "@/lib/server/publicaciones";
 
 type Params = Promise<{ id: string }>;
-
-type FotoAnimal = {
-  id_foto: string;
-  url_foto: string;
-  es_principal: boolean;
-  orden: number;
-  storage_path?: string | null;
-};
-
-type AnimalPublicacion = {
-  id_animal: string;
-  nombre: string;
-  especie: string;
-  raza: string | null;
-  sexo: string | null;
-  edad_aproximada: string | null;
-  tamano: string | null;
-  descripcion: string | null;
-  estado_salud: string | null;
-  ciudad: string | null;
-  estado: string;
-  fecha_publicacion: string | null;
-  id_publicador: string;
-  nivel_energia: string | null;
-  castrado: boolean | null;
-  vacunado: boolean | null;
-  desparasitado: boolean | null;
-  apto_ninos: boolean | null;
-  apto_gatos: boolean | null;
-  apto_perros: boolean | null;
-  fotos_animales: FotoAnimal[];
-};
-
-type SolicitudItem = {
-  id_solicitud: string;
-  id_solicitante: string;
-  nombre_solicitante: string | null;
-  mensaje: string;
-  estado: string;
-  fecha_solicitud: string;
-};
 
 function formatEstadoSolicitud(estado: string) {
   const labels: Record<string, string> = {
@@ -81,20 +48,10 @@ async function marcarEnRevision(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}`,
+    notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
+  });
 
   const { data: solicitud } = await supabase
     .from("solicitudes_adopcion")
@@ -161,20 +118,10 @@ async function actualizarEstadoSolicitud(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}`,
+    notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
+  });
 
   const { data: solicitud } = await supabase
     .from("solicitudes_adopcion")
@@ -230,20 +177,10 @@ async function concretarAdopcion(formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}`,
+    notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
+  });
 
   const { data: solicitud } = await supabase
     .from("solicitudes_adopcion")
@@ -344,57 +281,16 @@ async function actualizarEstadoPublicacion(formData: FormData) {
     redirect(`/publicaciones/${idAnimal}?error=estado_publicacion_invalido`);
   }
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}`,
+    notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (animal.estado === "adoptado") {
-    redirect(`/publicaciones/${idAnimal}?error=publicacion_adoptada_bloqueada`);
-  }
-
-  if (animal.estado === nuevoEstado) {
-    redirect(`/publicaciones/${idAnimal}?ok=sin_cambios_publicacion`);
-  }
-
-  const { error } = await supabase
-    .from("animales_adopcion")
-    .update({ estado: nuevoEstado })
-    .eq("id_animal", idAnimal);
-
-  if (error) {
-    redirect(
-      `/publicaciones/${idAnimal}?error=error_actualizacion_publicacion`,
-    );
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=publicacion_${nuevoEstado}`);
+  await setEstadoPublicacion({
+    idAnimal,
+    idPublicador: usuario.id_usuario,
+    nuevoEstado: nuevoEstado as "pausado" | "disponible",
+  });
 }
 
 async function eliminarPublicacion(formData: FormData) {
@@ -406,90 +302,15 @@ async function eliminarPublicacion(formData: FormData) {
     redirect("/publicaciones?error=publicacion_invalida");
   }
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}`,
+    notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (animal.estado === "adoptado") {
-    redirect(`/publicaciones/${idAnimal}?error=publicacion_adoptada_bloqueada`);
-  }
-
-  const { data: adopcionExistente } = await supabase
-    .from("adopciones")
-    .select("id_adopcion")
-    .eq("id_animal", idAnimal)
-    .maybeSingle();
-
-  if (adopcionExistente) {
-    redirect(`/publicaciones/${idAnimal}?error=publicacion_con_adopcion`);
-  }
-
-  const { data: fotos } = await supabase
-    .from("fotos_animales")
-    .select("storage_path")
-    .eq("id_animal", idAnimal);
-
-  const storagePaths =
-    fotos
-      ?.map((foto) => foto.storage_path)
-      .filter((path): path is string => Boolean(path && path.trim())) ?? [];
-
-  if (storagePaths.length > 0) {
-    const { error: removeStorageError } = await supabase.storage
-      .from("animales")
-      .remove(storagePaths);
-
-    if (removeStorageError) {
-      redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_storage`);
-    }
-  }
-
-  const { error: deleteFotosError } = await supabase
-    .from("fotos_animales")
-    .delete()
-    .eq("id_animal", idAnimal);
-
-  if (deleteFotosError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_fotos`);
-  }
-
-  const { error: deleteAnimalError } = await supabase
-    .from("animales_adopcion")
-    .delete()
-    .eq("id_animal", idAnimal);
-
-  if (deleteAnimalError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_eliminacion_publicacion`);
-  }
-
-  redirect("/publicaciones?ok=publicacion_eliminada");
+  await deletePublicacionSegura({
+    idAnimal,
+    idPublicador: usuario.id_usuario,
+  });
 }
 
 function FeedbackBanner({
@@ -499,14 +320,6 @@ function FeedbackBanner({
   ok?: string;
   error?: string;
 }) {
-  if (ok === "continuar_con_imagenes") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue creada. Ahora podés terminar de editarla y cargar imágenes.
-      </div>
-    );
-  }
-
   if (ok === "en_revision") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
@@ -556,14 +369,6 @@ function FeedbackBanner({
     );
   }
 
-  if (ok === "publicacion_eliminada") {
-    return (
-      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
-        La publicación fue eliminada correctamente.
-      </div>
-    );
-  }
-
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -599,8 +404,6 @@ function FeedbackBanner({
       "Una publicación adoptada no puede cambiar de estado ni eliminarse.",
     publicacion_con_adopcion:
       "No se puede eliminar una publicación que ya tuvo una adopción registrada.",
-    error_eliminacion_storage:
-      "Ocurrió un error al eliminar las imágenes del almacenamiento.",
     error_eliminacion_fotos:
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
@@ -656,7 +459,7 @@ function PublicacionSkeleton() {
   );
 }
 
-function AtributoChip({ children }: { children: ReactNode }) {
+function AtributoChip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/90">
       {children}
@@ -674,102 +477,37 @@ async function PublicacionContent({
   const { id } = await params;
   const { ok, error: searchError } = await searchParams;
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${id}`,
+    notFoundRedirect: `/publicaciones/${id}?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${id}`);
+  const animalTipado = await getPublicacionDelPublicador(id, usuario.id_usuario);
+
+  if (!animalTipado) {
+    notFound();
   }
 
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
+  const solicitudesTipadas = await getSolicitudesDePublicacion(
+    animalTipado.id_animal,
+  );
 
-  if (usuarioError || !usuario) {
+  if (solicitudesTipadas === null) {
     return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-        No se pudo cargar tu perfil de usuario.
+      <div className="space-y-6">
+        <FeedbackBanner ok={ok} error={searchError} />
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+          Ocurrió un error al cargar las solicitudes de esta publicación.
+        </div>
       </div>
     );
   }
 
-  const { data: animal, error: animalError } = await supabase
-    .from("animales_adopcion")
-    .select(
-      `
-        id_animal,
-        nombre,
-        especie,
-        raza,
-        sexo,
-        edad_aproximada,
-        tamano,
-        descripcion,
-        estado_salud,
-        ciudad,
-        estado,
-        fecha_publicacion,
-        id_publicador,
-        nivel_energia,
-        castrado,
-        vacunado,
-        desparasitado,
-        apto_ninos,
-        apto_gatos,
-        apto_perros,
-        fotos_animales (
-          id_foto,
-          url_foto,
-          es_principal,
-          orden,
-          storage_path
-        )
-      `,
-    )
-    .eq("id_animal", id)
-    .single();
-
-  if (animalError || !animal) {
-    notFound();
-  }
-
-  const animalTipado: AnimalPublicacion = {
-    ...animal,
-    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
-      (a, b) => a.orden - b.orden,
-    ),
-  };
-
-  if (animalTipado.id_publicador !== usuario.id_usuario) {
-    redirect("/publicaciones");
-  }
-
   const fotoPrincipal =
     animalTipado.fotos_animales.find((foto) => foto.es_principal) ??
-    animalTipado.fotos_animales[0] ??
-    null;
+    animalTipado.fotos_animales[0];
 
-  const totalSolicitudes = (
-    await supabase
-      .from("solicitudes_adopcion")
-      .select(
-        `
-          id_solicitud,
-          id_solicitante,
-          nombre_solicitante,
-          mensaje,
-          estado,
-          fecha_solicitud
-        `,
-      )
-      .eq("id_animal", animalTipado.id_animal)
-      .order("fecha_solicitud", { ascending: false })
-  ).data as SolicitudItem[] | null;
-
-  const solicitudesTipadas = totalSolicitudes ?? [];
-
+  const totalSolicitudes = solicitudesTipadas.length;
   const pendientes =
     solicitudesTipadas.filter((s) => s.estado === "pendiente").length ?? 0;
   const enRevision =
@@ -787,90 +525,30 @@ async function PublicacionContent({
 
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div className="mb-3 flex flex-wrap gap-3">
-              {animalTipado.estado === "disponible" && (
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="pausado" />
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                  >
-                    Pausar / Ocultar publicación
-                  </button>
-                </form>
-              )}
-
-              {animalTipado.estado === "pausado" && (
-                <form action={actualizarEstadoPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <input type="hidden" name="nuevo_estado" value="disponible" />
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                  >
-                    Reactivar publicación
-                  </button>
-                </form>
-              )}
-
-              {animalTipado.estado !== "adoptado" && (
-                <Link
-                  href={`/publicaciones/${animalTipado.id_animal}/editar`}
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                >
-                  Editar publicación
-                </Link>
-              )}
-
-              {animalTipado.estado !== "adoptado" && (
-                <form action={eliminarPublicacion}>
-                  <input
-                    type="hidden"
-                    name="id_animal"
-                    value={animalTipado.id_animal}
-                  />
-                  <ConfirmDeleteButton />
-                </form>
-              )}
+          {fotoPrincipal ? (
+            <img
+              src={fotoPrincipal.url_foto}
+              alt={animalTipado.nombre}
+              className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
+            />
+          ) : (
+            <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/50">
+              Sin imagen
             </div>
+          )}
 
-            {fotoPrincipal ? (
-              <img
-                src={fotoPrincipal.url_foto}
-                alt={`Imagen principal de ${animalTipado.nombre}`}
-                className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
-              />
-            ) : (
-              <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/10 text-white/50">
-                Sin imagen principal
-              </div>
-            )}
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-white/60">
-              <span>
-                {animalTipado.fotos_animales.length} imagen
-                {animalTipado.fotos_animales.length === 1 ? "" : "es"} cargada
-                {animalTipado.fotos_animales.length === 1 ? "" : "s"}
-              </span>
-
-              <Link
-                href={`/animales/${animalTipado.id_animal}`}
-                className="transition hover:text-white"
-              >
-                Ver ficha pública
-              </Link>
+          {animalTipado.fotos_animales.length > 1 && (
+            <div className="grid grid-cols-3 gap-3">
+              {animalTipado.fotos_animales.map((foto) => (
+                <img
+                  key={foto.id_foto}
+                  src={foto.url_foto}
+                  alt={animalTipado.nombre}
+                  className="h-28 w-full rounded-xl border border-white/10 object-cover"
+                />
+              ))}
             </div>
-          </div>
+          )}
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -926,6 +604,49 @@ async function PublicacionContent({
               </p>
             </div>
           </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {animalTipado.estado === "disponible" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input
+                  type="hidden"
+                  name="id_animal"
+                  value={animalTipado.id_animal}
+                />
+                <input type="hidden" name="nuevo_estado" value="pausado" />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                >
+                  Pausar / Ocultar publicación
+                </button>
+              </form>
+            )}
+
+            {animalTipado.estado === "pausado" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input
+                  type="hidden"
+                  name="id_animal"
+                  value={animalTipado.id_animal}
+                />
+                <input type="hidden" name="nuevo_estado" value="disponible" />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+                >
+                  Reactivar publicación
+                </button>
+              </form>
+            )}
+
+            <Link
+              href={`/animales/${animalTipado.id_animal}`}
+              className="self-center text-sm text-white/60 transition hover:text-white"
+            >
+              Ver ficha pública
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -957,7 +678,7 @@ async function PublicacionContent({
       <section className="grid gap-4 md:grid-cols-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="mb-1 text-sm text-white/60">Total</p>
-          <p className="text-2xl font-semibold">{solicitudesTipadas.length}</p>
+          <p className="text-2xl font-semibold">{totalSolicitudes}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="mb-1 text-sm text-white/60">Pendientes</p>
@@ -1114,6 +835,26 @@ async function PublicacionContent({
           </div>
         )}
       </section>
+
+      {animalTipado.estado !== "adoptado" && (
+        <section className="border-t border-white/10 pt-8">
+          <div className="flex justify-end">
+            <form action={eliminarPublicacion}>
+              <input
+                type="hidden"
+                name="id_animal"
+                value={animalTipado.id_animal}
+              />
+              <button
+                type="submit"
+                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
+              >
+                Eliminar publicación
+              </button>
+            </form>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
