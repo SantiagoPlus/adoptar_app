@@ -9,7 +9,7 @@ import {
   setEstadoPublicacion,
   deletePublicacionSegura,
 } from "@/lib/server/publicaciones";
-import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
+import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 type Params = Promise<{ id: string }>;
 
