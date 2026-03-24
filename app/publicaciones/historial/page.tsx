@@ -1,32 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import { getPublicacionesArchivoData } from "@/lib/server/publicaciones";
 
-type FotoAnimal = {
-  id_foto: string;
-  url_foto: string;
-  es_principal: boolean;
-  orden: number;
-};
-
-type Publicacion = {
-  id_animal: string;
-  nombre: string;
-  especie: string;
-  raza: string | null;
-  ciudad: string | null;
-  estado: string;
-  fecha_publicacion: string | null;
-  fotos_animales: FotoAnimal[];
-};
-
-type SolicitudResumen = {
-  id_animal: string;
-  estado: string;
-};
-
-function HistorialSkeleton() {
+function ArchivoSkeleton() {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
@@ -51,7 +28,7 @@ function EmptySection() {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
       <p className="text-white/80">
-        Todavía no tenés publicaciones en el historial.
+        Todavía no tenés publicaciones archivadas.
       </p>
     </div>
   );
@@ -61,7 +38,22 @@ function PublicacionCard({
   animal,
   resumen,
 }: {
-  animal: Publicacion;
+  animal: {
+    id_animal: string;
+    nombre: string;
+    especie: string;
+    raza: string | null;
+    ciudad: string | null;
+    estado: string;
+    fecha_publicacion: string | null;
+    fotos_animales: {
+      id_foto: string;
+      url_foto: string;
+      es_principal: boolean;
+      orden: number;
+      storage_path?: string | null;
+    }[];
+  };
   resumen: {
     total: number;
     pendientes: number;
@@ -146,106 +138,27 @@ function PublicacionCard({
   );
 }
 
-async function HistorialContent() {
-  const supabase = await createClient();
+async function ArchivoContent() {
+  const { usuario } = await getCurrentUsuario({
+    loginNext: "/publicaciones/historial",
+    notFoundRedirect: "/publicaciones/historial?error=usuario_no_encontrado",
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const archivo = await getPublicacionesArchivoData(usuario.id_usuario);
 
-  if (authError || !authData.user) {
-    redirect("/auth/login?next=/publicaciones/historial");
-  }
-
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
+  if (!archivo) {
     return (
       <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-        No se pudo cargar tu perfil de usuario.
+        Ocurrió un error al cargar el archivo.
       </div>
     );
   }
 
-  const { data: publicaciones, error } = await supabase
-    .from("animales_adopcion")
-    .select(
-      `
-        id_animal,
-        nombre,
-        especie,
-        raza,
-        ciudad,
-        estado,
-        fecha_publicacion,
-        fotos_animales (
-          id_foto,
-          url_foto,
-          es_principal,
-          orden
-        )
-      `,
-    )
-    .eq("id_publicador", usuario.id_usuario)
-    .eq("estado", "adoptado")
-    .order("fecha_publicacion", { ascending: false });
-
-  if (error) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-        Ocurrió un error al cargar el historial.
-      </div>
-    );
-  }
-
-  const items = ((publicaciones ?? []) as Publicacion[]).map((animal) => ({
-    ...animal,
-    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
-      (a, b) => a.orden - b.orden,
-    ),
-  }));
+  const { items, solicitudesPorAnimal } = archivo;
 
   if (items.length === 0) {
     return <EmptySection />;
   }
-
-  const ids = items.map((item) => item.id_animal);
-
-  const { data: solicitudes } = await supabase
-    .from("solicitudes_adopcion")
-    .select("id_animal, estado")
-    .in(
-      "id_animal",
-      ids.length ? ids : ["00000000-0000-0000-0000-000000000000"],
-    );
-
-  const solicitudesPorAnimal = new Map<
-    string,
-    {
-      total: number;
-      pendientes: number;
-      enRevision: number;
-      adoptadas: number;
-    }
-  >();
-
-  ((solicitudes ?? []) as SolicitudResumen[]).forEach((solicitud) => {
-    const actual = solicitudesPorAnimal.get(solicitud.id_animal) ?? {
-      total: 0,
-      pendientes: 0,
-      enRevision: 0,
-      adoptadas: 0,
-    };
-
-    actual.total += 1;
-    if (solicitud.estado === "pendiente") actual.pendientes += 1;
-    if (solicitud.estado === "en_revision") actual.enRevision += 1;
-    if (solicitud.estado === "adoptado") actual.adoptadas += 1;
-
-    solicitudesPorAnimal.set(solicitud.id_animal, actual);
-  });
 
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -284,14 +197,14 @@ export default function PublicacionesHistorialPage() {
 
         <header className="mb-8">
           <p className="mb-2 text-sm text-white/60">Adopciones</p>
-          <h1 className="mb-3 text-3xl font-bold">Historial</h1>
+          <h1 className="mb-3 text-3xl font-bold">Archivo</h1>
           <p className="text-white/70">
             Acá podés ver las publicaciones cerradas con adopción exitosa.
           </p>
         </header>
 
-        <Suspense fallback={<HistorialSkeleton />}>
-          <HistorialContent />
+        <Suspense fallback={<ArchivoSkeleton />}>
+          <ArchivoContent />
         </Suspense>
       </section>
     </main>
