@@ -1,31 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { SubmitButton } from "./submit-button";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import { crearPublicacion } from "@/lib/server/publicaciones";
 
 type SearchParams = Promise<{ error?: string }>;
 
-async function crearPublicacion(formData: FormData) {
+async function crearPublicacionAction(formData: FormData) {
   "use server";
 
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !authData.user) {
-    redirect("/auth/login?next=/publicaciones/nueva");
-  }
-
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    redirect("/publicaciones/nueva?error=usuario_no_encontrado");
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: "/publicaciones/nueva",
+    notFoundRedirect: "/publicaciones/nueva?error=usuario_no_encontrado",
+  });
 
   const nombre = String(formData.get("nombre") ?? "").trim();
   const especie = String(formData.get("especie") ?? "").trim();
@@ -45,47 +32,27 @@ async function crearPublicacion(formData: FormData) {
   const aptoGatos = formData.get("apto_gatos") === "on";
   const aptoPerros = formData.get("apto_perros") === "on";
 
-  if (!nombre || !especie) {
-    redirect("/publicaciones/nueva?error=campos_obligatorios");
-  }
-
-  if (!["perro", "gato"].includes(especie)) {
-    redirect("/publicaciones/nueva?error=especie_invalida");
-  }
-
-  const payload = {
-    id_publicador: usuario.id_usuario,
+  const animalCreado = await crearPublicacion({
+    idPublicador: usuario.id_usuario,
     nombre,
     especie,
-    raza: raza || null,
-    sexo: sexo || null,
-    edad_aproximada: edadAproximada || null,
-    tamano: tamano || null,
-    descripcion: descripcion || null,
-    estado_salud: estadoSalud || null,
-    ciudad: ciudad || null,
-    estado: "disponible",
-    fecha_publicacion: new Date().toISOString(),
-    nivel_energia: nivelEnergia || null,
+    raza,
+    sexo,
+    edadAproximada,
+    tamano,
+    ciudad,
+    descripcion,
+    estadoSalud,
+    nivelEnergia,
     castrado,
     vacunado,
     desparasitado,
-    apto_ninos: aptoNinos,
-    apto_gatos: aptoGatos,
-    apto_perros: aptoPerros,
-  };
+    aptoNinos,
+    aptoGatos,
+    aptoPerros,
+  });
 
-  const { data: animalCreado, error: insertAnimalError } = await supabase
-    .from("animales_adopcion")
-    .insert(payload)
-    .select("id_animal")
-    .single();
-
-  if (insertAnimalError || !animalCreado) {
-    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
-  }
-
-  redirect(`/publicaciones/${animalCreado.id_animal}?ok=continuar_con_imagenes`);
+  redirect(`/publicaciones/${animalCreado.id_animal}/editar?ok=continuar_con_imagenes`);
 }
 
 function Campo({
@@ -138,6 +105,7 @@ function NuevaPublicacionSkeleton() {
         <div className="space-y-4">
           <div className="h-28 animate-pulse rounded-xl bg-white/10" />
           <div className="h-20 animate-pulse rounded-xl bg-white/10" />
+          <div className="h-12 animate-pulse rounded-xl bg-white/10" />
         </div>
       </section>
 
@@ -185,7 +153,7 @@ async function NuevaPublicacionContent({
     <>
       <FeedbackBanner error={error} />
 
-      <form action={crearPublicacion} className="space-y-6">
+      <form action={crearPublicacionAction} className="space-y-6">
         <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h2 className="mb-5 text-xl font-semibold">Datos principales</h2>
 
@@ -329,11 +297,6 @@ async function NuevaPublicacionContent({
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none"
               />
             </div>
-
-            <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
-              La carga de imágenes se hará en el siguiente paso, después de crear
-              la publicación.
-            </div>
           </div>
         </section>
 
@@ -365,7 +328,12 @@ async function NuevaPublicacionContent({
         </section>
 
         <div className="flex flex-wrap gap-3">
-          <SubmitButton />
+          <button
+            type="submit"
+            className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
+          >
+            Crear publicación
+          </button>
 
           <Link
             href="/publicaciones"
