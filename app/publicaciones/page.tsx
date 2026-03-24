@@ -83,7 +83,7 @@ function Toolbar({ filtroActual }: { filtroActual: string }) {
         href="/publicaciones/historial"
         className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
       >
-        Historial
+        Archivo
       </Link>
     </div>
   );
