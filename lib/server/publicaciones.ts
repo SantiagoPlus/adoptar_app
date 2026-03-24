@@ -85,6 +85,27 @@ export type CrearPublicacionInput = {
   aptoPerros: boolean;
 };
 
+export type ActualizarPublicacionInput = {
+  idAnimal: string;
+  idPublicador: string;
+  nombre: string;
+  especie: string;
+  raza: string;
+  sexo: string;
+  edadAproximada: string;
+  tamano: string;
+  ciudad: string;
+  descripcion: string;
+  estadoSalud: string;
+  nivelEnergia: string;
+  castrado: boolean;
+  vacunado: boolean;
+  desparasitado: boolean;
+  aptoNinos: boolean;
+  aptoGatos: boolean;
+  aptoPerros: boolean;
+};
+
 export type PublicacionesDashboardData = {
   items: PublicacionResumen[];
   itemsGestion: PublicacionResumen[];
@@ -142,6 +163,74 @@ export async function crearPublicacion(input: CrearPublicacionInput) {
   }
 
   return animalCreado;
+}
+
+export async function actualizarPublicacionEditable(
+  input: ActualizarPublicacionInput,
+) {
+  const supabase = await createClient();
+
+  if (!input.nombre || !input.especie) {
+    redirect(
+      `/publicaciones/${input.idAnimal}/editar?error=campos_obligatorios`,
+    );
+  }
+
+  if (!["perro", "gato"].includes(input.especie)) {
+    redirect(`/publicaciones/${input.idAnimal}/editar?error=especie_invalida`);
+  }
+
+  const { data: animal } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal, id_publicador, estado")
+    .eq("id_animal", input.idAnimal)
+    .single();
+
+  if (!animal) {
+    redirect(`/publicaciones/${input.idAnimal}/editar?error=animal_no_encontrado`);
+  }
+
+  if (animal.id_publicador !== input.idPublicador) {
+    redirect(`/publicaciones/${input.idAnimal}/editar?error=sin_permisos`);
+  }
+
+  if (animal.estado === "adoptado") {
+    redirect(
+      `/publicaciones/${input.idAnimal}/editar?error=publicacion_adoptada_bloqueada`,
+    );
+  }
+
+  const payload = {
+    nombre: input.nombre,
+    especie: input.especie,
+    raza: input.raza || null,
+    sexo: input.sexo || null,
+    edad_aproximada: input.edadAproximada || null,
+    tamano: input.tamano || null,
+    descripcion: input.descripcion || null,
+    estado_salud: input.estadoSalud || null,
+    ciudad: input.ciudad || null,
+    nivel_energia: input.nivelEnergia || null,
+    castrado: input.castrado,
+    vacunado: input.vacunado,
+    desparasitado: input.desparasitado,
+    apto_ninos: input.aptoNinos,
+    apto_gatos: input.aptoGatos,
+    apto_perros: input.aptoPerros,
+  };
+
+  const { error } = await supabase
+    .from("animales_adopcion")
+    .update(payload)
+    .eq("id_animal", input.idAnimal);
+
+  if (error) {
+    redirect(
+      `/publicaciones/${input.idAnimal}/editar?error=error_actualizacion_publicacion`,
+    );
+  }
+
+  redirect(`/publicaciones/${input.idAnimal}/editar?ok=publicacion_actualizada`);
 }
 
 export async function getPublicacionesDashboardData(idPublicador: string) {
@@ -356,6 +445,13 @@ export async function getPublicacionDelPublicador(
   }
 
   return animalTipado;
+}
+
+export async function getPublicacionEditableDelPublicador(
+  idAnimal: string,
+  idPublicador: string,
+) {
+  return getPublicacionDelPublicador(idAnimal, idPublicador);
 }
 
 export async function getSolicitudesDePublicacion(idAnimal: string) {
