@@ -33,6 +33,17 @@ export type AnimalPublicacion = {
   fotos_animales: FotoAnimal[];
 };
 
+export type PublicacionResumen = {
+  id_animal: string;
+  nombre: string;
+  especie: string;
+  raza: string | null;
+  ciudad: string | null;
+  estado: string;
+  fecha_publicacion: string | null;
+  fotos_animales: FotoAnimal[];
+};
+
 export type SolicitudItem = {
   id_solicitud: string;
   id_solicitante: string;
@@ -40,6 +51,18 @@ export type SolicitudItem = {
   mensaje: string;
   estado: string;
   fecha_solicitud: string;
+};
+
+export type SolicitudResumen = {
+  id_animal: string;
+  estado: string;
+};
+
+export type ResumenSolicitudes = {
+  total: number;
+  pendientes: number;
+  enRevision: number;
+  adoptadas: number;
 };
 
 export type CrearPublicacionInput = {
@@ -60,6 +83,14 @@ export type CrearPublicacionInput = {
   aptoNinos: boolean;
   aptoGatos: boolean;
   aptoPerros: boolean;
+};
+
+export type PublicacionesDashboardData = {
+  items: PublicacionResumen[];
+  itemsGestion: PublicacionResumen[];
+  publicacionesActivasBase: PublicacionResumen[];
+  publicacionesPausadasBase: PublicacionResumen[];
+  solicitudesPorAnimal: Map<string, ResumenSolicitudes>;
 };
 
 export async function crearPublicacion(input: CrearPublicacionInput) {
@@ -106,6 +137,88 @@ export async function crearPublicacion(input: CrearPublicacionInput) {
   }
 
   return animalCreado;
+}
+
+export async function getPublicacionesDashboardData(idPublicador: string) {
+  const supabase = await createClient();
+
+  const { data: publicaciones, error } = await supabase
+    .from("animales_adopcion")
+    .select(
+      `
+        id_animal,
+        nombre,
+        especie,
+        raza,
+        ciudad,
+        estado,
+        fecha_publicacion,
+        fotos_animales (
+          id_foto,
+          url_foto,
+          es_principal,
+          orden,
+          storage_path
+        )
+      `,
+    )
+    .eq("id_publicador", idPublicador)
+    .order("fecha_publicacion", { ascending: false });
+
+  if (error) {
+    return null;
+  }
+
+  const items = ((publicaciones ?? []) as PublicacionResumen[]).map((animal) => ({
+    ...animal,
+    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
+      (a, b) => a.orden - b.orden,
+    ),
+  }));
+
+  const itemsGestion = items.filter((item) => item.estado !== "adoptado");
+  const publicacionesPausadasBase = itemsGestion.filter(
+    (item) => item.estado === "pausado",
+  );
+  const publicacionesActivasBase = itemsGestion.filter(
+    (item) => item.estado === "disponible",
+  );
+
+  const ids = itemsGestion.map((item) => item.id_animal);
+
+  const { data: solicitudes } = await supabase
+    .from("solicitudes_adopcion")
+    .select("id_animal, estado")
+    .in(
+      "id_animal",
+      ids.length ? ids : ["00000000-0000-0000-0000-000000000000"],
+    );
+
+  const solicitudesPorAnimal = new Map<string, ResumenSolicitudes>();
+
+  ((solicitudes ?? []) as SolicitudResumen[]).forEach((solicitud) => {
+    const actual = solicitudesPorAnimal.get(solicitud.id_animal) ?? {
+      total: 0,
+      pendientes: 0,
+      enRevision: 0,
+      adoptadas: 0,
+    };
+
+    actual.total += 1;
+    if (solicitud.estado === "pendiente") actual.pendientes += 1;
+    if (solicitud.estado === "en_revision") actual.enRevision += 1;
+    if (solicitud.estado === "adoptado") actual.adoptadas += 1;
+
+    solicitudesPorAnimal.set(solicitud.id_animal, actual);
+  });
+
+  return {
+    items,
+    itemsGestion,
+    publicacionesActivasBase,
+    publicacionesPausadasBase,
+    solicitudesPorAnimal,
+  } as PublicacionesDashboardData;
 }
 
 export async function getPublicacionDelPublicador(
