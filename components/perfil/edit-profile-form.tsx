@@ -81,20 +81,6 @@ async function compressImage(file: File): Promise<File> {
   });
 }
 
-function extractStoragePathFromPublicUrl(url: string, bucketName: string) {
-  try {
-    const parsed = new URL(url);
-    const marker = `/storage/v1/object/public/${bucketName}/`;
-    const index = parsed.pathname.indexOf(marker);
-
-    if (index === -1) return null;
-
-    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
-  } catch {
-    return null;
-  }
-}
-
 export function EditProfileForm({
   initialData,
   authUserId,
@@ -120,23 +106,49 @@ export function EditProfileForm({
     setSelectedFile(file);
   }
 
+  async function limpiarFotosPrevias() {
+    const { data: files, error: listError } = await supabase.storage
+      .from("avatars")
+      .list(authUserId, {
+        limit: 100,
+        offset: 0,
+      });
+
+    if (listError) {
+      throw new Error(
+        listError.message || "No se pudieron listar las fotos anteriores.",
+      );
+    }
+
+    if (!files || files.length === 0) return;
+
+    const paths = files
+      .filter((file) => file.name)
+      .map((file) => `${authUserId}/${file.name}`);
+
+    if (paths.length === 0) return;
+
+    const { error: removeError } = await supabase.storage
+      .from("avatars")
+      .remove(paths);
+
+    if (removeError) {
+      throw new Error(
+        removeError.message || "No se pudieron eliminar las fotos anteriores.",
+      );
+    }
+  }
+
   async function subirFotoPerfil() {
     if (!selectedFile) return fotoPerfil || null;
 
     const compressedFile = await compressImage(selectedFile);
 
+    await limpiarFotosPrevias();
+
     const timestamp = Date.now();
     const fileName = `perfil-${timestamp}.jpg`;
     const filePath = `${authUserId}/${fileName}`;
-
-    const previousPath =
-      fotoPerfil && fotoPerfil.trim() !== ""
-        ? extractStoragePathFromPublicUrl(fotoPerfil, "avatars")
-        : null;
-
-    if (previousPath) {
-      await supabase.storage.from("avatars").remove([previousPath]);
-    }
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
