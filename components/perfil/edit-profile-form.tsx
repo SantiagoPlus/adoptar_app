@@ -8,12 +8,33 @@ type EditProfileFormProps = {
   initialData: {
     nombre?: string | null;
     apellido?: string | null;
+    email?: string | null;
     direccion?: string | null;
     ciudad?: string | null;
     foto_perfil?: string | null;
   };
   authUserId: string;
 };
+
+function ProfileField({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
+  const displayValue =
+    value && value.trim() !== "" ? value : "Sin completar";
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+      <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
+        {label}
+      </p>
+      <p className="text-sm text-white/80">{displayValue}</p>
+    </div>
+  );
+}
 
 export function EditProfileForm({
   initialData,
@@ -22,7 +43,8 @@ export function EditProfileForm({
   const router = useRouter();
   const supabase = createClient();
 
-  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+
   const [nombre, setNombre] = useState(initialData.nombre ?? "");
   const [apellido, setApellido] = useState(initialData.apellido ?? "");
   const [direccion, setDireccion] = useState(initialData.direccion ?? "");
@@ -99,57 +121,96 @@ export function EditProfileForm({
         throw new Error(updateError.message || "No se pudo guardar el perfil.");
       }
 
-      setMessage("Perfil actualizado correctamente.");
+      setFotoPerfil(fotoSubida || "");
       setSelectedFile(null);
-      setLoading(false);
-      setOpen(false);
+      setMessage("Perfil actualizado correctamente.");
+      setEditing(false);
       router.refresh();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "No se pudo guardar el perfil.";
 
       setError(message);
+    } finally {
       setLoading(false);
     }
+  }
+
+  function handleCancel() {
+    setEditing(false);
+    setError(null);
+    setMessage(null);
+    setSelectedFile(null);
+    setNombre(initialData.nombre ?? "");
+    setApellido(initialData.apellido ?? "");
+    setDireccion(initialData.direccion ?? "");
+    setCiudad(initialData.ciudad ?? "");
+    setFotoPerfil(initialData.foto_perfil ?? "");
   }
 
   const inputClassName =
     "w-full rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-white outline-none transition focus:border-white/30 disabled:cursor-not-allowed disabled:opacity-60";
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="mb-1 text-xs uppercase tracking-wide text-white/50">
-            Edición
+            Datos guardados
           </p>
-          <h3 className="text-lg font-semibold text-white">Editar perfil</h3>
+          <h3 className="text-lg font-semibold text-white">
+            {editing ? "Editar perfil" : "Datos personales"}
+          </h3>
           <p className="mt-1 text-sm text-white/70">
-            Podés actualizar tus datos personales desde acá.
+            {editing
+              ? "Modificá tu información directamente desde este bloque."
+              : "Podés revisar tu información y editarla desde acá."}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setOpen((prev) => !prev);
-            setMessage(null);
-            setError(null);
-          }}
-          className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/15"
-        >
-          {open ? "Cancelar" : "Editar perfil"}
-        </button>
+        {editing ? (
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/15"
+          >
+            Cancelar
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(true);
+              setMessage(null);
+              setError(null);
+            }}
+            className="rounded-lg border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/15"
+          >
+            Editar perfil
+          </button>
+        )}
       </div>
 
       {message ? (
-        <div className="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
           {message}
         </div>
       ) : null}
 
-      {open ? (
-        <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
+      {!editing ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          <ProfileField label="Nombre" value={initialData.nombre} />
+          <ProfileField label="Apellido" value={initialData.apellido} />
+          <ProfileField label="Correo" value={initialData.email} />
+          <ProfileField label="Dirección" value={initialData.direccion} />
+          <ProfileField label="Ciudad" value={initialData.ciudad} />
+          <ProfileField
+            label="Foto de perfil"
+            value={initialData.foto_perfil ? "Cargada" : "Sin completar"}
+          />
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label htmlFor="nombre" className="mb-2 block text-sm text-white/70">
@@ -180,6 +241,19 @@ export function EditProfileForm({
             </div>
 
             <div>
+              <label htmlFor="correo" className="mb-2 block text-sm text-white/70">
+                Correo
+              </label>
+              <input
+                id="correo"
+                type="text"
+                value={initialData.email ?? ""}
+                className={`${inputClassName} text-white/60`}
+                disabled
+              />
+            </div>
+
+            <div>
               <label htmlFor="direccion" className="mb-2 block text-sm text-white/70">
                 Dirección
               </label>
@@ -206,25 +280,29 @@ export function EditProfileForm({
                 disabled={loading}
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="foto_perfil" className="mb-2 block text-sm text-white/70">
-              Foto de perfil
-            </label>
-            <input
-              id="foto_perfil"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className={inputClassName}
-              disabled={loading}
-            />
-            {selectedFile ? (
-              <p className="mt-2 text-sm text-white/60">
-                Archivo seleccionado: {selectedFile.name}
-              </p>
-            ) : null}
+            <div>
+              <label htmlFor="foto_perfil" className="mb-2 block text-sm text-white/70">
+                Foto de perfil
+              </label>
+              <input
+                id="foto_perfil"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className={inputClassName}
+                disabled={loading}
+              />
+              {selectedFile ? (
+                <p className="mt-2 text-sm text-white/60">
+                  Archivo seleccionado: {selectedFile.name}
+                </p>
+              ) : fotoPerfil ? (
+                <p className="mt-2 text-sm text-white/60">
+                  Ya tenés una foto cargada.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           {error ? (
@@ -241,7 +319,7 @@ export function EditProfileForm({
             {loading ? "Guardando..." : "Guardar cambios"}
           </button>
         </form>
-      ) : null}
+      )}
     </div>
   );
 }
