@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getCurrentUsuario } from "@/lib/server/auth";
 import { getPublicacionesDashboardData } from "@/lib/server/publicaciones";
 
@@ -160,10 +159,14 @@ function PublicacionCard({
           </p>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+        <div className="mb-4 grid grid-cols-3 gap-3 text-sm">
           <div className="rounded-xl border border-white/10 bg-black/20 p-3">
             <p className="text-white/60">Solicitudes</p>
             <p className="text-lg font-semibold">{resumen.total}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-white/60">Pendientes</p>
+            <p className="text-lg font-semibold">{resumen.pendientes}</p>
           </div>
           <div className="rounded-xl border border-white/10 bg-black/20 p-3">
             <p className="text-white/60">En revisión</p>
@@ -273,7 +276,6 @@ async function PublicacionesContent({
 
   const {
     items,
-    itemsGestion,
     publicacionesActivasBase,
     publicacionesPausadasBase,
     solicitudesPorAnimal,
