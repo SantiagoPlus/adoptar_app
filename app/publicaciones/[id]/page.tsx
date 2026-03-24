@@ -164,6 +164,14 @@ function FeedbackBanner({
   ok?: string;
   error?: string;
 }) {
+  if (ok === "publicacion_actualizada") {
+    return (
+      <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue actualizada correctamente.
+      </div>
+    );
+  }
+
   if (ok === "en_revision") {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
