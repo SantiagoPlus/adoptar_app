@@ -6,6 +6,7 @@ export type FotoAnimal = {
   url_foto: string;
   es_principal: boolean;
   orden: number;
+  storage_path?: string | null;
 };
 
 export type AnimalPublicacion = {
@@ -75,7 +76,8 @@ export async function getPublicacionDelPublicador(
           id_foto,
           url_foto,
           es_principal,
-          orden
+          orden,
+          storage_path
         )
       `,
     )
@@ -208,6 +210,27 @@ export async function deletePublicacionSegura(params: {
     redirect(
       `/publicaciones/${params.idAnimal}?error=publicacion_con_adopcion`,
     );
+  }
+
+  const { data: fotos } = await supabase
+    .from("fotos_animales")
+    .select("id_foto, storage_path")
+    .eq("id_animal", params.idAnimal);
+
+  const storagePaths = (fotos ?? [])
+    .map((foto) => foto.storage_path)
+    .filter((value): value is string => Boolean(value));
+
+  if (storagePaths.length > 0) {
+    const { error: storageDeleteError } = await supabase.storage
+      .from("animales")
+      .remove(storagePaths);
+
+    if (storageDeleteError) {
+      redirect(
+        `/publicaciones/${params.idAnimal}?error=error_eliminacion_storage`,
+      );
+    }
   }
 
   const { error: deleteFotosError } = await supabase
