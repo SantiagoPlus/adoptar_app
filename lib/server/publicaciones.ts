@@ -93,6 +93,11 @@ export type PublicacionesDashboardData = {
   solicitudesPorAnimal: Map<string, ResumenSolicitudes>;
 };
 
+export type PublicacionesArchivoData = {
+  items: PublicacionResumen[];
+  solicitudesPorAnimal: Map<string, ResumenSolicitudes>;
+};
+
 export async function crearPublicacion(input: CrearPublicacionInput) {
   const supabase = await createClient();
 
@@ -219,6 +224,78 @@ export async function getPublicacionesDashboardData(idPublicador: string) {
     publicacionesPausadasBase,
     solicitudesPorAnimal,
   } as PublicacionesDashboardData;
+}
+
+export async function getPublicacionesArchivoData(idPublicador: string) {
+  const supabase = await createClient();
+
+  const { data: publicaciones, error } = await supabase
+    .from("animales_adopcion")
+    .select(
+      `
+        id_animal,
+        nombre,
+        especie,
+        raza,
+        ciudad,
+        estado,
+        fecha_publicacion,
+        fotos_animales (
+          id_foto,
+          url_foto,
+          es_principal,
+          orden,
+          storage_path
+        )
+      `,
+    )
+    .eq("id_publicador", idPublicador)
+    .eq("estado", "adoptado")
+    .order("fecha_publicacion", { ascending: false });
+
+  if (error) {
+    return null;
+  }
+
+  const items = ((publicaciones ?? []) as PublicacionResumen[]).map((animal) => ({
+    ...animal,
+    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
+      (a, b) => a.orden - b.orden,
+    ),
+  }));
+
+  const ids = items.map((item) => item.id_animal);
+
+  const { data: solicitudes } = await supabase
+    .from("solicitudes_adopcion")
+    .select("id_animal, estado")
+    .in(
+      "id_animal",
+      ids.length ? ids : ["00000000-0000-0000-0000-000000000000"],
+    );
+
+  const solicitudesPorAnimal = new Map<string, ResumenSolicitudes>();
+
+  ((solicitudes ?? []) as SolicitudResumen[]).forEach((solicitud) => {
+    const actual = solicitudesPorAnimal.get(solicitud.id_animal) ?? {
+      total: 0,
+      pendientes: 0,
+      enRevision: 0,
+      adoptadas: 0,
+    };
+
+    actual.total += 1;
+    if (solicitud.estado === "pendiente") actual.pendientes += 1;
+    if (solicitud.estado === "en_revision") actual.enRevision += 1;
+    if (solicitud.estado === "adoptado") actual.adoptadas += 1;
+
+    solicitudesPorAnimal.set(solicitud.id_animal, actual);
+  });
+
+  return {
+    items,
+    solicitudesPorAnimal,
+  } as PublicacionesArchivoData;
 }
 
 export async function getPublicacionDelPublicador(
