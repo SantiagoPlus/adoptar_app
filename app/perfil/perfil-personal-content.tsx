@@ -69,8 +69,8 @@ export async function PerfilPersonalContent() {
       </div>
 
       <div className="grid gap-4">
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <details className="group rounded-2xl border border-white/10 bg-white/5 p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-semibold text-white/70">
                 {perfil?.foto_perfil ? (
@@ -98,22 +98,24 @@ export async function PerfilPersonalContent() {
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="grid gap-3 md:grid-cols-2">
-              <ProfileField label="Nombre" value={perfil?.nombre} />
-              <ProfileField label="Apellido" value={perfil?.apellido} />
-              <ProfileField label="Correo" value={perfil?.email ?? user.email} />
-              <ProfileField label="Dirección" value={perfil?.direccion} />
-              <ProfileField label="Ciudad" value={perfil?.ciudad} />
-              <ProfileField
-                label="Foto de perfil"
-                value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
-              />
-            </div>
+            <span className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70 transition group-open:bg-white/10">
+              Ver datos
+            </span>
+          </summary>
+
+          <div className="mt-5 grid gap-3 border-t border-white/10 pt-5 md:grid-cols-2">
+            <ProfileField label="Nombre" value={perfil?.nombre} />
+            <ProfileField label="Apellido" value={perfil?.apellido} />
+            <ProfileField label="Correo" value={perfil?.email ?? user.email} />
+            <ProfileField label="Dirección" value={perfil?.direccion} />
+            <ProfileField label="Ciudad" value={perfil?.ciudad} />
+            <ProfileField
+              label="Foto de perfil"
+              value={perfil?.foto_perfil ? "Cargada" : "Sin completar"}
+            />
           </div>
-        </div>
+        </details>
 
         <EditProfileForm
           authUserId={user.id}
