@@ -8,9 +8,8 @@ import {
   getSolicitudesDePublicacion,
   setEstadoPublicacion,
   deletePublicacionSegura,
-  type AnimalPublicacion,
-  type SolicitudItem,
 } from "@/lib/server/publicaciones";
+import { ConfirmDeleteButton } from "./ConfirmDeleteButton";
 
 type Params = Promise<{ id: string }>;
 
@@ -404,6 +403,8 @@ function FeedbackBanner({
       "Una publicación adoptada no puede cambiar de estado ni eliminarse.",
     publicacion_con_adopcion:
       "No se puede eliminar una publicación que ya tuvo una adopción registrada.",
+    error_eliminacion_storage:
+      "Ocurrió un error al eliminar los archivos asociados en storage.",
     error_eliminacion_fotos:
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
@@ -435,25 +436,6 @@ function PublicacionSkeleton() {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="mb-3 h-6 w-40 animate-pulse rounded bg-white/10" />
-        <div className="mb-2 h-4 w-full animate-pulse rounded bg-white/10" />
-        <div className="mb-2 h-4 w-5/6 animate-pulse rounded bg-white/10" />
-        <div className="h-4 w-4/6 animate-pulse rounded bg-white/10" />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div
-            key={index}
-            className="rounded-2xl border border-white/10 bg-white/5 p-4"
-          >
-            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
-            <div className="h-8 w-10 animate-pulse rounded bg-white/10" />
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -508,20 +490,79 @@ async function PublicacionContent({
     animalTipado.fotos_animales[0];
 
   const totalSolicitudes = solicitudesTipadas.length;
-  const pendientes =
-    solicitudesTipadas.filter((s) => s.estado === "pendiente").length ?? 0;
-  const enRevision =
-    solicitudesTipadas.filter((s) => s.estado === "en_revision").length ?? 0;
-  const rechazadas =
-    solicitudesTipadas.filter((s) => s.estado === "rechazada").length ?? 0;
-  const canceladas =
-    solicitudesTipadas.filter((s) => s.estado === "cancelada").length ?? 0;
-  const adoptadas =
-    solicitudesTipadas.filter((s) => s.estado === "adoptado").length ?? 0;
+  const pendientes = solicitudesTipadas.filter((s) => s.estado === "pendiente").length;
+  const enRevision = solicitudesTipadas.filter((s) => s.estado === "en_revision").length;
+  const rechazadas = solicitudesTipadas.filter((s) => s.estado === "rechazada").length;
+  const canceladas = solicitudesTipadas.filter((s) => s.estado === "cancelada").length;
+  const adoptadas = solicitudesTipadas.filter((s) => s.estado === "adoptado").length;
 
   return (
     <div className="space-y-6">
       <FeedbackBanner ok={ok} error={searchError} />
+
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="mb-2 text-sm text-white/60">Gestión</p>
+            <h1 className="text-3xl font-bold">{animalTipado.nombre}</h1>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {animalTipado.estado === "disponible" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
+                <input type="hidden" name="nuevo_estado" value="pausado" />
+                <button
+                  type="submit"
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                >
+                  Pausar / Ocultar publicación
+                </button>
+              </form>
+            )}
+
+            {animalTipado.estado === "pausado" && (
+              <form action={actualizarEstadoPublicacion}>
+                <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
+                <input type="hidden" name="nuevo_estado" value="disponible" />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
+                >
+                  Reactivar publicación
+                </button>
+              </form>
+            )}
+
+            <Link
+              href={`/publicaciones/${animalTipado.id_animal}/editar`}
+              className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Editar publicación
+            </Link>
+
+            {animalTipado.estado !== "adoptado" && (
+              <form action={eliminarPublicacion}>
+                <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
+                <ConfirmDeleteButton />
+              </form>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/animales/${animalTipado.id_animal}`}
+            className="text-sm text-white/60 transition hover:text-white"
+          >
+            Ver ficha pública
+          </Link>
+
+          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+            {formatEstadoAnimal(animalTipado.estado)}
+          </span>
+        </div>
+      </section>
 
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <div className="space-y-4">
@@ -555,7 +596,7 @@ async function PublicacionContent({
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="mb-2 text-sm text-white/60">Publicación</p>
-              <h1 className="mb-2 text-3xl font-bold">{animalTipado.nombre}</h1>
+              <h2 className="mb-2 text-3xl font-bold">{animalTipado.nombre}</h2>
               <p className="text-white/70">
                 {animalTipado.especie}
                 {animalTipado.raza ? ` · ${animalTipado.raza}` : ""}
@@ -597,55 +638,10 @@ async function PublicacionContent({
               <p className="mb-1 text-white/60">Publicado</p>
               <p>
                 {animalTipado.fecha_publicacion
-                  ? new Date(animalTipado.fecha_publicacion).toLocaleString(
-                      "es-AR",
-                    )
+                  ? new Date(animalTipado.fecha_publicacion).toLocaleString("es-AR")
                   : "No informado"}
               </p>
             </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            {animalTipado.estado === "disponible" && (
-              <form action={actualizarEstadoPublicacion}>
-                <input
-                  type="hidden"
-                  name="id_animal"
-                  value={animalTipado.id_animal}
-                />
-                <input type="hidden" name="nuevo_estado" value="pausado" />
-                <button
-                  type="submit"
-                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                >
-                  Pausar / Ocultar publicación
-                </button>
-              </form>
-            )}
-
-            {animalTipado.estado === "pausado" && (
-              <form action={actualizarEstadoPublicacion}>
-                <input
-                  type="hidden"
-                  name="id_animal"
-                  value={animalTipado.id_animal}
-                />
-                <input type="hidden" name="nuevo_estado" value="disponible" />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
-                >
-                  Reactivar publicación
-                </button>
-              </form>
-            )}
-
-            <Link
-              href={`/animales/${animalTipado.id_animal}`}
-              className="self-center text-sm text-white/60 transition hover:text-white"
-            >
-              Ver ficha pública
-            </Link>
           </div>
         </div>
       </section>
@@ -661,14 +657,10 @@ async function PublicacionContent({
         <div className="mt-5 flex flex-wrap gap-2">
           {animalTipado.castrado && <AtributoChip>Castrado</AtributoChip>}
           {animalTipado.vacunado && <AtributoChip>Vacunado</AtributoChip>}
-          {animalTipado.desparasitado && (
-            <AtributoChip>Desparasitado</AtributoChip>
-          )}
+          {animalTipado.desparasitado && <AtributoChip>Desparasitado</AtributoChip>}
           {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
           {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
-          {animalTipado.apto_perros && (
-            <AtributoChip>Apto perros</AtributoChip>
-          )}
+          {animalTipado.apto_perros && <AtributoChip>Apto perros</AtributoChip>}
           {animalTipado.nivel_energia && (
             <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
           )}
@@ -757,16 +749,8 @@ async function PublicacionContent({
                   <div className="mt-4 flex flex-wrap items-center gap-3">
                     {animalDisponible && solicitud.estado === "pendiente" && (
                       <form action={marcarEnRevision}>
-                        <input
-                          type="hidden"
-                          name="id_solicitud"
-                          value={solicitud.id_solicitud}
-                        />
-                        <input
-                          type="hidden"
-                          name="id_animal"
-                          value={animalTipado.id_animal}
-                        />
+                        <input type="hidden" name="id_solicitud" value={solicitud.id_solicitud} />
+                        <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
                         <button
                           type="submit"
                           className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90"
@@ -778,21 +762,9 @@ async function PublicacionContent({
 
                     {solicitudActiva && animalDisponible && (
                       <form action={actualizarEstadoSolicitud}>
-                        <input
-                          type="hidden"
-                          name="id_solicitud"
-                          value={solicitud.id_solicitud}
-                        />
-                        <input
-                          type="hidden"
-                          name="id_animal"
-                          value={animalTipado.id_animal}
-                        />
-                        <input
-                          type="hidden"
-                          name="nuevo_estado"
-                          value="rechazada"
-                        />
+                        <input type="hidden" name="id_solicitud" value={solicitud.id_solicitud} />
+                        <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
+                        <input type="hidden" name="nuevo_estado" value="rechazada" />
                         <button
                           type="submit"
                           className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
@@ -804,16 +776,8 @@ async function PublicacionContent({
 
                     {animalDisponible && solicitud.estado === "en_revision" && (
                       <form action={concretarAdopcion}>
-                        <input
-                          type="hidden"
-                          name="id_solicitud"
-                          value={solicitud.id_solicitud}
-                        />
-                        <input
-                          type="hidden"
-                          name="id_animal"
-                          value={animalTipado.id_animal}
-                        />
+                        <input type="hidden" name="id_solicitud" value={solicitud.id_solicitud} />
+                        <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
                         <button
                           type="submit"
                           className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-200 transition hover:bg-green-500/20"
@@ -835,26 +799,6 @@ async function PublicacionContent({
           </div>
         )}
       </section>
-
-      {animalTipado.estado !== "adoptado" && (
-        <section className="border-t border-white/10 pt-8">
-          <div className="flex justify-end">
-            <form action={eliminarPublicacion}>
-              <input
-                type="hidden"
-                name="id_animal"
-                value={animalTipado.id_animal}
-              />
-              <button
-                type="submit"
-                className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 transition hover:bg-red-500/20"
-              >
-                Eliminar publicación
-              </button>
-            </form>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
