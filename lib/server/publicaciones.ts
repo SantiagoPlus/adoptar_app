@@ -187,7 +187,9 @@ export async function actualizarPublicacionEditable(
     .single();
 
   if (!animal) {
-    redirect(`/publicaciones/${input.idAnimal}/editar?error=animal_no_encontrado`);
+    redirect(
+      `/publicaciones/${input.idAnimal}/editar?error=animal_no_encontrado`,
+    );
   }
 
   if (animal.id_publicador !== input.idPublicador) {
@@ -230,7 +232,7 @@ export async function actualizarPublicacionEditable(
     );
   }
 
-  redirect(`/publicaciones/${input.idAnimal}/editar?ok=publicacion_actualizada`);
+  redirect(`/publicaciones/${input.idAnimal}?ok=publicacion_actualizada`);
 }
 
 export async function getPublicacionesDashboardData(idPublicador: string) {
