@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SubmitButton } from "./submit-button";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import { crearSolicitudAdopcion } from "@/lib/server/solicitudes";
 
 type SearchParams = Promise<{
   animal_id?: string;
@@ -16,88 +18,17 @@ async function submitSolicitud(formData: FormData) {
   const animalId = String(formData.get("animal_id") ?? "").trim();
   const mensaje = String(formData.get("mensaje") ?? "").trim();
 
-  if (!animalId) {
-    redirect("/?error=animal_invalido");
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/solicitudes/nueva?animal_id=${animalId}`,
+    notFoundRedirect: `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=usuario_no_encontrado`,
+  });
 
-  if (!mensaje) {
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=mensaje_vacio`,
-    );
-  }
-
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !authData.user) {
-    redirect(
-      `/auth/login?next=${encodeURIComponent(
-        `/solicitudes/nueva?animal_id=${animalId}`,
-      )}`,
-    );
-  }
-
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario, nombre")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=usuario_no_encontrado`,
-    );
-  }
-
-  const { data: animal, error: animalError } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, estado, id_publicador")
-    .eq("id_animal", animalId)
-    .single();
-
-  if (animalError || !animal) {
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=animal_no_encontrado`,
-    );
-  }
-
-  if (animal.id_publicador === usuario.id_usuario) {
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=auto_solicitud_no_permitida`,
-    );
-  }
-
-  if (animal.estado !== "disponible") {
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=animal_no_disponible`,
-    );
-  }
-
-  const { error: insertError } = await supabase
-    .from("solicitudes_adopcion")
-    .insert({
-      id_animal: animalId,
-      id_solicitante: usuario.id_usuario,
-      nombre_solicitante: usuario.nombre ?? "Usuario",
-      mensaje,
-      estado: "pendiente",
-      fecha_solicitud: new Date().toISOString(),
-    });
-
-  if (insertError) {
-    if (insertError.code === "23505") {
-      redirect(
-        `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=solicitud_duplicada`,
-      );
-    }
-
-    redirect(
-      `/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&error=error_insercion`,
-    );
-  }
-
-  redirect(`/solicitudes/nueva?animal_id=${encodeURIComponent(animalId)}&ok=1`);
+  await crearSolicitudAdopcion({
+    idAnimal: animalId,
+    idSolicitante: usuario.id_usuario,
+    nombreSolicitante: usuario.nombre ?? "Usuario",
+    mensaje,
+  });
 }
 
 function NuevaSolicitudSkeleton() {
