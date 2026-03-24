@@ -2,43 +2,19 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import AnimalPhotosManager from "@/components/publicaciones/animal-photos-manager";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import {
+  getPublicacionEditableDelPublicador,
+  actualizarPublicacionEditable,
+} from "@/lib/server/publicaciones";
+import {
+  marcarFotoPrincipalPublicacion,
+  eliminarFotoPublicacion,
+} from "@/lib/server/fotos";
 
 type Params = Promise<{ id: string }>;
 
 type SearchParams = Promise<{ ok?: string; error?: string }>;
-
-type FotoAnimal = {
-  id_foto: string;
-  url_foto: string;
-  es_principal: boolean;
-  orden: number;
-  storage_path?: string | null;
-};
-
-type AnimalPublicacion = {
-  id_animal: string;
-  nombre: string;
-  especie: string;
-  raza: string | null;
-  sexo: string | null;
-  edad_aproximada: string | null;
-  tamano: string | null;
-  descripcion: string | null;
-  estado_salud: string | null;
-  ciudad: string | null;
-  estado: string;
-  fecha_publicacion: string | null;
-  id_publicador: string;
-  nivel_energia: string | null;
-  castrado: boolean | null;
-  vacunado: boolean | null;
-  desparasitado: boolean | null;
-  apto_ninos: boolean | null;
-  apto_gatos: boolean | null;
-  apto_perros: boolean | null;
-  fotos_animales: FotoAnimal[];
-};
 
 function Campo({
   label,
@@ -79,42 +55,10 @@ async function actualizarPublicacion(formData: FormData) {
     redirect("/publicaciones?error=publicacion_invalida");
   }
 
-  const supabase = await createClient();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}/editar`);
-  }
-
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal, error: animalError } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (animalError || !animal) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=sin_permisos`);
-  }
-
-  if (animal.estado === "adoptado") {
-    redirect(
-      `/publicaciones/${idAnimal}/editar?error=publicacion_adoptada_bloqueada`,
-    );
-  }
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}/editar`,
+    notFoundRedirect: `/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`,
+  });
 
   const nombre = String(formData.get("nombre") ?? "").trim();
   const especie = String(formData.get("especie") ?? "").trim();
@@ -134,45 +78,26 @@ async function actualizarPublicacion(formData: FormData) {
   const aptoGatos = formData.get("apto_gatos") === "on";
   const aptoPerros = formData.get("apto_perros") === "on";
 
-  if (!nombre || !especie) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=campos_obligatorios`);
-  }
-
-  if (!["perro", "gato"].includes(especie)) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=especie_invalida`);
-  }
-
-  const payload = {
+  await actualizarPublicacionEditable({
+    idAnimal,
+    idPublicador: usuario.id_usuario,
     nombre,
     especie,
-    raza: raza || null,
-    sexo: sexo || null,
-    edad_aproximada: edadAproximada || null,
-    tamano: tamano || null,
-    descripcion: descripcion || null,
-    estado_salud: estadoSalud || null,
-    ciudad: ciudad || null,
-    nivel_energia: nivelEnergia || null,
+    raza,
+    sexo,
+    edadAproximada,
+    tamano,
+    ciudad,
+    descripcion,
+    estadoSalud,
+    nivelEnergia,
     castrado,
     vacunado,
     desparasitado,
-    apto_ninos: aptoNinos,
-    apto_gatos: aptoGatos,
-    apto_perros: aptoPerros,
-  };
-
-  const { error: updateError } = await supabase
-    .from("animales_adopcion")
-    .update(payload)
-    .eq("id_animal", idAnimal);
-
-  if (updateError) {
-    redirect(
-      `/publicaciones/${idAnimal}/editar?error=error_actualizacion_publicacion`,
-    );
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=publicacion_actualizada`);
+    aptoNinos,
+    aptoGatos,
+    aptoPerros,
+  });
 }
 
 async function marcarFotoPrincipal(formData: FormData) {
@@ -185,57 +110,16 @@ async function marcarFotoPrincipal(formData: FormData) {
     redirect(`/publicaciones/${idAnimal}/editar?error=foto_invalida`);
   }
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}/editar`,
+    notFoundRedirect: `/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}/editar`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=sin_permisos`);
-  }
-
-  const { error: clearError } = await supabase
-    .from("fotos_animales")
-    .update({ es_principal: false })
-    .eq("id_animal", idAnimal);
-
-  if (clearError) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=error_foto_principal`);
-  }
-
-  const { error: setError } = await supabase
-    .from("fotos_animales")
-    .update({ es_principal: true })
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal);
-
-  if (setError) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=error_foto_principal`);
-  }
-
-  redirect(`/publicaciones/${idAnimal}/editar?ok=foto_principal_actualizada`);
+  await marcarFotoPrincipalPublicacion({
+    idAnimal,
+    idFoto,
+    idPublicador: usuario.id_usuario,
+  });
 }
 
 async function eliminarFotoIndividual(formData: FormData) {
@@ -248,90 +132,16 @@ async function eliminarFotoIndividual(formData: FormData) {
     redirect(`/publicaciones/${idAnimal}/editar?error=foto_invalida`);
   }
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${idAnimal}/editar`,
+    notFoundRedirect: `/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${idAnimal}/editar`);
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (!usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=usuario_no_encontrado`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador")
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=sin_permisos`);
-  }
-
-  const { data: foto } = await supabase
-    .from("fotos_animales")
-    .select("id_foto, storage_path, es_principal")
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal)
-    .single();
-
-  if (!foto) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=foto_no_encontrada`);
-  }
-
-  if (foto.storage_path) {
-    const { error: removeStorageError } = await supabase.storage
-      .from("animales")
-      .remove([foto.storage_path]);
-
-    if (removeStorageError) {
-      redirect(
-        `/publicaciones/${idAnimal}/editar?error=error_eliminacion_storage`,
-      );
-    }
-  }
-
-  const { error: deleteFotoError } = await supabase
-    .from("fotos_animales")
-    .delete()
-    .eq("id_foto", idFoto)
-    .eq("id_animal", idAnimal);
-
-  if (deleteFotoError) {
-    redirect(`/publicaciones/${idAnimal}/editar?error=error_eliminacion_foto`);
-  }
-
-  if (foto.es_principal) {
-    const { data: restantes } = await supabase
-      .from("fotos_animales")
-      .select("id_foto")
-      .eq("id_animal", idAnimal)
-      .order("orden", { ascending: true })
-      .limit(1);
-
-    const siguiente = restantes?.[0];
-
-    if (siguiente) {
-      await supabase
-        .from("fotos_animales")
-        .update({ es_principal: true })
-        .eq("id_foto", siguiente.id_foto)
-        .eq("id_animal", idAnimal);
-    }
-  }
-
-  redirect(`/publicaciones/${idAnimal}/editar?ok=foto_eliminada`);
+  await eliminarFotoPublicacion({
+    idAnimal,
+    idFoto,
+    idPublicador: usuario.id_usuario,
+  });
 }
 
 function FeedbackBanner({ ok, error }: { ok?: string; error?: string }) {
@@ -347,6 +157,22 @@ function FeedbackBanner({ ok, error }: { ok?: string; error?: string }) {
     return (
       <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
         La imagen fue eliminada correctamente.
+      </div>
+    );
+  }
+
+  if (ok === "publicacion_actualizada") {
+    return (
+      <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue actualizada correctamente.
+      </div>
+    );
+  }
+
+  if (ok === "continuar_con_imagenes") {
+    return (
+      <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-green-200">
+        La publicación fue creada. Ahora podés cargar y ordenar sus imágenes.
       </div>
     );
   }
@@ -429,76 +255,18 @@ async function EditarPublicacionContent({
   const { id } = await params;
   const { ok, error } = await searchParams;
 
-  const supabase = await createClient();
+  const { usuario, authUser } = await getCurrentUsuario({
+    loginNext: `/publicaciones/${id}/editar`,
+    notFoundRedirect: `/publicaciones/${id}/editar?error=usuario_no_encontrado`,
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
-  if (authError || !authData.user) {
-    redirect(`/auth/login?next=/publicaciones/${id}/editar`);
-  }
+  const animalTipado = await getPublicacionEditableDelPublicador(
+    id,
+    usuario.id_usuario,
+  );
 
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-        No se pudo cargar tu perfil de usuario.
-      </div>
-    );
-  }
-
-  const { data: animal, error: animalError } = await supabase
-    .from("animales_adopcion")
-    .select(
-      `
-        id_animal,
-        nombre,
-        especie,
-        raza,
-        sexo,
-        edad_aproximada,
-        tamano,
-        descripcion,
-        estado_salud,
-        ciudad,
-        estado,
-        fecha_publicacion,
-        id_publicador,
-        nivel_energia,
-        castrado,
-        vacunado,
-        desparasitado,
-        apto_ninos,
-        apto_gatos,
-        apto_perros,
-        fotos_animales (
-          id_foto,
-          url_foto,
-          es_principal,
-          orden,
-          storage_path
-        )
-      `,
-    )
-    .eq("id_animal", id)
-    .single();
-
-  if (animalError || !animal) {
+  if (!animalTipado) {
     notFound();
-  }
-
-  const animalTipado: AnimalPublicacion = {
-    ...animal,
-    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
-      (a, b) => a.orden - b.orden,
-    ),
-  };
-
-  if (animalTipado.id_publicador !== usuario.id_usuario) {
-    redirect("/publicaciones");
   }
 
   if (animalTipado.estado === "adoptado") {
@@ -519,7 +287,7 @@ async function EditarPublicacionContent({
 
         <AnimalPhotosManager
           animalId={animalTipado.id_animal}
-          authUserId={authData.user.id}
+          authUserId={authUser.id}
           fotos={animalTipado.fotos_animales}
           marcarFotoPrincipalAction={marcarFotoPrincipal}
           eliminarFotoIndividualAction={eliminarFotoIndividual}
