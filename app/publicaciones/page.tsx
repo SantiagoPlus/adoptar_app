@@ -1,45 +1,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import { getPublicacionesDashboardData } from "@/lib/server/publicaciones";
 
 type SearchParams = Promise<{ filtro?: string }>;
-
-type FotoAnimal = {
-  id_foto: string;
-  url_foto: string;
-  es_principal: boolean;
-  orden: number;
-};
-
-type Publicacion = {
-  id_animal: string;
-  nombre: string;
-  especie: string;
-  raza: string | null;
-  ciudad: string | null;
-  estado: string;
-  fecha_publicacion: string | null;
-  fotos_animales: FotoAnimal[];
-};
-
-type SolicitudResumen = {
-  id_animal: string;
-  estado: string;
-};
-
-type ResumenSolicitudes = {
-  total: number;
-  pendientes: number;
-  enRevision: number;
-  adoptadas: number;
-};
 
 function formatEstadoAnimal(estado: string) {
   const labels: Record<string, string> = {
     disponible: "Disponible",
     adoptado: "Adoptado",
     pausado: "Pausado",
+    cancelado: "Cancelado",
+    en_proceso: "En proceso",
   };
 
   return labels[estado] ?? estado;
@@ -48,21 +21,25 @@ function formatEstadoAnimal(estado: string) {
 function PublicacionesSkeleton() {
   return (
     <div className="space-y-10">
-      {Array.from({ length: 3 }).map((_, sectionIndex) => (
-        <section key={sectionIndex}>
-          <div className="mb-4 h-7 w-60 animate-pulse rounded bg-white/10" />
-          <div className="mb-6 h-px w-full bg-white/10" />
+      {Array.from({ length: 2 }).map((_, blockIndex) => (
+        <section key={blockIndex}>
+          <div className="mb-5">
+            <div className="mb-2 h-4 w-40 animate-pulse rounded bg-white/10" />
+            <div className="h-px w-full bg-white/10" />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 3 }).map((__, index) => (
+            {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
                 className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
               >
-                <div className="h-40 w-full animate-pulse bg-white/10" />
-                <div className="p-4">
+                <div className="h-52 w-full animate-pulse bg-white/10" />
+                <div className="p-5">
                   <div className="mb-3 h-6 w-32 animate-pulse rounded bg-white/10" />
                   <div className="mb-2 h-4 w-24 animate-pulse rounded bg-white/10" />
-                  <div className="mt-3 h-12 w-full animate-pulse rounded bg-white/10" />
+                  <div className="mb-2 h-4 w-28 animate-pulse rounded bg-white/10" />
+                  <div className="mt-4 h-10 w-40 animate-pulse rounded bg-white/10" />
                 </div>
               </div>
             ))}
@@ -73,94 +50,42 @@ function PublicacionesSkeleton() {
   );
 }
 
-function EmptySection({
-  text,
-  ctaHref,
-  ctaLabel,
-}: {
-  text: string;
-  ctaHref?: string;
-  ctaLabel?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <p className="mb-2 text-white/80">{text}</p>
-      {ctaHref && ctaLabel ? (
-        <Link
-          href={ctaHref}
-          className="text-sm text-white/60 transition hover:text-white"
-        >
-          {ctaLabel}
-        </Link>
-      ) : null}
-    </div>
-  );
-}
-
-function Toolbar({ filtroActivo }: { filtroActivo: string }) {
+function Toolbar({ filtroActual }: { filtroActual: string }) {
   const filtros = [
-    { key: "todas", label: "Todas" },
-    { key: "con-solicitudes", label: "Con solicitudes" },
-    { key: "sin-solicitudes", label: "Sin solicitudes" },
-    { key: "pendientes", label: "Pendientes" },
-    { key: "en-revision", label: "En revisión" },
+    { value: "gestion", label: "Gestión actual" },
+    { value: "activas", label: "Activas" },
+    { value: "pausadas", label: "Pausadas" },
+    { value: "pendientes", label: "Pendientes" },
   ];
 
   return (
-    <div className="mb-10 flex flex-wrap items-start justify-between gap-4">
-      <div className="space-y-3">
-        <p className="text-sm text-white/60">Filtros</p>
-        <div className="flex flex-wrap gap-2">
-          {filtros.map((filtro) => {
-            const activo = filtroActivo === filtro.key;
+    <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap gap-2">
+        {filtros.map((filtro) => {
+          const activo = filtroActual === filtro.value;
 
-            return (
-              <Link
-                key={filtro.key}
-                href={
-                  filtro.key === "todas"
-                    ? "/publicaciones"
-                    : `/publicaciones?filtro=${filtro.key}`
-                }
-                className={`rounded-xl border px-4 py-2 text-sm transition ${
-                  activo
-                    ? "border-white bg-white text-black"
-                    : "border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
-                }`}
-              >
-                {filtro.label}
-              </Link>
-            );
-          })}
-        </div>
+          return (
+            <Link
+              key={filtro.value}
+              href={`/publicaciones?filtro=${filtro.value}`}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                activo
+                  ? "bg-white text-black"
+                  : "border border-white/10 bg-white/5 text-white hover:bg-white/10"
+              }`}
+            >
+              {filtro.label}
+            </Link>
+          );
+        })}
       </div>
 
       <Link
         href="/publicaciones/historial"
-        className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
+        className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
       >
         Historial
       </Link>
-    </div>
-  );
-}
-
-function SectionTitle({
-  title,
-  count,
-}: {
-  title: string;
-  count: number;
-}) {
-  return (
-    <div className="mb-6">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">{title}</h2>
-        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-          {count}
-        </span>
-      </div>
-      <div className="h-px w-full bg-white/10" />
     </div>
   );
 }
@@ -169,123 +94,158 @@ function PublicacionCard({
   animal,
   resumen,
 }: {
-  animal: Publicacion;
-  resumen: ResumenSolicitudes;
+  animal: {
+    id_animal: string;
+    nombre: string;
+    especie: string;
+    raza: string | null;
+    ciudad: string | null;
+    estado: string;
+    fecha_publicacion: string | null;
+    fotos_animales: {
+      id_foto: string;
+      url_foto: string;
+      es_principal: boolean;
+      orden: number;
+      storage_path?: string | null;
+    }[];
+  };
+  resumen: {
+    total: number;
+    pendientes: number;
+    enRevision: number;
+    adoptadas: number;
+  };
 }) {
   const fotoPrincipal =
     animal.fotos_animales.find((foto) => foto.es_principal) ??
     animal.fotos_animales[0];
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]">
-      <Link href={`/publicaciones/${animal.id_animal}`} className="block">
-        {fotoPrincipal ? (
-          <img
-            src={fotoPrincipal.url_foto}
-            alt={animal.nombre}
-            className="h-36 w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-36 w-full items-center justify-center bg-white/10 text-white/50">
-            Sin imagen
-          </div>
-        )}
+    <Link
+      href={`/publicaciones/${animal.id_animal}`}
+      className="block overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:bg-white/10"
+    >
+      {fotoPrincipal ? (
+        <img
+          src={fotoPrincipal.url_foto}
+          alt={animal.nombre}
+          className="h-56 w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-56 w-full items-center justify-center bg-white/10 text-white/50">
+          Sin imagen
+        </div>
+      )}
 
-        <div className="p-4">
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-semibold">{animal.nombre}</h2>
-              <p className="truncate text-sm text-white/60">
-                {animal.especie}
-                {animal.raza ? ` · ${animal.raza}` : ""}
-              </p>
-            </div>
-
-            <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px]">
-              {formatEstadoAnimal(animal.estado)}
-            </span>
-          </div>
-
-          <div className="mb-3 text-sm text-white/70">
-            <p>
-              <span className="font-medium text-white">Ciudad:</span>{" "}
-              {animal.ciudad ?? "No informada"}
+      <div className="p-5">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold">{animal.nombre}</h2>
+            <p className="text-sm text-white/60">
+              {animal.especie}
+              {animal.raza ? ` · ${animal.raza}` : ""}
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
-              <p className="text-[10px] leading-none text-white/60">
-                Solicitudes
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-none">
-                {resumen.total}
-              </p>
-            </div>
+          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
+            {formatEstadoAnimal(animal.estado)}
+          </span>
+        </div>
 
-            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
-              <p className="text-[10px] leading-none text-white/60">
-                Pendientes
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-none">
-                {resumen.pendientes}
-              </p>
-            </div>
+        <div className="mb-4 space-y-1 text-sm text-white/70">
+          <p>
+            <span className="font-medium text-white">Ciudad:</span>{" "}
+            {animal.ciudad ?? "No informada"}
+          </p>
+        </div>
 
-            <div className="rounded-lg border border-white/10 bg-black/20 px-2 py-1.5">
-              <p className="text-[10px] leading-none text-white/60">
-                En revisión
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-none">
-                {resumen.enRevision}
-              </p>
-            </div>
+        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-white/60">Solicitudes</p>
+            <p className="text-lg font-semibold">{resumen.total}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+            <p className="text-white/60">En revisión</p>
+            <p className="text-lg font-semibold">{resumen.enRevision}</p>
           </div>
         </div>
-      </Link>
 
-      <div className="px-4 pb-4">
-        <Link
-          href={`/animales/${animal.id_animal}`}
-          className="text-sm text-white/60 transition hover:text-white"
-        >
-          Ver ficha pública
-        </Link>
+        <p className="text-sm text-white/60 transition hover:text-white">
+          Gestionar publicación
+        </p>
       </div>
-    </article>
+    </Link>
   );
 }
 
-function filtrarActivas(
-  publicaciones: Publicacion[],
-  resumenes: Map<string, ResumenSolicitudes>,
-  filtroActivo: string,
-) {
-  if (filtroActivo === "con-solicitudes") {
-    return publicaciones.filter(
-      (animal) => (resumenes.get(animal.id_animal)?.total ?? 0) > 0,
-    );
-  }
+function BloquePublicaciones({
+  titulo,
+  items,
+  solicitudesPorAnimal,
+  vacio,
+}: {
+  titulo: string;
+  items: {
+    id_animal: string;
+    nombre: string;
+    especie: string;
+    raza: string | null;
+    ciudad: string | null;
+    estado: string;
+    fecha_publicacion: string | null;
+    fotos_animales: {
+      id_foto: string;
+      url_foto: string;
+      es_principal: boolean;
+      orden: number;
+      storage_path?: string | null;
+    }[];
+  }[];
+  solicitudesPorAnimal: Map<
+    string,
+    {
+      total: number;
+      pendientes: number;
+      enRevision: number;
+      adoptadas: number;
+    }
+  >;
+  vacio: string;
+}) {
+  return (
+    <section>
+      <div className="mb-5">
+        <h2 className="mb-2 text-xl font-semibold">{titulo}</h2>
+        <div className="h-px w-full bg-white/10" />
+      </div>
 
-  if (filtroActivo === "sin-solicitudes") {
-    return publicaciones.filter(
-      (animal) => (resumenes.get(animal.id_animal)?.total ?? 0) === 0,
-    );
-  }
+      {items.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
+          {vacio}
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {items.map((animal) => {
+            const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
+              total: 0,
+              pendientes: 0,
+              enRevision: 0,
+              adoptadas: 0,
+            };
 
-  if (filtroActivo === "pendientes") {
-    return publicaciones.filter(
-      (animal) => (resumenes.get(animal.id_animal)?.pendientes ?? 0) > 0,
-    );
-  }
-
-  if (filtroActivo === "en-revision") {
-    return publicaciones.filter(
-      (animal) => (resumenes.get(animal.id_animal)?.enRevision ?? 0) > 0,
-    );
-  }
-
-  return publicaciones;
+            return (
+              <PublicacionCard
+                key={animal.id_animal}
+                animal={animal}
+                resumen={resumen}
+              />
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
 }
 
 async function PublicacionesContent({
@@ -294,53 +254,16 @@ async function PublicacionesContent({
   searchParams: SearchParams;
 }) {
   const { filtro } = await searchParams;
-  const filtroActivo = filtro ?? "todas";
+  const filtroActual = filtro ?? "gestion";
 
-  const supabase = await createClient();
+  const { usuario } = await getCurrentUsuario({
+    loginNext: "/publicaciones",
+    notFoundRedirect: "/publicaciones?error=usuario_no_encontrado",
+  });
 
-  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const dashboard = await getPublicacionesDashboardData(usuario.id_usuario);
 
-  if (authError || !authData.user) {
-    redirect("/auth/login?next=/publicaciones");
-  }
-
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", authData.user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-        No se pudo cargar tu perfil de usuario.
-      </div>
-    );
-  }
-
-  const { data: publicaciones, error } = await supabase
-    .from("animales_adopcion")
-    .select(
-      `
-        id_animal,
-        nombre,
-        especie,
-        raza,
-        ciudad,
-        estado,
-        fecha_publicacion,
-        fotos_animales (
-          id_foto,
-          url_foto,
-          es_principal,
-          orden
-        )
-      `,
-    )
-    .eq("id_publicador", usuario.id_usuario)
-    .order("fecha_publicacion", { ascending: false });
-
-  if (error) {
+  if (!dashboard) {
     return (
       <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
         Ocurrió un error al cargar tus publicaciones.
@@ -348,176 +271,103 @@ async function PublicacionesContent({
     );
   }
 
-  const items = ((publicaciones ?? []) as Publicacion[]).map((animal) => ({
-    ...animal,
-    fotos_animales: [...(animal.fotos_animales ?? [])].sort(
-      (a, b) => a.orden - b.orden,
-    ),
-  }));
+  const {
+    items,
+    itemsGestion,
+    publicacionesActivasBase,
+    publicacionesPausadasBase,
+    solicitudesPorAnimal,
+  } = dashboard;
 
   if (items.length === 0) {
     return (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <p className="mb-2 text-white/80">Todavía no tenés publicaciones.</p>
+        <Link
+          href="/publicaciones/nueva"
+          className="text-sm text-white/60 transition hover:text-white"
+        >
+          Crear nueva publicación
+        </Link>
+      </div>
+    );
+  }
+
+  const publicacionesPendientesBase = publicacionesActivasBase.filter(
+    (animal) => {
+      const resumen = solicitudesPorAnimal.get(animal.id_animal);
+      return (resumen?.pendientes ?? 0) > 0;
+    },
+  );
+
+  if (filtroActual === "activas") {
+    return (
       <>
-        <Toolbar filtroActivo={filtroActivo} />
-        <EmptySection
-          text="Todavía no tenés publicaciones."
-          ctaHref="/publicaciones/nueva"
-          ctaLabel="Crear nueva publicación"
+        <Toolbar filtroActual={filtroActual} />
+        <BloquePublicaciones
+          titulo="Publicaciones activas"
+          items={publicacionesActivasBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones activas."
         />
       </>
     );
   }
 
-  const itemsGestion = items.filter((item) => item.estado !== "adoptado");
-  const publicacionesPausadasBase = itemsGestion.filter(
-    (item) => item.estado === "pausado",
-  );
-  const publicacionesActivasBase = itemsGestion.filter(
-    (item) => item.estado === "disponible",
-  );
-
-  const ids = itemsGestion.map((item) => item.id_animal);
-
-  const { data: solicitudes } = await supabase
-    .from("solicitudes_adopcion")
-    .select("id_animal, estado")
-    .in(
-      "id_animal",
-      ids.length ? ids : ["00000000-0000-0000-0000-000000000000"],
+  if (filtroActual === "pausadas") {
+    return (
+      <>
+        <Toolbar filtroActual={filtroActual} />
+        <BloquePublicaciones
+          titulo="Publicaciones pausadas"
+          items={publicacionesPausadasBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones pausadas."
+        />
+      </>
     );
+  }
 
-  const solicitudesPorAnimal = new Map<string, ResumenSolicitudes>();
-
-  ((solicitudes ?? []) as SolicitudResumen[]).forEach((solicitud) => {
-    const actual = solicitudesPorAnimal.get(solicitud.id_animal) ?? {
-      total: 0,
-      pendientes: 0,
-      enRevision: 0,
-      adoptadas: 0,
-    };
-
-    actual.total += 1;
-    if (solicitud.estado === "pendiente") actual.pendientes += 1;
-    if (solicitud.estado === "en_revision") actual.enRevision += 1;
-    if (solicitud.estado === "adoptado") actual.adoptadas += 1;
-
-    solicitudesPorAnimal.set(solicitud.id_animal, actual);
-  });
-
-  const publicacionesPausadas = filtrarActivas(
-    publicacionesPausadasBase,
-    solicitudesPorAnimal,
-    filtroActivo,
-  );
-
-  const publicacionesActivas = filtrarActivas(
-    publicacionesActivasBase,
-    solicitudesPorAnimal,
-    filtroActivo,
-  );
-
-  const publicacionesPendientes = publicacionesActivasBase.filter(
-    (animal) => (solicitudesPorAnimal.get(animal.id_animal)?.pendientes ?? 0) > 0,
-  );
-
-  const mostrarBloquePendientes =
-    filtroActivo === "todas" || filtroActivo === "pendientes";
+  if (filtroActual === "pendientes") {
+    return (
+      <>
+        <Toolbar filtroActual={filtroActual} />
+        <BloquePublicaciones
+          titulo="Publicaciones pendientes"
+          items={publicacionesPendientesBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones con solicitudes pendientes."
+        />
+      </>
+    );
+  }
 
   return (
     <>
-      <Toolbar filtroActivo={filtroActivo} />
+      <Toolbar filtroActual={filtroActual} />
 
-      <section className="mb-10">
-        <SectionTitle
-          title="Publicaciones pausadas"
-          count={publicacionesPausadas.length}
+      <div className="space-y-10">
+        <BloquePublicaciones
+          titulo="Publicaciones pausadas"
+          items={publicacionesPausadasBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones pausadas."
         />
 
-        {publicacionesPausadas.length === 0 ? (
-          <EmptySection text="No tenés publicaciones pausadas para este filtro." />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {publicacionesPausadas.map((animal) => {
-              const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
-                total: 0,
-                pendientes: 0,
-                enRevision: 0,
-                adoptadas: 0,
-              };
-
-              return (
-                <PublicacionCard
-                  key={animal.id_animal}
-                  animal={animal}
-                  resumen={resumen}
-                />
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <SectionTitle
-          title="Publicaciones activas"
-          count={publicacionesActivas.length}
+        <BloquePublicaciones
+          titulo="Publicaciones activas"
+          items={publicacionesActivasBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones activas."
         />
 
-        {publicacionesActivas.length === 0 ? (
-          <EmptySection text="No hay publicaciones activas para este filtro." />
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {publicacionesActivas.map((animal) => {
-              const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
-                total: 0,
-                pendientes: 0,
-                enRevision: 0,
-                adoptadas: 0,
-              };
-
-              return (
-                <PublicacionCard
-                  key={animal.id_animal}
-                  animal={animal}
-                  resumen={resumen}
-                />
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {mostrarBloquePendientes ? (
-        <section>
-          <SectionTitle
-            title="Publicaciones pendientes"
-            count={publicacionesPendientes.length}
-          />
-
-          {publicacionesPendientes.length === 0 ? (
-            <EmptySection text="No hay publicaciones con solicitudes pendientes." />
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {publicacionesPendientes.map((animal) => {
-                const resumen = solicitudesPorAnimal.get(animal.id_animal) ?? {
-                  total: 0,
-                  pendientes: 0,
-                  enRevision: 0,
-                  adoptadas: 0,
-                };
-
-                return (
-                  <PublicacionCard
-                    key={animal.id_animal}
-                    animal={animal}
-                    resumen={resumen}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </section>
-      ) : null}
+        <BloquePublicaciones
+          titulo="Publicaciones pendientes"
+          items={publicacionesPendientesBase}
+          solicitudesPorAnimal={solicitudesPorAnimal}
+          vacio="No tenés publicaciones con solicitudes pendientes."
+        />
+      </div>
     </>
   );
 }
