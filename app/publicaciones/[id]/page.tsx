@@ -274,20 +274,26 @@ function FeedbackBanner({
 function PublicacionSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-8 lg:grid-cols-[420px_1fr]">
-        <div className="h-[420px] animate-pulse rounded-2xl border border-white/10 bg-white/10" />
-        <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="h-8 w-52 animate-pulse rounded bg-white/10" />
-          <div className="h-4 w-40 animate-pulse rounded bg-white/10" />
-          <div className="h-4 w-60 animate-pulse rounded bg-white/10" />
-          <div className="grid gap-3 md:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-20 animate-pulse rounded-xl bg-white/10"
-              />
-            ))}
-          </div>
+      <div className="flex flex-wrap gap-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-11 w-48 animate-pulse rounded-xl border border-white/10 bg-white/10"
+          />
+        ))}
+      </div>
+
+      <div className="h-32 animate-pulse rounded-2xl border border-white/10 bg-white/10 md:h-40" />
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-4 h-7 w-56 animate-pulse rounded bg-white/10" />
+        <div className="grid gap-3 md:grid-cols-2">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-20 animate-pulse rounded-xl bg-white/10"
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -299,6 +305,21 @@ function AtributoChip({ children }: { children: React.ReactNode }) {
     <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm text-white/90">
       {children}
     </span>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="mb-1 text-sm text-white/60">{label}</p>
+      <p className="text-2xl font-semibold">{value}</p>
+    </div>
   );
 }
 
@@ -343,21 +364,33 @@ async function PublicacionContent({
     animalTipado.fotos_animales[0];
 
   const totalSolicitudes = solicitudesTipadas.length;
-  const pendientes = solicitudesTipadas.filter((s) => s.estado === "pendiente").length;
-  const enRevision = solicitudesTipadas.filter((s) => s.estado === "en_revision").length;
-  const rechazadas = solicitudesTipadas.filter((s) => s.estado === "rechazada").length;
-  const canceladas = solicitudesTipadas.filter((s) => s.estado === "cancelada").length;
-  const adoptadas = solicitudesTipadas.filter((s) => s.estado === "adoptado").length;
+  const pendientes = solicitudesTipadas.filter(
+    (s) => s.estado === "pendiente",
+  ).length;
+  const enRevision = solicitudesTipadas.filter(
+    (s) => s.estado === "en_revision",
+  ).length;
+  const rechazadas = solicitudesTipadas.filter(
+    (s) => s.estado === "rechazada",
+  ).length;
 
   return (
     <div className="space-y-6">
       <FeedbackBanner ok={ok} error={searchError} />
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="mb-2 text-sm text-white/60">Gestión</p>
-            <h1 className="text-3xl font-bold">{animalTipado.nombre}</h1>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
+            <span className="font-medium text-white">{animalTipado.nombre}</span>
+            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white">
+              {formatEstadoAnimal(animalTipado.estado)}
+            </span>
+            <Link
+              href={`/animales/${animalTipado.id_animal}`}
+              className="transition hover:text-white"
+            >
+              Ver ficha pública
+            </Link>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -403,65 +436,52 @@ async function PublicacionContent({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/animales/${animalTipado.id_animal}`}
-            className="text-sm text-white/60 transition hover:text-white"
-          >
-            Ver ficha pública
-          </Link>
+        {fotoPrincipal ? (
+          <img
+            src={fotoPrincipal.url_foto}
+            alt={animalTipado.nombre}
+            className="h-28 w-full rounded-2xl border border-white/10 object-cover md:h-36 lg:h-40"
+          />
+        ) : (
+          <div className="flex h-28 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/50 md:h-36 lg:h-40">
+            Sin imagen
+          </div>
+        )}
 
-          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
-            {formatEstadoAnimal(animalTipado.estado)}
-          </span>
-        </div>
+        {animalTipado.fotos_animales.length > 1 && (
+          <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
+            {animalTipado.fotos_animales.map((foto) => (
+              <img
+                key={foto.id_foto}
+                src={foto.url_foto}
+                alt={animalTipado.nombre}
+                className="h-16 w-full rounded-xl border border-white/10 object-cover md:h-20"
+              />
+            ))}
+          </div>
+        )}
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
-        <div className="space-y-4">
-          {fotoPrincipal ? (
-            <img
-              src={fotoPrincipal.url_foto}
-              alt={animalTipado.nombre}
-              className="h-[420px] w-full rounded-2xl border border-white/10 object-cover"
-            />
-          ) : (
-            <div className="flex h-[420px] w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white/50">
-              Sin imagen
-            </div>
-          )}
+      <details className="group rounded-2xl border border-white/10 bg-white/5 p-5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-white/60">Publicación</p>
+            <h2 className="text-2xl font-semibold">Sobre {animalTipado.nombre}</h2>
+          </div>
+          <span className="text-sm text-white/60 transition group-open:rotate-180">
+            ▼
+          </span>
+        </summary>
 
-          {animalTipado.fotos_animales.length > 1 && (
-            <div className="grid grid-cols-3 gap-3">
-              {animalTipado.fotos_animales.map((foto) => (
-                <img
-                  key={foto.id_foto}
-                  src={foto.url_foto}
-                  alt={animalTipado.nombre}
-                  className="h-28 w-full rounded-xl border border-white/10 object-cover"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="mb-2 text-sm text-white/60">Publicación</p>
-              <h2 className="mb-2 text-3xl font-bold">{animalTipado.nombre}</h2>
-              <p className="text-white/70">
-                {animalTipado.especie}
-                {animalTipado.raza ? ` · ${animalTipado.raza}` : ""}
-              </p>
-            </div>
-
-            <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs">
-              {formatEstadoAnimal(animalTipado.estado)}
-            </span>
+        <div className="mt-5 space-y-5">
+          <div>
+            <p className="text-white/70">
+              {animalTipado.especie}
+              {animalTipado.raza ? ` · ${animalTipado.raza}` : ""}
+            </p>
           </div>
 
-          <div className="mt-6 grid gap-4 text-sm md:grid-cols-2">
+          <div className="grid gap-4 text-sm md:grid-cols-2">
             <div className="rounded-xl border border-white/10 bg-white/5 p-4">
               <p className="mb-1 text-white/60">Ciudad</p>
               <p>{animalTipado.ciudad ?? "No informada"}</p>
@@ -496,55 +516,34 @@ async function PublicacionContent({
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <h2 className="mb-3 text-xl font-semibold">
-          Sobre {animalTipado.nombre}
-        </h2>
-        <p className="leading-7 text-white/80">
-          {animalTipado.descripcion ?? "Sin descripción disponible."}
-        </p>
+          <div>
+            <p className="mb-3 leading-7 text-white/80">
+              {animalTipado.descripcion ?? "Sin descripción disponible."}
+            </p>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {animalTipado.castrado && <AtributoChip>Castrado</AtributoChip>}
-          {animalTipado.vacunado && <AtributoChip>Vacunado</AtributoChip>}
-          {animalTipado.desparasitado && <AtributoChip>Desparasitado</AtributoChip>}
-          {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
-          {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
-          {animalTipado.apto_perros && <AtributoChip>Apto perros</AtributoChip>}
-          {animalTipado.nivel_energia && (
-            <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
-          )}
+            <div className="flex flex-wrap gap-2">
+              {animalTipado.castrado && <AtributoChip>Castrado</AtributoChip>}
+              {animalTipado.vacunado && <AtributoChip>Vacunado</AtributoChip>}
+              {animalTipado.desparasitado && (
+                <AtributoChip>Desparasitado</AtributoChip>
+              )}
+              {animalTipado.apto_ninos && <AtributoChip>Apto niños</AtributoChip>}
+              {animalTipado.apto_gatos && <AtributoChip>Apto gatos</AtributoChip>}
+              {animalTipado.apto_perros && <AtributoChip>Apto perros</AtributoChip>}
+              {animalTipado.nivel_energia && (
+                <AtributoChip>Energía: {animalTipado.nivel_energia}</AtributoChip>
+              )}
+            </div>
+          </div>
         </div>
-      </section>
+      </details>
 
-      <section className="grid gap-4 md:grid-cols-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">Total</p>
-          <p className="text-2xl font-semibold">{totalSolicitudes}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">Pendientes</p>
-          <p className="text-2xl font-semibold">{pendientes}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">En revisión</p>
-          <p className="text-2xl font-semibold">{enRevision}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">Rechazadas</p>
-          <p className="text-2xl font-semibold">{rechazadas}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">Canceladas</p>
-          <p className="text-2xl font-semibold">{canceladas}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="mb-1 text-sm text-white/60">Adoptada</p>
-          <p className="text-2xl font-semibold">{adoptadas}</p>
-        </div>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Total" value={totalSolicitudes} />
+        <StatCard label="Pendientes" value={pendientes} />
+        <StatCard label="En revisión" value={enRevision} />
+        <StatCard label="Rechazadas" value={rechazadas} />
       </section>
 
       <section>
