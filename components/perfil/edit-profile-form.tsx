@@ -23,8 +23,7 @@ function ProfileField({
   label: string;
   value?: string | null;
 }) {
-  const displayValue =
-    value && value.trim() !== "" ? value : "Sin completar";
+  const displayValue = value && value.trim() !== "" ? value : "Sin completar";
 
   return (
     <div className="rounded-xl border border-white/10 bg-black/20 p-4">
@@ -82,6 +81,20 @@ async function compressImage(file: File): Promise<File> {
   });
 }
 
+function extractStoragePathFromPublicUrl(url: string, bucketName: string) {
+  try {
+    const parsed = new URL(url);
+    const marker = `/storage/v1/object/public/${bucketName}/`;
+    const index = parsed.pathname.indexOf(marker);
+
+    if (index === -1) return null;
+
+    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
+  } catch {
+    return null;
+  }
+}
+
 export function EditProfileForm({
   initialData,
   authUserId,
@@ -112,13 +125,23 @@ export function EditProfileForm({
 
     const compressedFile = await compressImage(selectedFile);
 
-    const fileName = "perfil.jpg";
+    const timestamp = Date.now();
+    const fileName = `perfil-${timestamp}.jpg`;
     const filePath = `${authUserId}/${fileName}`;
+
+    const previousPath =
+      fotoPerfil && fotoPerfil.trim() !== ""
+        ? extractStoragePathFromPublicUrl(fotoPerfil, "avatars")
+        : null;
+
+    if (previousPath) {
+      await supabase.storage.from("avatars").remove([previousPath]);
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
       .upload(filePath, compressedFile, {
-        upsert: true,
+        upsert: false,
         contentType: "image/jpeg",
       });
 
