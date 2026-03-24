@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getCurrentUsuario } from "@/lib/server/auth";
 import {
   getPublicacionDelPublicador,
@@ -9,6 +8,11 @@ import {
   setEstadoPublicacion,
   deletePublicacionSegura,
 } from "@/lib/server/publicaciones";
+import {
+  marcarSolicitudEnRevision,
+  actualizarEstadoSolicitudPublicacion,
+} from "@/lib/server/solicitudes";
+import { concretarAdopcionPublicacion } from "@/lib/server/adopciones";
 import ConfirmDeleteButton from "./ConfirmDeleteButton";
 
 type Params = Promise<{ id: string }>;
@@ -45,59 +49,16 @@ async function marcarEnRevision(formData: FormData) {
     redirect("/publicaciones?error=solicitud_invalida");
   }
 
-  const supabase = await createClient();
-
   const { usuario } = await getCurrentUsuario({
     loginNext: `/publicaciones/${idAnimal}`,
     notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
   });
 
-  const { data: solicitud } = await supabase
-    .from("solicitudes_adopcion")
-    .select("id_solicitud, id_animal, estado")
-    .eq("id_solicitud", idSolicitud)
-    .single();
-
-  if (!solicitud) {
-    redirect(`/publicaciones/${idAnimal}?error=solicitud_no_encontrada`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", solicitud.id_animal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (animal.estado !== "disponible") {
-    redirect(
-      `/publicaciones/${idAnimal}?error=animal_no_disponible_para_revision`,
-    );
-  }
-
-  if (solicitud.estado !== "pendiente") {
-    redirect(`/publicaciones/${idAnimal}?error=estado_invalido`);
-  }
-
-  const { error } = await supabase
-    .from("solicitudes_adopcion")
-    .update({ estado: "en_revision" })
-    .eq("id_solicitud", idSolicitud);
-
-  if (error) {
-    redirect(
-      `/publicaciones/${idAnimal}?error=error_actualizacion_solicitud`,
-    );
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=en_revision`);
+  await marcarSolicitudEnRevision({
+    idSolicitud,
+    idAnimal,
+    idPublicador: usuario.id_usuario,
+  });
 }
 
 async function actualizarEstadoSolicitud(formData: FormData) {
@@ -115,53 +76,17 @@ async function actualizarEstadoSolicitud(formData: FormData) {
     redirect(`/publicaciones/${idAnimal}?error=estado_destino_invalido`);
   }
 
-  const supabase = await createClient();
-
   const { usuario } = await getCurrentUsuario({
     loginNext: `/publicaciones/${idAnimal}`,
     notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
   });
 
-  const { data: solicitud } = await supabase
-    .from("solicitudes_adopcion")
-    .select("id_solicitud, id_animal, estado")
-    .eq("id_solicitud", idSolicitud)
-    .single();
-
-  if (!solicitud) {
-    redirect(`/publicaciones/${idAnimal}?error=solicitud_no_encontrada`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador")
-    .eq("id_animal", solicitud.id_animal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (!["pendiente", "en_revision"].includes(solicitud.estado)) {
-    redirect(`/publicaciones/${idAnimal}?error=estado_invalido`);
-  }
-
-  const { error } = await supabase
-    .from("solicitudes_adopcion")
-    .update({ estado: nuevoEstado })
-    .eq("id_solicitud", idSolicitud);
-
-  if (error) {
-    redirect(
-      `/publicaciones/${idAnimal}?error=error_actualizacion_solicitud`,
-    );
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=${nuevoEstado}`);
+  await actualizarEstadoSolicitudPublicacion({
+    idSolicitud,
+    idAnimal,
+    idPublicador: usuario.id_usuario,
+    nuevoEstado: "rechazada",
+  });
 }
 
 async function concretarAdopcion(formData: FormData) {
@@ -174,96 +99,16 @@ async function concretarAdopcion(formData: FormData) {
     redirect("/publicaciones?error=solicitud_invalida");
   }
 
-  const supabase = await createClient();
-
   const { usuario } = await getCurrentUsuario({
     loginNext: `/publicaciones/${idAnimal}`,
     notFoundRedirect: `/publicaciones/${idAnimal}?error=usuario_no_encontrado`,
   });
 
-  const { data: solicitud } = await supabase
-    .from("solicitudes_adopcion")
-    .select("id_solicitud, id_animal, id_solicitante, estado")
-    .eq("id_solicitud", idSolicitud)
-    .single();
-
-  if (!solicitud) {
-    redirect(`/publicaciones/${idAnimal}?error=solicitud_no_encontrada`);
-  }
-
-  const { data: animal } = await supabase
-    .from("animales_adopcion")
-    .select("id_animal, id_publicador, estado")
-    .eq("id_animal", solicitud.id_animal)
-    .single();
-
-  if (!animal) {
-    redirect(`/publicaciones/${idAnimal}?error=animal_no_encontrado`);
-  }
-
-  if (animal.id_publicador !== usuario.id_usuario) {
-    redirect(`/publicaciones/${idAnimal}?error=sin_permisos`);
-  }
-
-  if (animal.estado !== "disponible") {
-    redirect(
-      `/publicaciones/${idAnimal}?error=animal_no_disponible_para_adopcion`,
-    );
-  }
-
-  if (solicitud.estado !== "en_revision") {
-    redirect(`/publicaciones/${idAnimal}?error=estado_invalido_adopcion`);
-  }
-
-  const { error: insertAdopcionError } = await supabase
-    .from("adopciones")
-    .insert({
-      id_animal: solicitud.id_animal,
-      id_adoptante: solicitud.id_solicitante,
-      id_publicador: usuario.id_usuario,
-      id_solicitud: solicitud.id_solicitud,
-      fecha_adopcion: new Date().toISOString(),
-    });
-
-  if (insertAdopcionError) {
-    if (insertAdopcionError.code === "23505") {
-      redirect(`/publicaciones/${idAnimal}?error=adopcion_duplicada`);
-    }
-    redirect(`/publicaciones/${idAnimal}?error=error_adopcion`);
-  }
-
-  const { error: updateSolicitudGanadoraError } = await supabase
-    .from("solicitudes_adopcion")
-    .update({ estado: "adoptado" })
-    .eq("id_solicitud", solicitud.id_solicitud);
-
-  if (updateSolicitudGanadoraError) {
-    redirect(
-      `/publicaciones/${idAnimal}?error=error_estado_solicitud_ganadora`,
-    );
-  }
-
-  const { error: updateAnimalError } = await supabase
-    .from("animales_adopcion")
-    .update({ estado: "adoptado" })
-    .eq("id_animal", solicitud.id_animal);
-
-  if (updateAnimalError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_estado_animal`);
-  }
-
-  const { error: cancelRestError } = await supabase
-    .from("solicitudes_adopcion")
-    .update({ estado: "cancelada" })
-    .eq("id_animal", solicitud.id_animal)
-    .neq("id_solicitud", solicitud.id_solicitud)
-    .in("estado", ["pendiente", "en_revision"]);
-
-  if (cancelRestError) {
-    redirect(`/publicaciones/${idAnimal}?error=error_cierre_restantes`);
-  }
-
-  redirect(`/publicaciones/${idAnimal}?ok=adoptado`);
+  await concretarAdopcionPublicacion({
+    idSolicitud,
+    idAnimal,
+    idPublicador: usuario.id_usuario,
+  });
 }
 
 async function actualizarEstadoPublicacion(formData: FormData) {
