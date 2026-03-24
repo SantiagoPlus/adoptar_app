@@ -36,6 +36,52 @@ function ProfileField({
   );
 }
 
+async function compressImage(file: File): Promise<File> {
+  const imageBitmap = await createImageBitmap(file);
+
+  const maxWidth = 1200;
+  const maxHeight = 1200;
+
+  let { width, height } = imageBitmap;
+
+  const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return file;
+  }
+
+  context.drawImage(imageBitmap, 0, 0, width, height);
+
+  const blob: Blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (result) => {
+        if (result) {
+          resolve(result);
+          return;
+        }
+
+        reject(new Error("No se pudo comprimir la imagen."));
+      },
+      "image/jpeg",
+      0.82,
+    );
+  });
+
+  const originalName = file.name.replace(/\.[^.]+$/, "");
+
+  return new File([blob], `${originalName}.jpg`, {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+
 export function EditProfileForm({
   initialData,
   authUserId,
@@ -64,14 +110,16 @@ export function EditProfileForm({
   async function subirFotoPerfil() {
     if (!selectedFile) return fotoPerfil || null;
 
-    const extension = selectedFile.name.split(".").pop()?.toLowerCase() || "jpg";
-    const fileName = `perfil.${extension}`;
+    const compressedFile = await compressImage(selectedFile);
+
+    const fileName = "perfil.jpg";
     const filePath = `${authUserId}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(filePath, selectedFile, {
+      .upload(filePath, compressedFile, {
         upsert: true,
+        contentType: "image/jpeg",
       });
 
     if (uploadError) {
