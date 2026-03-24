@@ -42,6 +42,72 @@ export type SolicitudItem = {
   fecha_solicitud: string;
 };
 
+export type CrearPublicacionInput = {
+  idPublicador: string;
+  nombre: string;
+  especie: string;
+  raza: string;
+  sexo: string;
+  edadAproximada: string;
+  tamano: string;
+  ciudad: string;
+  descripcion: string;
+  estadoSalud: string;
+  nivelEnergia: string;
+  castrado: boolean;
+  vacunado: boolean;
+  desparasitado: boolean;
+  aptoNinos: boolean;
+  aptoGatos: boolean;
+  aptoPerros: boolean;
+};
+
+export async function crearPublicacion(input: CrearPublicacionInput) {
+  const supabase = await createClient();
+
+  if (!input.nombre || !input.especie) {
+    redirect("/publicaciones/nueva?error=campos_obligatorios");
+  }
+
+  if (!["perro", "gato"].includes(input.especie)) {
+    redirect("/publicaciones/nueva?error=especie_invalida");
+  }
+
+  const payload = {
+    id_publicador: input.idPublicador,
+    nombre: input.nombre,
+    especie: input.especie,
+    raza: input.raza || null,
+    sexo: input.sexo || null,
+    edad_aproximada: input.edadAproximada || null,
+    tamano: input.tamano || null,
+    descripcion: input.descripcion || null,
+    estado_salud: input.estadoSalud || null,
+    ciudad: input.ciudad || null,
+    estado: "disponible",
+    fecha_publicacion: new Date().toISOString(),
+    nivel_energia: input.nivelEnergia || null,
+    castrado: input.castrado,
+    vacunado: input.vacunado,
+    desparasitado: input.desparasitado,
+    apto_ninos: input.aptoNinos,
+    apto_gatos: input.aptoGatos,
+    apto_perros: input.aptoPerros,
+  };
+
+  const { data: animalCreado, error } = await supabase
+    .from("animales_adopcion")
+    .insert(payload)
+    .select("id_animal")
+    .single();
+
+  if (error || !animalCreado) {
+    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
+  }
+
+  return animalCreado;
+}
+
 export async function getPublicacionDelPublicador(
   idAnimal: string,
   idPublicador: string,
