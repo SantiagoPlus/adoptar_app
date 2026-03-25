@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { LogoutButton } from "@/components/logout-button";
+import { getCurrentUsuario } from "@/lib/server/auth";
+import UserMenu from "@/components/app/user-menu";
 
-export default function PrivateNavbar() {
+export default async function PrivateNavbar() {
+  const { usuario } = await getCurrentUsuario();
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -24,16 +27,12 @@ export default function PrivateNavbar() {
             Solicitudes
           </Link>
 
-          <Link
-            href="/perfil"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-          >
-            Mi cuenta
-          </Link>
-
-          <div className="rounded-xl border border-white/10 bg-white/5 px-1 py-1">
-            <LogoutButton />
-          </div>
+          <UserMenu
+            nombre={usuario.nombre}
+            apellido={usuario.apellido}
+            email={usuario.email}
+            fotoPerfil={usuario.foto_perfil}
+          />
         </nav>
       </div>
     </header>
