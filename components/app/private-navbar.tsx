@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUsuario } from "@/lib/server/auth";
+import { LogoutButton } from "@/components/logout-button";
 import UserMenu from "@/components/app/user-menu";
 
 export default async function PrivateNavbar() {
@@ -12,28 +13,18 @@ export default async function PrivateNavbar() {
           Adopta App
         </Link>
 
-        <nav className="flex items-center gap-3">
-          <Link
-            href="/publicaciones"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-          >
-            Publicaciones
-          </Link>
-
-          <Link
-            href="/solicitudes"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-          >
-            Solicitudes
-          </Link>
-
+        <div className="flex items-center gap-3">
           <UserMenu
             nombre={usuario.nombre}
             apellido={usuario.apellido}
             email={usuario.email}
             fotoPerfil={usuario.foto_perfil}
           />
-        </nav>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 px-1 py-1">
+            <LogoutButton />
+          </div>
+        </div>
       </div>
     </header>
   );
