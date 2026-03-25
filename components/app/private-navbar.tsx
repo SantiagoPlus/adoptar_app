@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { Bell } from "lucide-react";
 import { getCurrentUsuario } from "@/lib/server/auth";
-import { LogoutButton } from "@/components/logout-button";
 import UserMenu from "@/components/app/user-menu";
 
 export default async function PrivateNavbar() {
@@ -14,16 +14,20 @@ export default async function PrivateNavbar() {
         </Link>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Notificaciones"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+          >
+            <Bell className="h-5 w-5" />
+          </button>
+
           <UserMenu
             nombre={usuario.nombre}
             apellido={usuario.apellido}
             email={usuario.email}
             fotoPerfil={usuario.foto_perfil}
           />
-
-          <div className="rounded-xl border border-white/10 bg-white/5 px-1 py-1">
-            <LogoutButton />
-          </div>
         </div>
       </div>
     </header>
