@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LogoutButton from "@/components/logout-button";
 
 export default function PrivateNavbar() {
   return (
@@ -29,6 +30,10 @@ export default function PrivateNavbar() {
           >
             Mi cuenta
           </Link>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 px-1 py-1">
+            <LogoutButton />
+          </div>
         </nav>
       </div>
     </header>
