@@ -107,9 +107,9 @@ export default function UserMenu({
 
         <DropdownMenuSeparator className="bg-white/10" />
 
-        <div className="px-2 py-2">
-          <LogoutButton variant="menu" />
-        </div>
+        <DropdownMenuItem className="p-0 text-white focus:bg-white/10 focus:text-white">
+          <LogoutButton variant="menu" className="rounded-none" />
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
