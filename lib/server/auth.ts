@@ -30,7 +30,9 @@ export async function getCurrentUsuario(options?: {
 
   const { data: usuario, error: usuarioError } = await supabase
     .from("usuarios")
-    .select("id_usuario, auth_user_id, nombre, email")
+    .select(
+      "id_usuario, auth_user_id, nombre, apellido, email, foto_perfil",
+    )
     .eq("auth_user_id", authUser.id)
     .single();
 
