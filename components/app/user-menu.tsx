@@ -75,21 +75,30 @@ export default function UserMenu({
 
         <DropdownMenuSeparator className="bg-white/10" />
 
-        <DropdownMenuItem asChild className="cursor-pointer text-white focus:bg-white/10 focus:text-white">
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
           <Link href="/perfil" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Mi perfil
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuItem asChild className="cursor-pointer text-white focus:bg-white/10 focus:text-white">
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
           <Link href="/publicaciones" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Publicaciones
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuItem asChild className="cursor-pointer text-white focus:bg-white/10 focus:text-white">
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer text-white focus:bg-white/10 focus:text-white"
+        >
           <Link href="/solicitudes" className="flex items-center gap-2">
             <HeartHandshake className="h-4 w-4" />
             Mis solicitudes
@@ -99,7 +108,7 @@ export default function UserMenu({
         <DropdownMenuSeparator className="bg-white/10" />
 
         <div className="px-2 py-2">
-          <LogoutButton />
+          <LogoutButton variant="menu" />
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
