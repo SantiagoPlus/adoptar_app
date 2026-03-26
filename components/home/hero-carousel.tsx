@@ -68,11 +68,11 @@ const slides: Slide[] = [
       "La plataforma busca reunir veterinarias, entrenadores, paseadores, cuidadores y otros perfiles para crear una red más útil alrededor del bienestar animal.",
     primaryCta: {
       label: "Explorar la visión",
-      href: "#servicios",
+      href: "#vision",
     },
     secondaryCta: {
       label: "Quiero ofrecer servicios",
-      href: "#prestadores",
+      href: "#vision",
     },
     icon: Stethoscope,
     backgroundImage:
@@ -100,7 +100,7 @@ export function HeroCarousel() {
   };
 
   return (
-    <section className="mb-14">
+    <section className="mb-12">
       <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
         <div
           className="flex transition-transform duration-700 ease-in-out"
@@ -118,16 +118,20 @@ export function HeroCarousel() {
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/60" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/40" />
                 </div>
 
-                <div className="relative grid gap-8 px-6 py-8 md:px-8 md:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+                <div className="relative px-6 py-8 md:px-8 md:py-10">
                   <div className="max-w-3xl">
-                    <p className="mb-3 text-sm text-white/70">
-                      {slide.eyebrow}
-                    </p>
+                    <div className="mb-4 flex items-center gap-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 p-2.5">
+                        <SlideIcon className="h-5 w-5 text-white" />
+                      </div>
 
-                    <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
+                      <p className="text-sm text-white/70">{slide.eyebrow}</p>
+                    </div>
+
+                    <h1 className="mb-4 max-w-4xl text-4xl font-bold leading-tight md:text-5xl">
                       {slide.title}
                     </h1>
 
@@ -149,41 +153,6 @@ export function HeroCarousel() {
                       >
                         {slide.secondaryCta.label}
                       </Link>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="flex min-h-[280px] flex-col justify-between rounded-3xl border border-white/10 bg-black/30 p-6 backdrop-blur-sm md:min-h-[320px]">
-                      <div className="flex items-start justify-between gap-4">
-                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
-                          Visión de plataforma
-                        </span>
-
-                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                          <SlideIcon className="h-7 w-7 text-white" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <p className="mb-1 text-sm text-white/60">Hoy</p>
-                          <p className="text-sm text-white/85">
-                            Adopciones responsables con publicaciones activas y
-                            gestión de solicitudes.
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
-                          <p className="mb-1 text-sm text-white/60">
-                            Próximamente
-                          </p>
-                          <p className="text-sm text-white/85">
-                            Gestión de mascotas, seguimiento de cuidados y nuevas
-                            oportunidades para servicios vinculados al bienestar
-                            animal.
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
