@@ -5,6 +5,7 @@ import { ValuePillars } from "@/components/home/value-pillars";
 import { AnimalsPreview } from "@/components/home/animals-preview";
 import { AnimalsSkeleton } from "@/components/home/animals-skeleton";
 import { FutureModules } from "@/components/home/future-modules";
+import { ProviderCta } from "@/components/home/provider-cta";
 
 function NavbarSkeleton() {
   return (
@@ -36,6 +37,7 @@ export default function Home() {
         </Suspense>
 
         <FutureModules />
+        <ProviderCta />
       </section>
     </main>
   );
