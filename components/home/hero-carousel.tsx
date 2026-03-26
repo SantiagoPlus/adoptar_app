@@ -34,7 +34,7 @@ const slides: Slide[] = [
       "Explorá animales en adopción, conocé mejor cada caso y conectate con publicadores para concretar adopciones con más información, orden y seguimiento.",
     primaryCta: {
       label: "Ver animales",
-      href: "#animales",
+      href: "/animales",
     },
     secondaryCta: {
       label: "Comenzar",
@@ -112,7 +112,6 @@ export function HeroCarousel() {
             return (
               <div key={slide.title} className="relative min-w-full">
                 <div className="absolute inset-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={slide.backgroundImage}
                     alt={slide.title}
