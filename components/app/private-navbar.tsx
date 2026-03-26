@@ -15,8 +15,8 @@ export default async function PrivateNavbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-2xl font-semibold text-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+        <Link href="/" className="text-xl font-semibold tracking-tight text-white">
           Adopta App
         </Link>
 
@@ -26,7 +26,7 @@ export default async function PrivateNavbar() {
               <button
                 type="button"
                 aria-label="Notificaciones"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
               >
                 <Bell className="h-5 w-5" />
               </button>
