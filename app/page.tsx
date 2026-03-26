@@ -4,6 +4,7 @@ import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ValuePillars } from "@/components/home/value-pillars";
 import { AnimalsPreview } from "@/components/home/animals-preview";
 import { AnimalsSkeleton } from "@/components/home/animals-skeleton";
+import { FutureModules } from "@/components/home/future-modules";
 
 function NavbarSkeleton() {
   return (
@@ -33,6 +34,8 @@ export default function Home() {
         <Suspense fallback={<AnimalsSkeleton />}>
           <AnimalsPreview />
         </Suspense>
+
+        <FutureModules />
       </section>
     </main>
   );
