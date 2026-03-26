@@ -6,6 +6,7 @@ import { AnimalsPreview } from "@/components/home/animals-preview";
 import { AnimalsSkeleton } from "@/components/home/animals-skeleton";
 import { FutureModules } from "@/components/home/future-modules";
 import { ProviderCta } from "@/components/home/provider-cta";
+import { HomeFooter } from "@/components/home/footer";
 
 function NavbarSkeleton() {
   return (
@@ -39,6 +40,8 @@ export default function Home() {
         <FutureModules />
         <ProviderCta />
       </section>
+
+      <HomeFooter />
     </main>
   );
 }
