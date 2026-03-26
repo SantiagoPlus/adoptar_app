@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Heart, ShieldPlus, Stethoscope } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  ShieldPlus,
+  Stethoscope,
+} from "lucide-react";
 
 type Slide = {
   eyebrow: string;
@@ -17,6 +23,7 @@ type Slide = {
     href: string;
   };
   icon: React.ComponentType<{ className?: string }>;
+  backgroundImage: string;
 };
 
 const slides: Slide[] = [
@@ -34,6 +41,8 @@ const slides: Slide[] = [
       href: "/auth/login",
     },
     icon: Heart,
+    backgroundImage:
+      "https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1600&q=80",
   },
   {
     eyebrow: "Gestión y cuidado de mascotas",
@@ -49,6 +58,8 @@ const slides: Slide[] = [
       href: "/auth/login",
     },
     icon: ShieldPlus,
+    backgroundImage:
+      "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1600&q=80",
   },
   {
     eyebrow: "Servicios y oportunidades",
@@ -64,6 +75,8 @@ const slides: Slide[] = [
       href: "#prestadores",
     },
     icon: Stethoscope,
+    backgroundImage:
+      "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?auto=format&fit=crop&w=1600&q=80",
   },
 ];
 
@@ -78,9 +91,6 @@ export function HeroCarousel() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const activeSlide = slides[activeIndex];
-  const ActiveIcon = activeSlide.icon;
-
   const goToPrevious = () => {
     setActiveIndex((current) => (current - 1 + slides.length) % slides.length);
   };
@@ -92,66 +102,95 @@ export function HeroCarousel() {
   return (
     <section className="mb-14">
       <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-        <div className="grid gap-8 px-6 py-8 md:px-8 md:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="max-w-3xl">
-            <p className="mb-3 text-sm text-white/60">{activeSlide.eyebrow}</p>
+        <div
+          className="flex transition-transform duration-700 ease-in-out"
+          style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+        >
+          {slides.map((slide) => {
+            const SlideIcon = slide.icon;
 
-            <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
-              {activeSlide.title}
-            </h1>
+            return (
+              <div key={slide.title} className="relative min-w-full">
+                <div className="absolute inset-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={slide.backgroundImage}
+                    alt={slide.title}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/60" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/35" />
+                </div>
 
-            <p className="max-w-2xl text-base leading-7 text-white/70 md:text-lg">
-              {activeSlide.description}
-            </p>
+                <div className="relative grid gap-8 px-6 py-8 md:px-8 md:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+                  <div className="max-w-3xl">
+                    <p className="mb-3 text-sm text-white/70">
+                      {slide.eyebrow}
+                    </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href={activeSlide.primaryCta.href}
-                className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
-              >
-                {activeSlide.primaryCta.label}
-              </Link>
+                    <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
+                      {slide.title}
+                    </h1>
 
-              <Link
-                href={activeSlide.secondaryCta.href}
-                className="rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-medium text-white transition hover:bg-white/10"
-              >
-                {activeSlide.secondaryCta.label}
-              </Link>
-            </div>
-          </div>
+                    <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
+                      {slide.description}
+                    </p>
 
-          <div className="relative">
-            <div className="flex min-h-[280px] flex-col justify-between rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-white/[0.03] p-6 md:min-h-[320px]">
-              <div className="flex items-start justify-between gap-4">
-                <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
-                  Visión de plataforma
-                </span>
+                    <div className="mt-7 flex flex-wrap gap-3">
+                      <Link
+                        href={slide.primaryCta.href}
+                        className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
+                      >
+                        {slide.primaryCta.label}
+                      </Link>
 
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <ActiveIcon className="h-7 w-7 text-white" />
+                      <Link
+                        href={slide.secondaryCta.href}
+                        className="rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+                      >
+                        {slide.secondaryCta.label}
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex min-h-[280px] flex-col justify-between rounded-3xl border border-white/10 bg-black/30 p-6 backdrop-blur-sm md:min-h-[320px]">
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs text-white/70">
+                          Visión de plataforma
+                        </span>
+
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                          <SlideIcon className="h-7 w-7 text-white" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <p className="mb-1 text-sm text-white/60">Hoy</p>
+                          <p className="text-sm text-white/85">
+                            Adopciones responsables con publicaciones activas y
+                            gestión de solicitudes.
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-white/10 bg-black/25 p-4">
+                          <p className="mb-1 text-sm text-white/60">
+                            Próximamente
+                          </p>
+                          <p className="text-sm text-white/85">
+                            Gestión de mascotas, seguimiento de cuidados y nuevas
+                            oportunidades para servicios vinculados al bienestar
+                            animal.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-sm text-white/60">Hoy</p>
-                  <p className="text-sm text-white/85">
-                    Adopciones responsables con publicaciones activas y gestión
-                    de solicitudes.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="mb-1 text-sm text-white/60">Próximamente</p>
-                  <p className="text-sm text-white/85">
-                    Gestión de mascotas, seguimiento de cuidados y nuevas
-                    oportunidades para servicios vinculados al bienestar animal.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-4 md:px-8">
