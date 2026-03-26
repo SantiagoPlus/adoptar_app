@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { HomeNavbar } from "@/components/home/navbar";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ValuePillars } from "@/components/home/value-pillars";
-import { AnimalsList } from "@/components/home/animals-list";
+import { AnimalsPreview } from "@/components/home/animals-preview";
 import { AnimalsSkeleton } from "@/components/home/animals-skeleton";
 
 function NavbarSkeleton() {
@@ -30,18 +30,9 @@ export default function Home() {
         <HeroCarousel />
         <ValuePillars />
 
-        <section id="animales">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <p className="mb-1 text-sm text-white/60">Listado actual</p>
-              <h2 className="text-2xl font-semibold">Animales disponibles</h2>
-            </div>
-          </div>
-
-          <Suspense fallback={<AnimalsSkeleton />}>
-            <AnimalsList />
-          </Suspense>
-        </section>
+        <Suspense fallback={<AnimalsSkeleton />}>
+          <AnimalsPreview />
+        </Suspense>
       </section>
     </main>
   );
