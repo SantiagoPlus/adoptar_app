@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 type FotoAnimal = {
@@ -21,18 +22,27 @@ type AnimalPreview = {
   fotos_animales: FotoAnimal[];
 };
 
+function AnimalChip({ label }: { label: string }) {
+  return (
+    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+      {label}
+    </span>
+  );
+}
+
 function AnimalCard({ animal }: { animal: AnimalPreview }) {
   const fotoPrincipal =
     animal.fotos_animales?.find((foto) => foto.es_principal) ??
     animal.fotos_animales?.[0] ??
     null;
 
+  const chips = [animal.sexo, animal.tamano].filter(Boolean).slice(0, 2) as string[];
+
   return (
-    <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03]">
-      <Link href={`/animales/${animal.id_animal}`} className="block">
-        <div className="relative h-56 w-full overflow-hidden bg-white/5">
+    <Link href={`/animales/${animal.id_animal}`} className="block">
+      <article className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] transition hover:border-white/20 hover:bg-white/[0.05]">
+        <div className="relative h-40 w-full overflow-hidden bg-white/5">
           {fotoPrincipal ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={fotoPrincipal.url_foto}
               alt={animal.nombre}
@@ -45,50 +55,31 @@ function AnimalCard({ animal }: { animal: AnimalPreview }) {
           )}
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="space-y-3 p-4">
           <div>
             <p className="mb-1 text-xs uppercase tracking-wide text-white/45">
               {animal.especie ?? "Mascota"}
+              {animal.raza ? ` · ${animal.raza}` : ""}
             </p>
-            <h3 className="text-xl font-semibold text-white">{animal.nombre}</h3>
-            <p className="mt-1 text-sm text-white/60">
-              {[animal.raza, animal.ciudad].filter(Boolean).join(" · ") ||
-                "Información básica disponible"}
+
+            <h3 className="text-lg font-semibold text-white">{animal.nombre}</h3>
+
+            <p className="mt-1 flex items-center gap-2 text-sm text-white/60">
+              <MapPin className="h-4 w-4" />
+              {animal.ciudad ?? "Ubicación no informada"}
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {animal.sexo && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-                {animal.sexo}
-              </span>
-            )}
-
-            {animal.tamano && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-                {animal.tamano}
-              </span>
-            )}
-
-            {animal.edad_aproximada && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
-                {animal.edad_aproximada}
-              </span>
-            )}
-          </div>
-
-          <p className="line-clamp-3 text-sm leading-6 text-white/70">
-            {animal.descripcion || "Conocé más sobre esta publicación."}
-          </p>
-
-          <div className="pt-1">
-            <span className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10">
-              Ver publicación
-            </span>
-          </div>
+          {chips.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {chips.map((chip) => (
+                <AnimalChip key={chip} label={chip} />
+              ))}
+            </div>
+          )}
         </div>
-      </Link>
-    </article>
+      </article>
+    </Link>
   );
 }
 
@@ -124,7 +115,7 @@ export async function AnimalsPreview() {
 
   if (error) {
     return (
-      <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-6 text-red-200">
+      <div className="mb-12 rounded-3xl border border-red-500/20 bg-red-500/10 p-6 text-red-200">
         No se pudieron cargar los animales disponibles en este momento.
       </div>
     );
@@ -132,16 +123,18 @@ export async function AnimalsPreview() {
 
   if (animales.length === 0) {
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center">
-        <p className="text-white/75">
-          Todavía no hay animales disponibles para mostrar.
-        </p>
-      </div>
+      <section id="animales" className="mb-12">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center">
+          <p className="text-white/75">
+            Todavía no hay animales disponibles para mostrar.
+          </p>
+        </div>
+      </section>
     );
   }
 
   return (
-    <section id="animales" className="mb-14">
+    <section id="animales" className="mb-12">
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
           <p className="mb-2 text-sm text-white/60">Adopciones activas</p>
@@ -150,7 +143,7 @@ export async function AnimalsPreview() {
           </h2>
           <p className="text-base leading-7 text-white/70 md:text-lg">
             Conocé algunas de las publicaciones más recientes dentro de la
-            plataforma y explorá nuevas oportunidades de adopción.
+            plataforma.
           </p>
         </div>
 
@@ -162,7 +155,7 @@ export async function AnimalsPreview() {
         </Link>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {animales.map((animal) => (
           <AnimalCard key={animal.id_animal} animal={animal} />
         ))}
