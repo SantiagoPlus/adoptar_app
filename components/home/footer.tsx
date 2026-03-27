@@ -24,6 +24,11 @@ export function HomeFooter() {
               <li>Adopción</li>
               <li>Gestión de mascotas</li>
               <li>Servicios para mascotas</li>
+              <li>
+                <Link href="/vision" className="transition hover:text-white">
+                  Visión Adopta App
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -55,16 +60,8 @@ export function HomeFooter() {
               Para profesionales
             </h4>
             <ul className="space-y-3 text-sm text-white/65">
-              <li>
-                <Link href="#prestadores" className="transition hover:text-white">
-                  Ofrecer servicios
-                </Link>
-              </li>
-              <li>
-                <Link href="#vision" className="transition hover:text-white">
-                  Sumarse a la plataforma
-                </Link>
-              </li>
+              <li>Ofrecer servicios</li>
+              <li>Sumarse a la plataforma</li>
               <li>Contacto</li>
             </ul>
           </div>
