@@ -6,13 +6,37 @@ export function VisionHero() {
     <section className="mb-14">
       <div className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1800&q=80"
-            alt="Veterinaria con mascota en consulta"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/65" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/70 to-black/45" />
+          <div className="grid h-full w-full grid-cols-1 md:grid-cols-3">
+            <div className="relative h-[220px] md:h-full">
+              <img
+                src="https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=1200&q=80"
+                alt="Persona usando el celular en casa con su perro"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/55" />
+            </div>
+
+            <div className="relative hidden md:block">
+              <img
+                src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?auto=format&fit=crop&w=1200&q=80"
+                alt="Veterinaria atendiendo a un perro"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/60" />
+            </div>
+
+            <div className="relative hidden md:block">
+              <img
+                src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=1200&q=80"
+                alt="Persona paseando a su perro en un parque"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/55" />
+            </div>
+          </div>
+
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/68 to-black/52" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-24 lg:py-28">
