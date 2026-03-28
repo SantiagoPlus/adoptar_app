@@ -9,12 +9,14 @@ import { SupportDevelopment } from "@/components/vision/support-development";
 
 function NavbarSkeleton() {
   return (
-    <nav className="border-b border-white/10">
+    <nav className="border-b border-black/10 bg-white">
       <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-6">
-        <div className="text-xl font-semibold tracking-tight">Adopta App</div>
+        <div className="text-xl font-semibold tracking-tight text-black">
+          Adopta App
+        </div>
         <div className="flex items-center gap-3">
-          <div className="h-10 w-24 animate-pulse rounded-xl bg-white/10" />
-          <div className="h-11 w-11 animate-pulse rounded-full bg-white/10" />
+          <div className="h-10 w-24 animate-pulse rounded-xl bg-black/10" />
+          <div className="h-11 w-11 animate-pulse rounded-full bg-black/10" />
         </div>
       </div>
     </nav>
@@ -23,7 +25,7 @@ function NavbarSkeleton() {
 
 export default function VisionPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-white text-black">
       <Suspense fallback={<NavbarSkeleton />}>
         <HomeNavbar />
       </Suspense>
