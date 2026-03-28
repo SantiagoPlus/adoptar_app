@@ -41,29 +41,31 @@ export function VisionHero() {
               oportunidades alrededor del bienestar animal.
             </p>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {heroHighlights.map((item) => {
-                const Icon = item.icon;
+            <div className="mt-10 flex justify-end">
+              <div className="grid grid-cols-3 gap-3">
+                {heroHighlights.map((item) => {
+                  const Icon = item.icon;
 
-                return (
-                  <div
-                    key={item.title}
-                    className="aspect-square rounded-3xl border border-black/10 bg-white/70 p-5 backdrop-blur-sm"
-                  >
-                    <div className="flex h-full flex-col">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
-                        <Icon className="h-5 w-5 text-black" />
-                      </div>
+                  return (
+                    <div
+                      key={item.title}
+                      className="aspect-square w-[120px] rounded-3xl border border-black/10 bg-white/70 p-4 backdrop-blur-sm md:w-[130px]"
+                    >
+                      <div className="flex h-full flex-col">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                          <Icon className="h-4.5 w-4.5 text-black" />
+                        </div>
 
-                      <div className="mt-auto">
-                        <p className="text-left text-lg font-semibold leading-tight text-black">
-                          {item.title}
-                        </p>
+                        <div className="mt-auto">
+                          <p className="text-left text-sm font-semibold leading-tight text-black md:text-[15px]">
+                            {item.title}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
