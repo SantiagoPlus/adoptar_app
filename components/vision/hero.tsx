@@ -15,21 +15,13 @@ export function VisionHero() {
             </div>
 
             <h1 className="mb-5 text-4xl font-bold leading-tight md:text-5xl">
-              Una plataforma pensada para mejorar la adopción, el cuidado y las
-              oportunidades alrededor de las mascotas
+              Una plataforma para la vida de las mascotas
             </h1>
 
-            <p className="mb-4 max-w-3xl text-base leading-7 text-white/80 md:text-lg">
+            <p className="max-w-3xl text-base leading-7 text-white/80 md:text-lg">
               Adopta App es una plataforma pensada para conectar adopciones
               responsables, acompañar el cuidado de las mascotas y abrir nuevas
               oportunidades alrededor del bienestar animal.
-            </p>
-
-            <p className="max-w-3xl text-base leading-7 text-white/65 md:text-lg">
-              Hoy el proyecto ya cuenta con una base funcional para
-              publicaciones y procesos de adopción, y evoluciona hacia un
-              ecosistema más amplio que integre gestión de mascotas, servicios y
-              nuevas formas de acompañar a la comunidad.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
