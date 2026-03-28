@@ -1,5 +1,20 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Heart, ShieldPlus, Stethoscope } from "lucide-react";
+
+const heroHighlights = [
+  {
+    title: "Adoptá",
+    icon: Heart,
+  },
+  {
+    title: "Gestioná tus mascotas",
+    icon: ShieldPlus,
+  },
+  {
+    title: "Conectá servicios",
+    icon: Stethoscope,
+  },
+];
 
 export function VisionHero() {
   return (
@@ -11,7 +26,7 @@ export function VisionHero() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-6 py-20 md:px-8 md:py-24 lg:py-28">
-          <div className="max-w-4xl">
+          <div className="max-w-5xl">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1.5 text-sm text-black/65">
               <Sparkles className="h-4 w-4" />
               Visión Adopta App
@@ -21,13 +36,13 @@ export function VisionHero() {
               Una plataforma para la vida de las mascotas
             </h1>
 
-            <p className="max-w-3xl text-base leading-7 text-black/75 md:text-lg lg:text-xl">
+            <p className="mx-auto max-w-3xl text-center text-base leading-7 text-black/75 md:text-lg lg:text-xl">
               Adopta App es una plataforma pensada para conectar adopciones
               responsables, acompañar el cuidado de las mascotas y abrir nuevas
               oportunidades alrededor del bienestar animal.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/animales"
                 className="rounded-xl bg-black px-5 py-3 font-medium text-white transition hover:opacity-90"
@@ -41,6 +56,27 @@ export function VisionHero() {
               >
                 Ver evolución de la plataforma
               </Link>
+            </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {heroHighlights.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-black/10 bg-white/65 px-4 py-4 backdrop-blur-sm"
+                  >
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                      <Icon className="h-4.5 w-4.5 text-black" />
+                    </div>
+
+                    <p className="text-sm font-semibold text-black md:text-base">
+                      {item.title}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
