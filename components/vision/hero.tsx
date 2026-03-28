@@ -48,16 +48,18 @@ export function VisionHero() {
                 return (
                   <div
                     key={item.title}
-                    className="flex min-h-[144px] flex-col justify-between rounded-3xl border border-black/10 bg-white/70 p-5 backdrop-blur-sm"
+                    className="aspect-square rounded-3xl border border-black/10 bg-white/70 p-5 backdrop-blur-sm"
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
-                      <Icon className="h-5 w-5 text-black" />
-                    </div>
+                    <div className="flex h-full flex-col">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                        <Icon className="h-5 w-5 text-black" />
+                      </div>
 
-                    <div className="mt-6">
-                      <p className="text-left text-lg font-semibold leading-tight text-black">
-                        {item.title}
-                      </p>
+                      <div className="mt-auto">
+                        <p className="text-left text-lg font-semibold leading-tight text-black">
+                          {item.title}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 );
