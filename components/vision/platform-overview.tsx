@@ -31,19 +31,19 @@ export function PlatformOverview() {
   return (
     <section className="mb-14">
       <div className="mb-8 max-w-4xl">
-        <p className="mb-2 text-sm text-white/60">
-          Origen y estado actual
-        </p>
-        <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">
+        <p className="mb-2 text-sm text-black/55">Origen y estado actual</p>
+        <h2 className="mb-4 text-3xl font-semibold tracking-tight text-black md:text-4xl">
           Por qué nace y qué construye hoy
         </h2>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
-          <h3 className="mb-4 text-2xl font-semibold">Por qué nace Adopta App</h3>
+        <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 md:p-7">
+          <h3 className="mb-4 text-2xl font-semibold text-black">
+            Por qué nace Adopta App
+          </h3>
 
-          <div className="space-y-4 text-base leading-7 text-white/70">
+          <div className="space-y-4 text-base leading-7 text-black/70">
             <p>
               La experiencia alrededor de una mascota suele resolverse en
               espacios fragmentados. La adopción, el seguimiento de su cuidado y
@@ -61,8 +61,8 @@ export function PlatformOverview() {
           </div>
         </article>
 
-        <article className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
-          <h3 className="mb-4 text-2xl font-semibold">
+        <article className="rounded-3xl border border-black/10 bg-black/[0.02] p-6 md:p-7">
+          <h3 className="mb-4 text-2xl font-semibold text-black">
             Qué permite hoy la plataforma
           </h3>
 
@@ -73,14 +73,16 @@ export function PlatformOverview() {
               return (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-white/10 bg-black/20 p-4"
+                  className="rounded-2xl border border-black/10 bg-white p-4"
                 >
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                    <Icon className="h-4.5 w-4.5 text-white" />
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                    <Icon className="h-[18px] w-[18px] text-black" />
                   </div>
 
-                  <h4 className="mb-2 text-base font-semibold">{item.title}</h4>
-                  <p className="text-sm leading-6 text-white/65">
+                  <h4 className="mb-2 text-base font-semibold text-black">
+                    {item.title}
+                  </h4>
+                  <p className="text-sm leading-6 text-black/65">
                     {item.description}
                   </p>
                 </div>
@@ -88,7 +90,7 @@ export function PlatformOverview() {
             })}
           </div>
 
-          <p className="mt-5 text-sm leading-6 text-white/55">
+          <p className="mt-5 text-sm leading-6 text-black/50">
             La versión actual del proyecto busca consolidar una base operativa
             real antes de abrir nuevos módulos de negocio y nuevas experiencias
             dentro del ecosistema.
