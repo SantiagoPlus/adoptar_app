@@ -42,38 +42,34 @@ export function VisionHero() {
               oportunidades alrededor del bienestar animal.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-stretch gap-3">
               <Link
                 href="/animales"
-                className="rounded-xl bg-black px-5 py-3 font-medium text-white transition hover:opacity-90"
+                className="inline-flex h-[72px] items-center rounded-2xl bg-black px-6 font-medium text-white transition hover:opacity-90"
               >
                 Explorar adopciones
               </Link>
 
               <Link
                 href="#evolucion"
-                className="rounded-xl border border-black/15 bg-black/[0.03] px-5 py-3 font-medium text-black transition hover:bg-black/[0.06]"
+                className="inline-flex h-[72px] items-center rounded-2xl border border-black/15 bg-black/[0.03] px-6 font-medium text-black transition hover:bg-black/[0.06]"
               >
                 Ver evolución de la plataforma
               </Link>
-            </div>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {heroHighlights.map((item) => {
                 const Icon = item.icon;
 
                 return (
                   <div
                     key={item.title}
-                    className="rounded-2xl border border-black/10 bg-white/65 px-4 py-4 backdrop-blur-sm"
+                    className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-black/10 bg-white/65 text-center backdrop-blur-sm"
+                    title={item.title}
                   >
-                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
-                      <Icon className="h-4.5 w-4.5 text-black" />
-                    </div>
-
-                    <p className="text-sm font-semibold text-black md:text-base">
+                    <Icon className="mb-1.5 h-4.5 w-4.5 text-black" />
+                    <span className="px-1 text-[10px] font-semibold leading-3 text-black">
                       {item.title}
-                    </p>
+                    </span>
                   </div>
                 );
               })}
