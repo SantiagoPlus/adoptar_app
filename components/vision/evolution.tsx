@@ -43,13 +43,11 @@ export function PlatformEvolution() {
   return (
     <section id="evolucion" className="mb-14">
       <div className="mb-8 max-w-4xl">
-        <p className="mb-2 text-sm text-white/60">
-          Evolución de la plataforma
-        </p>
-        <h2 className="mb-4 text-3xl font-semibold tracking-tight md:text-4xl">
+        <p className="mb-2 text-sm text-black/55">Evolución de la plataforma</p>
+        <h2 className="mb-4 text-3xl font-semibold tracking-tight text-black md:text-4xl">
           Hacia dónde evoluciona Adopta App
         </h2>
-        <p className="text-base leading-7 text-white/70 md:text-lg">
+        <p className="text-base leading-7 text-black/70 md:text-lg">
           La adopción es la puerta de entrada, pero no el límite del proyecto.
           El desarrollo apunta a construir un ecosistema más amplio para
           acompañar distintas etapas de la vida con mascotas.
@@ -63,26 +61,28 @@ export function PlatformEvolution() {
           return (
             <article
               key={item.title}
-              className="rounded-3xl border border-white/10 bg-white/[0.03] p-6"
+              className="rounded-3xl border border-black/10 bg-black/[0.02] p-6"
             >
               <div className="mb-5 flex items-start justify-between gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                  <Icon className="h-5 w-5 text-white" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                  <Icon className="h-5 w-5 text-black" />
                 </div>
 
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70">
+                <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs text-black/60">
                   <Clock3 className="h-3.5 w-3.5" />
                   {item.badge}
                 </span>
               </div>
 
-              <h3 className="mb-3 text-xl font-semibold">{item.title}</h3>
+              <h3 className="mb-3 text-xl font-semibold text-black">
+                {item.title}
+              </h3>
 
-              <p className="mb-3 text-sm leading-6 text-white/75 md:text-base md:leading-7">
+              <p className="mb-3 text-sm leading-6 text-black/75 md:text-base md:leading-7">
                 {item.description}
               </p>
 
-              <p className="text-sm leading-6 text-white/55 md:text-base md:leading-7">
+              <p className="text-sm leading-6 text-black/55 md:text-base md:leading-7">
                 {item.detail}
               </p>
             </article>
