@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Sparkles, Heart, ShieldPlus, Stethoscope } from "lucide-react";
 
 const heroHighlights = [
@@ -42,34 +41,24 @@ export function VisionHero() {
               oportunidades alrededor del bienestar animal.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-stretch gap-3">
-              <Link
-                href="/animales"
-                className="inline-flex h-[72px] items-center rounded-2xl bg-black px-6 font-medium text-white transition hover:opacity-90"
-              >
-                Explorar adopciones
-              </Link>
-
-              <Link
-                href="#evolucion"
-                className="inline-flex h-[72px] items-center rounded-2xl border border-black/15 bg-black/[0.03] px-6 font-medium text-black transition hover:bg-black/[0.06]"
-              >
-                Ver evolución de la plataforma
-              </Link>
-
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
               {heroHighlights.map((item) => {
                 const Icon = item.icon;
 
                 return (
                   <div
                     key={item.title}
-                    className="flex h-[72px] w-[72px] shrink-0 flex-col items-center justify-center rounded-2xl border border-black/10 bg-white/65 text-center backdrop-blur-sm"
-                    title={item.title}
+                    className="flex min-h-[144px] flex-col justify-between rounded-3xl border border-black/10 bg-white/70 p-5 backdrop-blur-sm"
                   >
-                    <Icon className="mb-1.5 h-4.5 w-4.5 text-black" />
-                    <span className="px-1 text-[10px] font-semibold leading-3 text-black">
-                      {item.title}
-                    </span>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/10 bg-black/[0.03]">
+                      <Icon className="h-5 w-5 text-black" />
+                    </div>
+
+                    <div className="mt-6">
+                      <p className="text-left text-lg font-semibold leading-tight text-black">
+                        {item.title}
+                      </p>
+                    </div>
                   </div>
                 );
               })}
