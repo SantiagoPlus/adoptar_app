@@ -28,8 +28,9 @@ export default function VisionPage() {
         <HomeNavbar />
       </Suspense>
 
-      <section className="mx-auto max-w-6xl px-6 py-12">
-        <VisionHero />
+      <VisionHero />
+
+      <section className="mx-auto max-w-7xl px-6 py-12">
         <PlatformOverview />
         <PlatformEvolution />
         <ProjectStatus />
