@@ -1,50 +1,12 @@
 import Link from "next/link";
-
-type UpdateItem = {
-  slug: string;
-  category: string;
-  title: string;
-  summary: string;
-  date: string;
-  status: "Hecho" | "En progreso" | "Próximo";
-};
-
-const updates: UpdateItem[] = [
-  {
-    slug: "que-es-adopta-app-y-hacia-donde-va",
-    category: "Visión",
-    title: "Qué es Adopta App y hacia dónde va",
-    summary:
-      "Una síntesis del proyecto, su misión y la dirección de producto que estamos construyendo alrededor de la vida con mascotas.",
-    date: "29 Mar 2026",
-    status: "Hecho",
-  },
-  {
-    slug: "estado-actual-del-mvp",
-    category: "Actualización de producto",
-    title: "Estado actual del MVP",
-    summary:
-      "Qué partes del circuito principal ya funcionan, qué quedó consolidado y cuáles son los próximos focos de construcción.",
-    date: "29 Mar 2026",
-    status: "Hecho",
-  },
-  {
-    slug: "que-estamos-construyendo-ahora",
-    category: "Roadmap",
-    title: "Qué estamos construyendo ahora",
-    summary:
-      "Una lectura clara del punto actual del proyecto, los objetivos inmediatos y el orden de ejecución que seguimos para crecer con base sólida.",
-    date: "29 Mar 2026",
-    status: "En progreso",
-  },
-];
+import { updates, type UpdateStatus } from "./data";
 
 function StatusBadge({
   status,
 }: {
-  status: UpdateItem["status"];
+  status: UpdateStatus;
 }) {
-  const classes: Record<UpdateItem["status"], string> = {
+  const classes: Record<UpdateStatus, string> = {
     Hecho: "border-emerald-200 bg-emerald-50 text-emerald-700",
     "En progreso": "border-amber-200 bg-amber-50 text-amber-700",
     Próximo: "border-blue-200 bg-blue-50 text-blue-700",
