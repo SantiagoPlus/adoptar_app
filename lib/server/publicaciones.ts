@@ -67,6 +67,7 @@ export type ResumenSolicitudes = {
 
 export type CrearPublicacionInput = {
   idPublicador: string;
+  idempotencyKey: string;
   nombre: string;
   especie: string;
   raza: string;
@@ -130,8 +131,28 @@ export async function crearPublicacion(input: CrearPublicacionInput) {
     redirect("/publicaciones/nueva?error=especie_invalida");
   }
 
+  if (!input.idempotencyKey) {
+    redirect("/publicaciones/nueva?error=token_publicacion_invalido");
+  }
+
+  const { data: existente, error: existenteError } = await supabase
+    .from("animales_adopcion")
+    .select("id_animal")
+    .eq("id_publicador", input.idPublicador)
+    .eq("idempotency_key", input.idempotencyKey)
+    .maybeSingle();
+
+  if (existenteError) {
+    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
+  }
+
+  if (existente) {
+    return existente;
+  }
+
   const payload = {
     id_publicador: input.idPublicador,
+    idempotency_key: input.idempotencyKey,
     nombre: input.nombre,
     especie: input.especie,
     raza: input.raza || null,
@@ -158,11 +179,24 @@ export async function crearPublicacion(input: CrearPublicacionInput) {
     .select("id_animal")
     .single();
 
-  if (error || !animalCreado) {
-    redirect("/publicaciones/nueva?error=error_creacion_publicacion");
+  if (!error && animalCreado) {
+    return animalCreado;
   }
 
-  return animalCreado;
+  if (error?.code === "23505") {
+    const { data: creadoEnCarrera } = await supabase
+      .from("animales_adopcion")
+      .select("id_animal")
+      .eq("id_publicador", input.idPublicador)
+      .eq("idempotency_key", input.idempotencyKey)
+      .maybeSingle();
+
+    if (creadoEnCarrera) {
+      return creadoEnCarrera;
+    }
+  }
+
+  redirect("/publicaciones/nueva?error=error_creacion_publicacion");
 }
 
 export async function actualizarPublicacionEditable(
