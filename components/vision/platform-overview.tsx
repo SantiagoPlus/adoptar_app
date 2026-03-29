@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function PlatformOverview() {
   return (
     <section className="mb-14">
@@ -27,12 +29,12 @@ export function PlatformOverview() {
           Descubrí cómo estamos construyendo un negocio a largo plazo, impulsado
           por una misión, y por qué creemos que esto es solo el comienzo, en
           nuestra sección de{" "}
-          <a
+          <Link
             href="/actualizaciones"
             className="font-medium text-blue-700 transition hover:text-blue-800"
           >
             roadmap y actualizaciones
-          </a>
+          </Link>
           .
         </p>
       </div>
