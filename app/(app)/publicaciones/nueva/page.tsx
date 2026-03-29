@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUsuario } from "@/lib/server/auth";
 import { crearPublicacion } from "@/lib/server/publicaciones";
+import { SubmitButton } from "./submit-button";
 
 type SearchParams = Promise<{ error?: string }>;
 
@@ -13,6 +14,8 @@ async function crearPublicacionAction(formData: FormData) {
     loginNext: "/publicaciones/nueva",
     notFoundRedirect: "/publicaciones/nueva?error=usuario_no_encontrado",
   });
+
+  const idempotencyKey = String(formData.get("idempotency_key") ?? "").trim();
 
   const nombre = String(formData.get("nombre") ?? "").trim();
   const especie = String(formData.get("especie") ?? "").trim();
@@ -34,6 +37,7 @@ async function crearPublicacionAction(formData: FormData) {
 
   const animalCreado = await crearPublicacion({
     idPublicador: usuario.id_usuario,
+    idempotencyKey,
     nombre,
     especie,
     raza,
@@ -52,7 +56,9 @@ async function crearPublicacionAction(formData: FormData) {
     aptoPerros,
   });
 
-  redirect(`/publicaciones/${animalCreado.id_animal}/editar?ok=continuar_con_imagenes`);
+  redirect(
+    `/publicaciones/${animalCreado.id_animal}/editar?ok=continuar_con_imagenes`,
+  );
 }
 
 function Campo({
@@ -131,6 +137,8 @@ function FeedbackBanner({ error }: { error?: string }) {
     usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
     campos_obligatorios: "Completá al menos nombre y especie.",
     especie_invalida: "La especie debe ser perro o gato.",
+    token_publicacion_invalido:
+      "No se pudo validar el envío. Probá nuevamente.",
     error_creacion_publicacion:
       "Ocurrió un error al crear la publicación.",
   };
@@ -328,12 +336,7 @@ async function NuevaPublicacionContent({
         </section>
 
         <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90"
-          >
-            Crear publicación
-          </button>
+          <SubmitButton />
 
           <Link
             href="/publicaciones"
