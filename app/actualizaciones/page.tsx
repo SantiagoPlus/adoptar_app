@@ -51,6 +51,66 @@ export default function ActualizacionesPage() {
           </p>
         </header>
 
+        <section className="mb-14 grid gap-5 md:grid-cols-3">
+          <article className="rounded-3xl border border-black/10 bg-black/[0.03] p-6">
+            <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
+              Visión
+            </p>
+            <h2 className="text-xl font-semibold text-black">
+              Hacia dónde apunta el proyecto
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-black/70">
+              La visión explica por qué existe Adopta App, qué oportunidad
+              detecta y cuál es la dirección general del producto.
+            </p>
+            <div className="mt-5">
+              <Link
+                href="/vision"
+                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
+              >
+                Ir a visión →
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-black/10 bg-black text-white p-6">
+            <p className="mb-2 text-sm uppercase tracking-[0.18em] text-white/45">
+              Actualizaciones
+            </p>
+            <h2 className="text-xl font-semibold">
+              Qué ya hicimos y qué estamos cerrando
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-white/75">
+              Las actualizaciones muestran avances concretos del producto,
+              decisiones importantes y hitos que ya forman parte del recorrido
+              del proyecto.
+            </p>
+            <div className="mt-5">
+              <span className="text-sm font-medium text-white/90">
+                Estás acá
+              </span>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-black/10 bg-black/[0.03] p-6">
+            <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
+              Roadmap
+            </p>
+            <h2 className="text-xl font-semibold text-black">
+              En qué estamos y qué sigue
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-black/70">
+              El roadmap marca focos de trabajo y próximos pasos. Más adelante
+              va a tener su propia vista separada dentro de esta sección.
+            </p>
+            <div className="mt-5">
+              <span className="text-sm font-medium text-black/50">
+                Próximamente
+              </span>
+            </div>
+          </article>
+        </section>
+
         <section className="mb-14 grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
           <div className="rounded-3xl border border-black/10 bg-black px-7 py-8 text-white md:px-9 md:py-10">
             <p className="mb-3 text-sm uppercase tracking-[0.18em] text-white/50">
