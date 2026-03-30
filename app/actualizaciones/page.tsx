@@ -80,18 +80,16 @@ function SectionCard({
   linkLabel: string;
 }) {
   return (
-    <article className="flex min-h-[170px] flex-col rounded-3xl border border-black/10 bg-white px-6 py-3">
-      <div className="mb-2 flex justify-end">
-        <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs uppercase tracking-[0.12em] text-black/55">
+    <article className="flex min-h-[150px] flex-col rounded-3xl border border-black/10 bg-white px-6 py-4">
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <h2 className="text-lg font-semibold text-black md:text-xl">{title}</h2>
+
+        <span className="inline-flex shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs uppercase tracking-[0.12em] text-black/55">
           {badge}
         </span>
       </div>
 
-      <h2 className="text-lg font-semibold text-black md:text-xl">{title}</h2>
-
-      <p className="mt-1 text-sm leading-6 text-black/70 md:text-base">
-        {text}
-      </p>
+      <p className="text-sm leading-6 text-black/70 md:text-base">{text}</p>
 
       <div className="mt-auto pt-3">
         <Link
