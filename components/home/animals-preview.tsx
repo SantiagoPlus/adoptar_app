@@ -78,7 +78,7 @@ export async function AnimalsPreview() {
         <div className="max-w-2xl">
           <p className="mb-2 text-sm text-white/60">Adopciones activas</p>
           <h2 className="mb-3 text-3xl font-semibold tracking-tight md:text-4xl">
-            Animales disponibles
+            Animales en adopción
           </h2>
           <p className="text-base leading-7 text-white/70 md:text-lg">
             Conocé algunas de las publicaciones más recientes dentro de la
