@@ -31,14 +31,14 @@ const slides: Slide[] = [
     eyebrow: "Plataforma de adopción y gestión de mascotas",
     title: "Encontrá un compañero y promové adopciones responsables",
     description:
-      "Explorá animales en adopción, conocé mejor cada caso y conectate con publicadores para concretar adopciones con más información, orden y seguimiento.",
+      "Conocé casos reales, explorá publicaciones individuales y accedé a una experiencia más ordenada para adoptar, publicar y seguir cada proceso.",
     primaryCta: {
-      label: "Ver animales",
-      href: "/animales",
+      label: "Ingresar para explorar",
+      href: "/auth/login?next=/animales",
     },
     secondaryCta: {
-      label: "Comenzar",
-      href: "/auth/login",
+      label: "Ver publicaciones recientes",
+      href: "#animales",
     },
     icon: Heart,
     backgroundImage:
