@@ -12,23 +12,8 @@ export type UpdatePost = {
 
 export const updates: UpdatePost[] = [
   {
-    slug: "que-es-adopta-app-y-hacia-donde-va",
-    category: "Visión",
-    title: "Qué es Adopta App y hacia dónde va",
-    summary:
-      "Adopta App busca construir una base más clara, útil y escalable para la vida con mascotas: una plataforma que integre adopción, gestión cotidiana y futura conexión con servicios del ecosistema animal.",
-    date: "29 Mar 2026",
-    status: "Hecho",
-    content: [
-      "Adopta App no nace solamente como una app para publicar animales en adopción. La adopción es el núcleo visible del MVP, pero la visión del proyecto apunta a algo más amplio: construir un sistema que acompañe distintas etapas de la vida con mascotas dentro de un mismo entorno.",
-      "Hoy muchas actividades vinculadas al mundo animal siguen resolviéndose en espacios separados: adopción, cuidado, seguimiento de la salud, servicios y vínculos con profesionales. La oportunidad que vemos está en integrar esa experiencia, conectando información, personas y herramientas dentro de una plataforma más coherente.",
-      "Por eso, la dirección del producto combina tres capas. La primera es la adopción responsable, que hoy funciona como puerta de entrada. La segunda es la gestión de mascotas, como evolución natural del vínculo después de la adopción. La tercera es la futura conexión con servicios y actores del ecosistema animal, que más adelante podrán ampliar el alcance del proyecto.",
-      "La decisión actual es construir esa visión por etapas, sin abrir todos los frentes al mismo tiempo. Primero consolidamos una base funcional clara, creíble y útil. Después, sobre esa base, iremos incorporando nuevas capas de producto con más orden y sentido estratégico.",
-    ],
-  },
-  {
     slug: "estado-actual-del-mvp",
-    category: "Actualización de producto",
+    category: "Novedades y Actualizaciones",
     title: "Estado actual del MVP",
     summary:
       "El producto ya superó la etapa de maqueta: hoy Adopta App cuenta con un circuito funcional de publicaciones, solicitudes, gestión del publicador y una capa pública más clara para presentar el proyecto.",
@@ -51,7 +36,7 @@ export const updates: UpdatePost[] = [
     status: "En progreso",
     content: [
       "Hoy estamos trabajando sobre una necesidad distinta a la de los primeros bloques técnicos: ya no se trata solo de hacer que el MVP funcione, sino también de mostrar con mayor claridad qué es Adopta App, qué sostiene hoy y hacia dónde evoluciona.",
-      "Por eso, uno de los focos actuales está en la capa pública del proyecto. Venimos ordenando la home, fortaleciendo la página de visión y construyendo esta nueva sección de actualizaciones para separar mejor tres cosas que antes podían quedar mezcladas: la tesis del proyecto, los avances concretos y la dirección futura del roadmap.",
+      "Por eso, uno de los focos actuales está en la capa pública del proyecto. Venimos ordenando la home, fortaleciendo la página de visión y construyendo esta nueva sección de actualizaciones para separar mejor los avances concretos del producto y la dirección futura del roadmap.",
       "Esta etapa también busca dejar una base más útil para futuras audiencias. No solo para usuarios que quieren entender el producto, sino también para colaboradores, aliados o personas interesadas en seguir cómo evoluciona la plataforma y qué capacidad de ejecución ya mostró.",
       "El criterio de trabajo sigue siendo el mismo que venimos sosteniendo en todo el proyecto: cambios por inciso, validación breve, consolidación de cada bloque y recién después apertura del siguiente. Esa lógica es la que nos permite crecer sin perder orden, y también es parte de cómo queremos comunicar Adopta App hacia afuera.",
     ],
