@@ -38,8 +38,11 @@ export function HomeFooter() {
             </h4>
             <ul className="space-y-3 text-sm text-white/65">
               <li>
-                <Link href="/animales" className="transition hover:text-white">
-                  Explorar animales
+                <Link
+                  href="/auth/login?next=/animales"
+                  className="transition hover:text-white"
+                >
+                  Ingresar para explorar animales
                 </Link>
               </li>
               <li>
