@@ -57,8 +57,8 @@ function FilterLink({
       href={href}
       className={
         active
-          ? "rounded-full border border-black/10 bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-          : "rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+          ? "text-base font-medium text-black transition hover:text-black/80 md:text-lg"
+          : "text-base font-medium text-black/45 transition hover:text-black md:text-lg"
       }
     >
       {label}
@@ -69,12 +69,12 @@ function FilterLink({
 function ActualizacionesListSkeleton() {
   return (
     <>
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         {["Quitar filtros", "Novedades y Actualizaciones", "Roadmap"].map(
           (label) => (
             <div
               key={label}
-              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-black/40"
+              className="text-base font-medium text-black/30 md:text-lg"
             >
               {label}
             </div>
@@ -121,7 +121,7 @@ async function ActualizacionesList({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         <FilterLink
           href="/actualizaciones"
           label="Quitar filtros"
