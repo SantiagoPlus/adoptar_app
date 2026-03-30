@@ -45,36 +45,54 @@ export default function ActualizacionesPage() {
             </h1>
 
             <p className="mt-6 max-w-3xl text-base leading-7 text-black/70 md:text-lg">
-              Este espacio reúne avances, hitos y dirección de producto de
-              Adopta App. La idea es mostrar qué estamos construyendo, qué ya
-              quedó consolidado y cómo evoluciona el proyecto a medida que
-              construimos una plataforma para la vida de las mascotas.
+              Un espacio para seguir la evolución de Adopta App a través de
+              publicaciones sobre visión, avances del producto y próximos pasos.
             </p>
-
-            <div className="mt-10 max-w-3xl">
-              <p className="text-base leading-7 text-black/75 md:text-lg">
-                Acá vamos a documentar decisiones importantes, mejoras reales del
-                producto y focos de trabajo que ayuden a entender tanto el
-                presente como la dirección futura del proyecto.
-              </p>
-            </div>
           </header>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="mb-10 max-w-3xl">
+        <div className="mb-8 max-w-3xl">
           <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
             Últimas publicaciones
           </p>
           <h2 className="text-2xl font-semibold md:text-3xl">
             Seguimiento del proyecto
           </h2>
-          <p className="mt-3 text-base leading-7 text-black/70">
-            Una lectura ordenada del avance de Adopta App, con publicaciones que
-            conectan visión, ejecución y próximos pasos.
-          </p>
         </div>
+
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="rounded-full border border-black/10 bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          >
+            Todas
+          </button>
+
+          <button
+            type="button"
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+          >
+            Visión
+          </button>
+
+          <button
+            type="button"
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+          >
+            Actualizaciones
+          </button>
+
+          <button
+            type="button"
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+          >
+            Roadmap
+          </button>
+        </div>
+
+        <div className="mb-10 border-t border-black/10" />
 
         <div className="grid gap-5">
           {updates.map((item) => (
@@ -104,46 +122,12 @@ export default function ActualizacionesPage() {
                   href={`/actualizaciones/${item.slug}`}
                   className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
                 >
-                  Leer actualización →
+                  Leer publicación →
                 </Link>
               </div>
             </article>
           ))}
         </div>
-
-        <section className="mt-14 rounded-3xl border border-black/10 bg-black/[0.03] px-7 py-8 md:px-10 md:py-10">
-          <div className="max-w-3xl">
-            <p className="mb-3 text-sm uppercase tracking-[0.18em] text-black/45">
-              Continuidad
-            </p>
-
-            <h2 className="text-2xl font-semibold text-black md:text-3xl">
-              Una base para seguir mostrando la evolución del producto
-            </h2>
-
-            <p className="mt-4 text-base leading-7 text-black/70">
-              Esta sección va a ayudarnos a comunicar mejor el desarrollo de
-              Adopta App, dejar registro de hitos relevantes y conectar con más
-              claridad la visión del proyecto con su ejecución real.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-4">
-              <Link
-                href="/vision"
-                className="rounded-xl bg-black px-5 py-3 text-sm font-medium text-white transition hover:opacity-90"
-              >
-                Ver visión del proyecto
-              </Link>
-
-              <Link
-                href="/"
-                className="rounded-xl border border-black/10 bg-white px-5 py-3 text-sm font-medium text-black transition hover:bg-black/[0.03]"
-              >
-                Volver al inicio
-              </Link>
-            </div>
-          </div>
-        </section>
       </section>
     </main>
   );
