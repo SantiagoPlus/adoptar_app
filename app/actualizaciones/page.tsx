@@ -80,20 +80,20 @@ function SectionCard({
   linkLabel: string;
 }) {
   return (
-    <article className="rounded-3xl border border-black/10 bg-white px-6 py-4">
-      <div className="mb-3 flex justify-end">
+    <article className="flex min-h-[170px] flex-col rounded-3xl border border-black/10 bg-white px-6 py-3">
+      <div className="mb-2 flex justify-end">
         <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs uppercase tracking-[0.12em] text-black/55">
           {badge}
         </span>
       </div>
 
-      <h2 className="text-xl font-semibold text-black md:text-2xl">{title}</h2>
+      <h2 className="text-lg font-semibold text-black md:text-xl">{title}</h2>
 
-      <p className="mt-2 text-sm leading-7 text-black/70 md:text-base">
+      <p className="mt-1 text-sm leading-6 text-black/70 md:text-base">
         {text}
       </p>
 
-      <div className="mt-3">
+      <div className="mt-auto pt-3">
         <Link
           href={href}
           className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
@@ -263,7 +263,7 @@ export default function ActualizacionesPage({
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
-        <div className="mb-10 grid gap-4 md:grid-cols-2">
+        <div className="mb-8 grid gap-4 md:grid-cols-2">
           <SectionCard
             badge="Vision"
             title="Quiénes somos y a dónde vamos"
@@ -277,7 +277,7 @@ export default function ActualizacionesPage({
             title="Home"
             text="Recorrer la aplicación."
             href="/"
-            linkLabel="Ir a home →"
+            linkLabel="Ir a Home →"
           />
         </div>
 
