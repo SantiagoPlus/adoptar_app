@@ -2,6 +2,18 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
+function isPublicRoute(pathname: string) {
+  if (pathname === "/") return true;
+  if (pathname.startsWith("/auth")) return true;
+
+  // Pública solo la ficha individual del animal: /animales/[id]
+  // Privada la ruta índice /animales
+  const animalDetailPattern = /^\/animales\/[^/]+$/;
+  if (animalDetailPattern.test(pathname)) return true;
+
+  return false;
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -39,12 +51,9 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  const isPublicRoute =
-    request.nextUrl.pathname === "/" ||
-    request.nextUrl.pathname.startsWith("/auth") ||
-    request.nextUrl.pathname.startsWith("/animales");
+  const publicRoute = isPublicRoute(request.nextUrl.pathname);
 
-  if (!user && !isPublicRoute) {
+  if (!user && !publicRoute) {
     const url = request.nextUrl.clone();
     const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
 
