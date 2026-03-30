@@ -224,6 +224,48 @@ export default function ActualizacionesPage({
       </section>
 
       <section className="mx-auto max-w-6xl px-6 py-14">
+        <div className="mb-10 grid gap-4 md:grid-cols-2">
+          <article className="rounded-3xl border border-black/10 bg-white p-6">
+            <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
+              Vision
+            </p>
+            <h2 className="text-xl font-semibold text-black md:text-2xl">
+              Quiénes somos y a dónde vamos
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-black/70 md:text-base">
+              Conocenos y explorá nuestra misión, metas y objetivos.
+            </p>
+            <div className="mt-5">
+              <Link
+                href="/vision"
+                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
+              >
+                Ir a visión →
+              </Link>
+            </div>
+          </article>
+
+          <article className="rounded-3xl border border-black/10 bg-white p-6">
+            <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
+              Home
+            </p>
+            <h2 className="text-xl font-semibold text-black md:text-2xl">
+              Home
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-black/70 md:text-base">
+              Recorrer la aplicación.
+            </p>
+            <div className="mt-5">
+              <Link
+                href="/"
+                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
+              >
+                Ir a home →
+              </Link>
+            </div>
+          </article>
+        </div>
+
         <div className="mb-8 max-w-3xl">
           <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
             Últimas publicaciones
