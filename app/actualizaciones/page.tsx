@@ -66,6 +66,45 @@ function FilterLink({
   );
 }
 
+function SectionCard({
+  badge,
+  title,
+  text,
+  href,
+  linkLabel,
+}: {
+  badge: string;
+  title: string;
+  text: string;
+  href: string;
+  linkLabel: string;
+}) {
+  return (
+    <article className="rounded-3xl border border-black/10 bg-white px-6 py-4">
+      <div className="mb-3 flex justify-end">
+        <span className="inline-flex rounded-full border border-black/10 bg-black/[0.03] px-3 py-1 text-xs uppercase tracking-[0.12em] text-black/55">
+          {badge}
+        </span>
+      </div>
+
+      <h2 className="text-xl font-semibold text-black md:text-2xl">{title}</h2>
+
+      <p className="mt-2 text-sm leading-7 text-black/70 md:text-base">
+        {text}
+      </p>
+
+      <div className="mt-3">
+        <Link
+          href={href}
+          className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
+        >
+          {linkLabel}
+        </Link>
+      </div>
+    </article>
+  );
+}
+
 function ActualizacionesListSkeleton() {
   return (
     <>
@@ -216,7 +255,8 @@ export default function ActualizacionesPage({
 
             <p className="mt-6 max-w-3xl text-base leading-7 text-black/70 md:text-lg">
               Un espacio para seguir la evolución de Adopta App a través de
-              publicaciones sobre avances del producto, novedades y próximas implementaciones.
+              publicaciones sobre avances del producto, novedades y próximos
+              pasos.
             </p>
           </header>
         </div>
@@ -224,45 +264,21 @@ export default function ActualizacionesPage({
 
       <section className="mx-auto max-w-6xl px-6 py-14">
         <div className="mb-10 grid gap-4 md:grid-cols-2">
-          <article className="rounded-3xl border border-black/10 bg-white px-6 py-4">
-            <p className="mb-1 text-sm uppercase tracking-[0.18em] text-black/45">
-              Vision
-            </p>
-            <h2 className="text-xl font-semibold text-black md:text-2xl">
-              Quiénes somos y a dónde vamos
-            </h2>
-            <p className="mt-2 text-sm leading-7 text-black/70 md:text-base">
-              Conocenos y explorá nuestra misión, metas y objetivos.
-            </p>
-            <div className="mt-3">
-              <Link
-                href="/vision"
-                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
-              >
-                Ir a visión →
-              </Link>
-            </div>
-          </article>
+          <SectionCard
+            badge="Vision"
+            title="Quiénes somos y a dónde vamos"
+            text="Conocenos y explorá nuestra misión, metas y objetivos."
+            href="/vision"
+            linkLabel="Ir a visión →"
+          />
 
-          <article className="rounded-3xl border border-black/10 bg-white px-6 py-4">
-            <p className="mb-1 text-sm uppercase tracking-[0.18em] text-black/45">
-              Home
-            </p>
-            <h2 className="text-xl font-semibold text-black md:text-2xl">
-              Home
-            </h2>
-            <p className="mt-2 text-sm leading-7 text-black/70 md:text-base">
-              Recorrer la aplicación.
-            </p>
-            <div className="mt-3">
-              <Link
-                href="/"
-                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
-              >
-                Ir a home →
-              </Link>
-            </div>
-          </article>
+          <SectionCard
+            badge="Home"
+            title="Home"
+            text="Recorrer la aplicación."
+            href="/"
+            linkLabel="Ir a home →"
+          />
         </div>
 
         <div className="mb-8 max-w-3xl">
