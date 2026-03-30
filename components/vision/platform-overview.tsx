@@ -19,7 +19,7 @@ export function PlatformOverview() {
         </p>
 
         <p className="mt-5 text-base leading-7 text-black/70 md:text-lg">
-          Buscamos aportar una base más clara, útil y escalable para la vida
+          Buscamos aportar una base clara y centralizada para la vida
           con mascotas: un sistema que acompañe desde la adopción responsable
           hasta el cuidado cotidiano y la futura integración con profesionales
           y servicios.
@@ -27,7 +27,7 @@ export function PlatformOverview() {
 
         <p className="mt-5 text-base leading-7 text-black/70 md:text-lg">
           Descubrí cómo estamos construyendo un negocio a largo plazo, impulsado
-          por una misión, y por qué creemos que esto es solo el comienzo, en
+          por una misión, y por qué creemos que esto es solo el comienzo en
           nuestra sección de{" "}
           <Link
             href="/actualizaciones"
