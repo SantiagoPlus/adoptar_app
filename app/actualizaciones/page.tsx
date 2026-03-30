@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { updates, type UpdateStatus } from "./data";
 
+type CategoryFilter = "todas" | "vision" | "actualizacion" | "roadmap";
+
 function StatusBadge({
   status,
 }: {
@@ -21,7 +23,59 @@ function StatusBadge({
   );
 }
 
-export default function ActualizacionesPage() {
+function normalizeCategory(category: string): Exclude<CategoryFilter, "todas"> | null {
+  const normalized = category.trim().toLowerCase();
+
+  if (normalized === "visión" || normalized === "vision") return "vision";
+  if (normalized === "actualización de producto" || normalized === "actualizaciones")
+    return "actualizacion";
+  if (normalized === "roadmap") return "roadmap";
+
+  return null;
+}
+
+function FilterLink({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={
+        active
+          ? "rounded-full border border-black/10 bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          : "rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
+      }
+    >
+      {label}
+    </Link>
+  );
+}
+
+export default async function ActualizacionesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoria?: string }>;
+}) {
+  const { categoria } = await searchParams;
+
+  const activeCategory: CategoryFilter =
+    categoria === "vision" ||
+    categoria === "actualizacion" ||
+    categoria === "roadmap"
+      ? categoria
+      : "todas";
+
+  const filteredUpdates =
+    activeCategory === "todas"
+      ? updates
+      : updates.filter((item) => normalizeCategory(item.category) === activeCategory);
+
   return (
     <main className="min-h-screen bg-white text-black">
       <section className="bg-black/[0.04]">
@@ -63,39 +117,32 @@ export default function ActualizacionesPage() {
         </div>
 
         <div className="mb-6 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="rounded-full border border-black/10 bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-          >
-            Todas
-          </button>
-
-          <button
-            type="button"
-            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
-          >
-            Visión
-          </button>
-
-          <button
-            type="button"
-            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
-          >
-            Actualizaciones
-          </button>
-
-          <button
-            type="button"
-            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-black/70 transition hover:bg-black/[0.04] hover:text-black"
-          >
-            Roadmap
-          </button>
+          <FilterLink
+            href="/actualizaciones"
+            label="Todas"
+            active={activeCategory === "todas"}
+          />
+          <FilterLink
+            href="/actualizaciones?categoria=vision"
+            label="Visión"
+            active={activeCategory === "vision"}
+          />
+          <FilterLink
+            href="/actualizaciones?categoria=actualizacion"
+            label="Actualizaciones"
+            active={activeCategory === "actualizacion"}
+          />
+          <FilterLink
+            href="/actualizaciones?categoria=roadmap"
+            label="Roadmap"
+            active={activeCategory === "roadmap"}
+          />
         </div>
 
         <div className="mb-10 border-t border-black/10" />
 
         <div className="grid gap-5">
-          {updates.map((item) => (
+          {filteredUpdates.map((item) => (
             <article
               key={item.slug}
               className="rounded-3xl border border-black/10 bg-white p-6 transition hover:border-black/20 hover:bg-black/[0.02] md:p-7"
@@ -128,6 +175,12 @@ export default function ActualizacionesPage() {
             </article>
           ))}
         </div>
+
+        {filteredUpdates.length === 0 ? (
+          <div className="rounded-3xl border border-black/10 bg-black/[0.03] px-6 py-8 text-black/70">
+            No hay publicaciones para esta categoría todavía.
+          </div>
+        ) : null}
       </section>
     </main>
   );
