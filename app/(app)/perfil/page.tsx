@@ -24,26 +24,37 @@ function Card({
       className={[
         "rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]",
         isCompact
-          ? "flex h-full min-h-[190px] flex-col justify-between p-5"
+          ? "flex h-full min-h-[150px] flex-col justify-between p-4"
           : "p-5",
       ].join(" ")}
     >
       <div>
-        <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
+        <p className="mb-1 text-[11px] uppercase tracking-wide text-white/50">
           {eyebrow}
         </p>
-        <h3 className="mb-2 text-lg font-semibold text-white">{title}</h3>
+        <h3
+          className={[
+            "font-semibold text-white",
+            isCompact ? "mb-1 text-base" : "mb-2 text-lg",
+          ].join(" ")}
+        >
+          {title}
+        </h3>
         <p
           className={[
             "text-sm text-white/70",
-            isCompact ? "line-clamp-2 leading-6" : "leading-6",
+            isCompact ? "line-clamp-2 leading-5" : "leading-6",
           ].join(" ")}
         >
           {description}
         </p>
       </div>
 
-      {cta ? <p className="mt-4 text-sm text-white/60">{cta}</p> : null}
+      {cta ? (
+        <p className={isCompact ? "mt-3 text-sm text-white/60" : "mt-4 text-sm text-white/60"}>
+          {cta}
+        </p>
+      ) : null}
     </div>
   );
 
