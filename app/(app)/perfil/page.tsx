@@ -35,7 +35,7 @@ function Card({
         <h3
           className={[
             "font-semibold text-white",
-            isCompact ? "mb-1 text-base" : "mb-2 text-lg",
+            isCompact ? "mb-1 text-lg" : "mb-2 text-lg",
           ].join(" ")}
         >
           {title}
