@@ -8,20 +8,41 @@ function Card({
   description,
   href,
   cta,
+  variant = "default",
 }: {
   eyebrow: string;
   title: string;
   description: string;
   href?: string;
   cta?: string;
+  variant?: "default" | "compact";
 }) {
+  const isCompact = variant === "compact";
+
   const content = (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 transition hover:border-white/20 hover:bg-white/[0.07]">
-      <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
-        {eyebrow}
-      </p>
-      <h3 className="mb-2 text-lg font-semibold text-white">{title}</h3>
-      <p className="text-sm leading-6 text-white/70">{description}</p>
+    <div
+      className={[
+        "rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]",
+        isCompact
+          ? "flex h-full min-h-[190px] flex-col justify-between p-5"
+          : "p-5",
+      ].join(" ")}
+    >
+      <div>
+        <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
+          {eyebrow}
+        </p>
+        <h3 className="mb-2 text-lg font-semibold text-white">{title}</h3>
+        <p
+          className={[
+            "text-sm text-white/70",
+            isCompact ? "line-clamp-2 leading-6" : "leading-6",
+          ].join(" ")}
+        >
+          {description}
+        </p>
+      </div>
+
       {cta ? <p className="mt-4 text-sm text-white/60">{cta}</p> : null}
     </div>
   );
@@ -29,7 +50,7 @@ function Card({
   if (!href) return content;
 
   return (
-    <Link href={href} className="block">
+    <Link href={href} className="block h-full">
       {content}
     </Link>
   );
@@ -147,13 +168,14 @@ export default function PerfilPage() {
             <div className="h-px w-full bg-white/10" />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-4">
             <Card
               href="/"
               eyebrow="Explorar"
               title="Buscar animal"
               description="Volvé al listado general para explorar animales disponibles."
               cta="Abrir"
+              variant="compact"
             />
 
             <Card
@@ -162,6 +184,7 @@ export default function PerfilPage() {
               title="Nueva publicación"
               description="Creá una nueva publicación de adopción para uno de tus animales."
               cta="Abrir"
+              variant="compact"
             />
 
             <Card
@@ -170,6 +193,7 @@ export default function PerfilPage() {
               title="Mis solicitudes"
               description="Revisá las solicitudes que realizaste y el estado actual de cada una."
               cta="Abrir"
+              variant="compact"
             />
 
             <Card
@@ -178,6 +202,7 @@ export default function PerfilPage() {
               title="Publicaciones"
               description="Visualizá los animales que publicaste y gestioná sus casos."
               cta="Abrir"
+              variant="compact"
             />
           </div>
         </section>
