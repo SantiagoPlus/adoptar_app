@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { updates, type UpdateStatus } from "./data";
 
-type CategoryFilter = "todas" | "vision" | "actualizacion" | "roadmap";
+type CategoryFilter = "todas" | "actualizacion" | "roadmap";
 type SearchParams = Promise<{ categoria?: string }>;
 
 function StatusBadge({
@@ -30,13 +30,14 @@ function normalizeCategory(
 ): Exclude<CategoryFilter, "todas"> | null {
   const normalized = category.trim().toLowerCase();
 
-  if (normalized === "visión" || normalized === "vision") return "vision";
   if (
     normalized === "actualización de producto" ||
-    normalized === "actualizaciones"
+    normalized === "actualizaciones" ||
+    normalized === "novedades y actualizaciones"
   ) {
     return "actualizacion";
   }
+
   if (normalized === "roadmap") return "roadmap";
 
   return null;
@@ -69,14 +70,16 @@ function ActualizacionesListSkeleton() {
   return (
     <>
       <div className="mb-6 flex flex-wrap gap-3">
-        {["Todas", "Visión", "Actualizaciones", "Roadmap"].map((label) => (
-          <div
-            key={label}
-            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-black/40"
-          >
-            {label}
-          </div>
-        ))}
+        {["Quitar filtros", "Novedades y Actualizaciones", "Roadmap"].map(
+          (label) => (
+            <div
+              key={label}
+              className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-black/40"
+            >
+              {label}
+            </div>
+          ),
+        )}
       </div>
 
       <div className="mb-10 border-t border-black/10" />
@@ -105,15 +108,13 @@ async function ActualizacionesList({
   const { categoria } = await searchParams;
 
   const activeCategory: CategoryFilter =
-    categoria === "vision" ||
-    categoria === "actualizacion" ||
-    categoria === "roadmap"
+    categoria === "actualizacion" || categoria === "roadmap"
       ? categoria
       : "todas";
 
   const filteredUpdates =
     activeCategory === "todas"
-      ? updates
+      ? updates.filter((item) => normalizeCategory(item.category) !== null)
       : updates.filter(
           (item) => normalizeCategory(item.category) === activeCategory,
         );
@@ -123,17 +124,12 @@ async function ActualizacionesList({
       <div className="mb-6 flex flex-wrap gap-3">
         <FilterLink
           href="/actualizaciones"
-          label="Todas"
+          label="Quitar filtros"
           active={activeCategory === "todas"}
         />
         <FilterLink
-          href="/actualizaciones?categoria=vision"
-          label="Visión"
-          active={activeCategory === "vision"}
-        />
-        <FilterLink
           href="/actualizaciones?categoria=actualizacion"
-          label="Actualizaciones"
+          label="Novedades y Actualizaciones"
           active={activeCategory === "actualizacion"}
         />
         <FilterLink
@@ -153,7 +149,9 @@ async function ActualizacionesList({
           >
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <span className="text-sm font-medium text-black/50">
-                {item.category}
+                {normalizeCategory(item.category) === "actualizacion"
+                  ? "Novedades y Actualizaciones"
+                  : item.category}
               </span>
               <span className="text-black/20">•</span>
               <span className="text-sm text-black/50">{item.date}</span>
@@ -218,7 +216,8 @@ export default function ActualizacionesPage({
 
             <p className="mt-6 max-w-3xl text-base leading-7 text-black/70 md:text-lg">
               Un espacio para seguir la evolución de Adopta App a través de
-              publicaciones sobre visión, avances del producto y próximos pasos.
+              publicaciones sobre avances del producto, novedades y próximos
+              pasos.
             </p>
           </header>
         </div>
@@ -229,9 +228,6 @@ export default function ActualizacionesPage({
           <p className="mb-2 text-sm uppercase tracking-[0.18em] text-black/45">
             Últimas publicaciones
           </p>
-          <h2 className="text-2xl font-semibold md:text-3xl">
-            Seguimiento del proyecto
-          </h2>
         </div>
 
         <Suspense fallback={<ActualizacionesListSkeleton />}>
