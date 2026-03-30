@@ -82,15 +82,16 @@ export async function AnimalsPreview() {
           </h2>
           <p className="text-base leading-7 text-white/70 md:text-lg">
             Conocé algunas de las publicaciones más recientes dentro de la
-            plataforma.
+            plataforma. Para explorar el listado completo y usar el buscador,
+            ingresá a tu cuenta.
           </p>
         </div>
 
         <Link
-          href="/animales"
+          href="/auth/login?next=/animales"
           className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
         >
-          Ver todos los animales
+          Ingresar para ver todos
         </Link>
       </div>
 
