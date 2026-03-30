@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { updates, type UpdateStatus } from "./data";
 
 type CategoryFilter = "todas" | "vision" | "actualizacion" | "roadmap";
+type SearchParams = Promise<{ categoria?: string }>;
 
 function StatusBadge({
   status,
@@ -23,12 +25,18 @@ function StatusBadge({
   );
 }
 
-function normalizeCategory(category: string): Exclude<CategoryFilter, "todas"> | null {
+function normalizeCategory(
+  category: string,
+): Exclude<CategoryFilter, "todas"> | null {
   const normalized = category.trim().toLowerCase();
 
   if (normalized === "visión" || normalized === "vision") return "vision";
-  if (normalized === "actualización de producto" || normalized === "actualizaciones")
+  if (
+    normalized === "actualización de producto" ||
+    normalized === "actualizaciones"
+  ) {
     return "actualizacion";
+  }
   if (normalized === "roadmap") return "roadmap";
 
   return null;
@@ -57,10 +65,42 @@ function FilterLink({
   );
 }
 
-export default async function ActualizacionesPage({
+function ActualizacionesListSkeleton() {
+  return (
+    <>
+      <div className="mb-6 flex flex-wrap gap-3">
+        {["Todas", "Visión", "Actualizaciones", "Roadmap"].map((label) => (
+          <div
+            key={label}
+            className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-black/40"
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-10 border-t border-black/10" />
+
+      <div className="grid gap-5">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="rounded-3xl border border-black/10 bg-white p-6 md:p-7"
+          >
+            <div className="mb-4 h-4 w-48 animate-pulse rounded bg-black/10" />
+            <div className="mb-3 h-8 w-80 animate-pulse rounded bg-black/10" />
+            <div className="h-16 w-full animate-pulse rounded bg-black/10" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+async function ActualizacionesList({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string }>;
+  searchParams: SearchParams;
 }) {
   const { categoria } = await searchParams;
 
@@ -74,8 +114,86 @@ export default async function ActualizacionesPage({
   const filteredUpdates =
     activeCategory === "todas"
       ? updates
-      : updates.filter((item) => normalizeCategory(item.category) === activeCategory);
+      : updates.filter(
+          (item) => normalizeCategory(item.category) === activeCategory,
+        );
 
+  return (
+    <>
+      <div className="mb-6 flex flex-wrap gap-3">
+        <FilterLink
+          href="/actualizaciones"
+          label="Todas"
+          active={activeCategory === "todas"}
+        />
+        <FilterLink
+          href="/actualizaciones?categoria=vision"
+          label="Visión"
+          active={activeCategory === "vision"}
+        />
+        <FilterLink
+          href="/actualizaciones?categoria=actualizacion"
+          label="Actualizaciones"
+          active={activeCategory === "actualizacion"}
+        />
+        <FilterLink
+          href="/actualizaciones?categoria=roadmap"
+          label="Roadmap"
+          active={activeCategory === "roadmap"}
+        />
+      </div>
+
+      <div className="mb-10 border-t border-black/10" />
+
+      <div className="grid gap-5">
+        {filteredUpdates.map((item) => (
+          <article
+            key={item.slug}
+            className="rounded-3xl border border-black/10 bg-white p-6 transition hover:border-black/20 hover:bg-black/[0.02] md:p-7"
+          >
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-black/50">
+                {item.category}
+              </span>
+              <span className="text-black/20">•</span>
+              <span className="text-sm text-black/50">{item.date}</span>
+              <StatusBadge status={item.status} />
+            </div>
+
+            <h3 className="text-xl font-semibold text-black md:text-2xl">
+              {item.title}
+            </h3>
+
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-black/70 md:text-base">
+              {item.summary}
+            </p>
+
+            <div className="mt-5">
+              <Link
+                href={`/actualizaciones/${item.slug}`}
+                className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
+              >
+                Leer publicación →
+              </Link>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {filteredUpdates.length === 0 ? (
+        <div className="mt-6 rounded-3xl border border-black/10 bg-black/[0.03] px-6 py-8 text-black/70">
+          No hay publicaciones para esta categoría todavía.
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+export default function ActualizacionesPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <main className="min-h-screen bg-white text-black">
       <section className="bg-black/[0.04]">
@@ -116,71 +234,9 @@ export default async function ActualizacionesPage({
           </h2>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-3">
-          <FilterLink
-            href="/actualizaciones"
-            label="Todas"
-            active={activeCategory === "todas"}
-          />
-          <FilterLink
-            href="/actualizaciones?categoria=vision"
-            label="Visión"
-            active={activeCategory === "vision"}
-          />
-          <FilterLink
-            href="/actualizaciones?categoria=actualizacion"
-            label="Actualizaciones"
-            active={activeCategory === "actualizacion"}
-          />
-          <FilterLink
-            href="/actualizaciones?categoria=roadmap"
-            label="Roadmap"
-            active={activeCategory === "roadmap"}
-          />
-        </div>
-
-        <div className="mb-10 border-t border-black/10" />
-
-        <div className="grid gap-5">
-          {filteredUpdates.map((item) => (
-            <article
-              key={item.slug}
-              className="rounded-3xl border border-black/10 bg-white p-6 transition hover:border-black/20 hover:bg-black/[0.02] md:p-7"
-            >
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <span className="text-sm font-medium text-black/50">
-                  {item.category}
-                </span>
-                <span className="text-black/20">•</span>
-                <span className="text-sm text-black/50">{item.date}</span>
-                <StatusBadge status={item.status} />
-              </div>
-
-              <h3 className="text-xl font-semibold text-black md:text-2xl">
-                {item.title}
-              </h3>
-
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-black/70 md:text-base">
-                {item.summary}
-              </p>
-
-              <div className="mt-5">
-                <Link
-                  href={`/actualizaciones/${item.slug}`}
-                  className="text-sm font-medium text-blue-700 transition hover:text-blue-800"
-                >
-                  Leer publicación →
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {filteredUpdates.length === 0 ? (
-          <div className="rounded-3xl border border-black/10 bg-black/[0.03] px-6 py-8 text-black/70">
-            No hay publicaciones para esta categoría todavía.
-          </div>
-        ) : null}
+        <Suspense fallback={<ActualizacionesListSkeleton />}>
+          <ActualizacionesList searchParams={searchParams} />
+        </Suspense>
       </section>
     </main>
   );
