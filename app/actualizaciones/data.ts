@@ -16,13 +16,14 @@ export const updates: UpdatePost[] = [
     category: "Visión",
     title: "Qué es Adopta App y hacia dónde va",
     summary:
-      "Una síntesis del proyecto, su misión y la dirección de producto que estamos construyendo alrededor de la vida con mascotas.",
+      "Adopta App busca construir una base más clara, útil y escalable para la vida con mascotas: una plataforma que integre adopción, gestión cotidiana y futura conexión con servicios del ecosistema animal.",
     date: "29 Mar 2026",
     status: "Hecho",
     content: [
-      "Adopta App nació con una idea central: construir una base más clara, útil y escalable para la vida con mascotas. La adopción es la puerta de entrada, pero no el límite del proyecto.",
-      "La visión de producto apunta a integrar en un mismo entorno la adopción, la gestión cotidiana de las mascotas y, más adelante, la conexión con servicios vinculados al bienestar animal.",
-      "Esta dirección no implica abrir todos los frentes al mismo tiempo. Al contrario: el criterio actual es consolidar primero una base funcional coherente, capaz de crecer sin perder claridad ni orden.",
+      "Adopta App no nace solamente como una app para publicar animales en adopción. La adopción es el núcleo visible del MVP, pero la visión del proyecto apunta a algo más amplio: construir un sistema que acompañe distintas etapas de la vida con mascotas dentro de un mismo entorno.",
+      "Hoy muchas actividades vinculadas al mundo animal siguen resolviéndose en espacios separados: adopción, cuidado, seguimiento de la salud, servicios y vínculos con profesionales. La oportunidad que vemos está en integrar esa experiencia, conectando información, personas y herramientas dentro de una plataforma más coherente.",
+      "Por eso, la dirección del producto combina tres capas. La primera es la adopción responsable, que hoy funciona como puerta de entrada. La segunda es la gestión de mascotas, como evolución natural del vínculo después de la adopción. La tercera es la futura conexión con servicios y actores del ecosistema animal, que más adelante podrán ampliar el alcance del proyecto.",
+      "La decisión actual es construir esa visión por etapas, sin abrir todos los frentes al mismo tiempo. Primero consolidamos una base funcional clara, creíble y útil. Después, sobre esa base, iremos incorporando nuevas capas de producto con más orden y sentido estratégico.",
     ],
   },
   {
@@ -30,13 +31,14 @@ export const updates: UpdatePost[] = [
     category: "Actualización de producto",
     title: "Estado actual del MVP",
     summary:
-      "Qué partes del circuito principal ya funcionan, qué quedó consolidado y cuáles son los próximos focos de construcción.",
+      "El producto ya superó la etapa de maqueta: hoy Adopta App cuenta con un circuito funcional de publicaciones, solicitudes, gestión del publicador y una capa pública más clara para presentar el proyecto.",
     date: "29 Mar 2026",
     status: "Hecho",
     content: [
-      "El MVP ya superó la etapa de maqueta. Hoy Adopta App cuenta con un circuito operativo de publicaciones, solicitudes y gestión del publicador, además de una capa pública más clara y mejor presentada.",
-      "La base técnica elegida —Next.js, Supabase, Vercel y GitHub— sigue siendo correcta para esta etapa. El principal trabajo actual no pasa por cambiar infraestructura, sino por consolidar arquitectura, UX y narrativa pública.",
-      "También quedaron resueltos bloques importantes del producto, como la gestión de publicaciones, la evolución del perfil y la incorporación de imágenes reales en Supabase Storage.",
+      "Adopta App ya dejó atrás la fase de prueba conceptual. En este punto, el MVP cuenta con un circuito principal operativo que permite publicar animales, gestionar solicitudes, pausar publicaciones, concretar adopciones y mantener un archivo de casos cerrados.",
+      "A nivel técnico, la infraestructura sigue siendo adecuada para la etapa del proyecto. El stack actual —Next.js, Supabase, Vercel y GitHub— permite iterar con velocidad, resolver autenticación, almacenamiento y despliegue continuo sin sumar complejidad innecesaria.",
+      "Además del núcleo funcional, durante los últimos bloques de trabajo se consolidaron avances importantes sobre el perfil del usuario, las imágenes reales de animales en Storage, la gestión visual de publicaciones y una arquitectura más ordenada en el módulo principal del publicador.",
+      "La lectura actual del proyecto es positiva: el circuito producto → solicitud → revisión → adopción ya está materializado. El principal desafío ahora no pasa por cambiar infraestructura, sino por seguir ordenando arquitectura, pulir experiencia de uso y comunicar mejor la evolución del proyecto hacia afuera.",
     ],
   },
   {
@@ -44,13 +46,14 @@ export const updates: UpdatePost[] = [
     category: "Roadmap",
     title: "Qué estamos construyendo ahora",
     summary:
-      "Una lectura clara del punto actual del proyecto, los objetivos inmediatos y el orden de ejecución que seguimos para crecer con base sólida.",
+      "En esta etapa, el foco está en consolidar la capa pública e institucional del proyecto, ordenar cómo comunicamos la evolución del producto y preparar una base más clara para futuras páginas de roadmap, servicios y colaboración.",
     date: "29 Mar 2026",
     status: "En progreso",
     content: [
-      "En esta etapa, el foco está en ordenar mejor la comunicación del proyecto y preparar una sección pública que permita seguir su evolución con más claridad.",
-      "Eso incluye separar mejor visión, actualizaciones, roadmap y futuras páginas orientadas a prestadores o colaboradores, sin mezclar todos los mensajes en un mismo lugar.",
-      "La lógica de trabajo sigue siendo la misma: avanzar por incisos, validar cada bloque y construir capas nuevas solo cuando la base previa ya quedó estable.",
+      "Hoy estamos trabajando sobre una necesidad distinta a la de los primeros bloques técnicos: ya no se trata solo de hacer que el MVP funcione, sino también de mostrar con mayor claridad qué es Adopta App, qué sostiene hoy y hacia dónde evoluciona.",
+      "Por eso, uno de los focos actuales está en la capa pública del proyecto. Venimos ordenando la home, fortaleciendo la página de visión y construyendo esta nueva sección de actualizaciones para separar mejor tres cosas que antes podían quedar mezcladas: la tesis del proyecto, los avances concretos y la dirección futura del roadmap.",
+      "Esta etapa también busca dejar una base más útil para futuras audiencias. No solo para usuarios que quieren entender el producto, sino también para colaboradores, aliados o personas interesadas en seguir cómo evoluciona la plataforma y qué capacidad de ejecución ya mostró.",
+      "El criterio de trabajo sigue siendo el mismo que venimos sosteniendo en todo el proyecto: cambios por inciso, validación breve, consolidación de cada bloque y recién después apertura del siguiente. Esa lógica es la que nos permite crecer sin perder orden, y también es parte de cómo queremos comunicar Adopta App hacia afuera.",
     ],
   },
 ];
