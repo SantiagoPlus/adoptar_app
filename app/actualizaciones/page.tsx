@@ -105,16 +105,14 @@ function ActualizacionesListSkeleton() {
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-        {["Novedades y Actualizaciones", "Roadmap", "Quitar filtros"].map(
-          (label) => (
-            <div
-              key={label}
-              className="pb-3 text-sm uppercase tracking-[0.18em] text-black/30"
-            >
-              {label}
-            </div>
-          ),
-        )}
+        {["Novedades y Actualizaciones", "Roadmap"].map((label) => (
+          <div
+            key={label}
+            className="pb-3 text-sm uppercase tracking-[0.18em] text-black/30"
+          >
+            {label}
+          </div>
+        ))}
       </div>
 
       <div className="mb-10 border-t border-black/10" />
@@ -162,12 +160,6 @@ async function ActualizacionesList({
           label="Roadmap"
           active={activeCategory === "roadmap"}
         />
-        <Link
-          href="/actualizaciones?categoria=todas"
-          className="relative pb-3 text-sm uppercase tracking-[0.18em] text-black/45 transition hover:text-black"
-        >
-          Quitar filtros
-        </Link>
       </div>
 
       <div className="mb-10 border-t border-black/10" />
