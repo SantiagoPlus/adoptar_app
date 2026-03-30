@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { updates, type UpdateStatus } from "./data";
 
-type CategoryFilter = "todas" | "actualizacion" | "roadmap";
+type CategoryFilter = "actualizacion" | "roadmap";
 type SearchParams = Promise<{ categoria?: string }>;
 
 function StatusBadge({
@@ -25,9 +25,7 @@ function StatusBadge({
   );
 }
 
-function normalizeCategory(
-  category: string,
-): Exclude<CategoryFilter, "todas"> | null {
+function normalizeCategory(category: string): CategoryFilter | null {
   const normalized = category.trim().toLowerCase();
 
   if (
@@ -107,7 +105,7 @@ function ActualizacionesListSkeleton() {
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-        {["Quitar filtros", "Novedades y Actualizaciones", "Roadmap"].map(
+        {["Novedades y Actualizaciones", "Roadmap", "Quitar filtros"].map(
           (label) => (
             <div
               key={label}
@@ -145,27 +143,17 @@ async function ActualizacionesList({
   const { categoria } = await searchParams;
 
   const activeCategory: CategoryFilter =
-    categoria === "actualizacion" || categoria === "roadmap"
-      ? categoria
-      : "todas";
+    categoria === "roadmap" ? "roadmap" : "actualizacion";
 
-  const filteredUpdates =
-    activeCategory === "todas"
-      ? updates.filter((item) => normalizeCategory(item.category) !== null)
-      : updates.filter(
-          (item) => normalizeCategory(item.category) === activeCategory,
-        );
+  const filteredUpdates = updates.filter(
+    (item) => normalizeCategory(item.category) === activeCategory,
+  );
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         <FilterLink
           href="/actualizaciones"
-          label="Quitar filtros"
-          active={activeCategory === "todas"}
-        />
-        <FilterLink
-          href="/actualizaciones?categoria=actualizacion"
           label="Novedades y Actualizaciones"
           active={activeCategory === "actualizacion"}
         />
@@ -174,6 +162,12 @@ async function ActualizacionesList({
           label="Roadmap"
           active={activeCategory === "roadmap"}
         />
+        <Link
+          href="/actualizaciones?categoria=todas"
+          className="relative pb-3 text-sm uppercase tracking-[0.18em] text-black/45 transition hover:text-black"
+        >
+          Quitar filtros
+        </Link>
       </div>
 
       <div className="mb-10 border-t border-black/10" />
@@ -253,7 +247,8 @@ export default function ActualizacionesPage({
 
             <p className="mt-6 max-w-3xl text-base leading-7 text-black/70 md:text-lg">
               Un espacio para seguir la evolución de Adopta App a través de
-              publicaciones sobre avances del producto, novedades y próximas implementaciones.
+              publicaciones sobre avances del producto, novedades y próximos
+              pasos.
             </p>
           </header>
         </div>
