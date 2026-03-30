@@ -57,8 +57,8 @@ function FilterLink({
       href={href}
       className={
         active
-          ? "relative pb-3 text-base font-medium text-black transition hover:text-black/80 md:text-lg after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full after:bg-black"
-          : "relative pb-3 text-base font-medium text-black/45 transition hover:text-black md:text-lg"
+          ? "relative pb-3 text-sm uppercase tracking-[0.18em] text-black transition hover:text-black/80 after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full after:bg-black"
+          : "relative pb-3 text-sm uppercase tracking-[0.18em] text-black/45 transition hover:text-black"
       }
     >
       {label}
@@ -74,7 +74,7 @@ function ActualizacionesListSkeleton() {
           (label) => (
             <div
               key={label}
-              className="pb-3 text-base font-medium text-black/30 md:text-lg"
+              className="pb-3 text-sm uppercase tracking-[0.18em] text-black/30"
             >
               {label}
             </div>
