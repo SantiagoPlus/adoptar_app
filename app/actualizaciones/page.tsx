@@ -255,8 +255,7 @@ export default function ActualizacionesPage({
 
             <p className="mt-6 max-w-3xl text-base leading-7 text-black/70 md:text-lg">
               Un espacio para seguir la evolución de Adopta App a través de
-              publicaciones sobre avances del producto, novedades y próximos
-              pasos.
+              publicaciones sobre avances del producto, novedades y próximas implementaciones.
             </p>
           </header>
         </div>
