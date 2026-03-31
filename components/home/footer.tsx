@@ -4,7 +4,7 @@ export function HomeFooter() {
   return (
     <footer className="border-t border-white/10 bg-black">
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-5">
           <div>
             <h3 className="mb-4 text-xl font-semibold tracking-tight text-white">
               Adopta App
@@ -21,12 +21,19 @@ export function HomeFooter() {
               Plataforma
             </h4>
             <ul className="space-y-3 text-sm text-white/65">
-              <li>Adopción</li>
-              <li>Gestión de mascotas</li>
-              <li>Servicios para mascotas</li>
+              <li>Gestión de Mascotas</li>
+              <li>Servicios para Mascotas</li>
               <li>
                 <Link href="/vision" className="transition hover:text-white">
                   Visión Adopta App
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/actualizaciones"
+                  className="transition hover:text-white"
+                >
+                  Novedades y actualizaciones
                 </Link>
               </li>
             </ul>
@@ -38,23 +45,16 @@ export function HomeFooter() {
             </h4>
             <ul className="space-y-3 text-sm text-white/65">
               <li>
-                <Link
-                  href="/auth/login?next=/animales"
-                  className="transition hover:text-white"
-                >
-                  Ingresar para explorar animales
-                </Link>
-              </li>
-              <li>
-                <Link href="/auth/login" className="transition hover:text-white">
-                  Ingresar
+                <Link href="/animales" className="transition hover:text-white">
+                  Centro de Adopción
                 </Link>
               </li>
               <li>
                 <Link href="/perfil" className="transition hover:text-white">
-                  Mi cuenta
+                  Cuidá a tu Mascota
                 </Link>
               </li>
+              <li>Servicios para Mascotas</li>
             </ul>
           </div>
 
@@ -63,9 +63,20 @@ export function HomeFooter() {
               Para profesionales
             </h4>
             <ul className="space-y-3 text-sm text-white/65">
-              <li>Ofrecer servicios</li>
               <li>Sumarse a la plataforma</li>
               <li>Contacto</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white/80">
+              Ayuda y legal
+            </h4>
+            <ul className="space-y-3 text-sm text-white/65">
+              <li>Soporte</li>
+              <li>Reportar un error</li>
+              <li>Política de privacidad</li>
+              <li>Términos de uso</li>
             </ul>
           </div>
         </div>
