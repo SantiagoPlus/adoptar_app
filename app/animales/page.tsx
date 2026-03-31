@@ -35,6 +35,27 @@ type SearchParams = Promise<{
   ciudad?: string;
 }>;
 
+function formatValue(value?: string | null) {
+  if (!value) return "";
+
+  const labels: Record<string, string> = {
+    perro: "Perro",
+    gato: "Gato",
+    macho: "Macho",
+    hembra: "Hembra",
+    pequeno: "Pequeño",
+    mediano: "Mediano",
+    grande: "Grande",
+    disponible: "Disponible",
+    adoptado: "Adoptado",
+    pausado: "Pausado",
+    cancelado: "Cancelado",
+    en_proceso: "En proceso",
+  };
+
+  return labels[value] ?? value;
+}
+
 function NavbarSkeleton() {
   return (
     <nav className="border-b border-white/10">
@@ -117,7 +138,7 @@ function AnimalCard({ animal }: { animal: AnimalAdopcion }) {
 
           <div className="absolute left-4 top-4">
             <span className="rounded-full border border-white/15 bg-black/45 px-3 py-1 text-xs text-white">
-              Disponible
+              {formatValue(animal.estado) || "Disponible"}
             </span>
           </div>
         </div>
@@ -125,7 +146,7 @@ function AnimalCard({ animal }: { animal: AnimalAdopcion }) {
         <div className="space-y-4 p-5">
           <div>
             <p className="mb-1 text-xs uppercase tracking-wide text-white/45">
-              {animal.especie}
+              {formatValue(animal.especie) || "Mascota"}
               {animal.raza ? ` · ${animal.raza}` : ""}
             </p>
 
@@ -140,8 +161,8 @@ function AnimalCard({ animal }: { animal: AnimalAdopcion }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {animal.sexo && <FilterChip label={animal.sexo} />}
-            {animal.tamano && <FilterChip label={animal.tamano} />}
+            {animal.sexo && <FilterChip label={formatValue(animal.sexo)} />}
+            {animal.tamano && <FilterChip label={formatValue(animal.tamano)} />}
             {animal.edad_aproximada && (
               <FilterChip label={animal.edad_aproximada} />
             )}
@@ -241,50 +262,62 @@ async function AnimalsExplorerContent({
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-        <div>
-          <p className="mb-3 text-sm text-white/60">
-            Espacio público de adopciones
-          </p>
-          <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
-            Encontrá adopciones activas y descubrí nuevas historias
-          </h1>
-          <p className="max-w-3xl text-base leading-7 text-white/70 md:text-lg">
-            Este espacio está pensado para ayudarte a explorar publicaciones,
-            conocer mejor cada caso y acercarte a una adopción responsable con
-            más información y mejor contexto.
-          </p>
+      <div className="mb-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
+            Acceso con cuenta
+          </span>
+
+          <Link
+            href="/"
+            className="text-sm text-white/60 transition hover:text-white"
+          >
+            ← Volver al inicio
+          </Link>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <Heart className="mb-3 h-5 w-5 text-white" />
-            <p className="mb-1 text-sm font-medium text-white">
-              Adopción responsable
-            </p>
-            <p className="text-sm text-white/60">
-              Más contexto para tomar mejores decisiones.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <Search className="mb-3 h-5 w-5 text-white" />
-            <p className="mb-1 text-sm font-medium text-white">
-              Exploración simple
-            </p>
-            <p className="text-sm text-white/60">
-              Filtros claros para encontrar mejor.
+        <div className="mb-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div>
+            <h1 className="mb-4 text-4xl font-bold leading-tight md:text-5xl">
+              Encontrá adopciones activas y descubrí nuevas historias
+            </h1>
+            <p className="max-w-3xl text-base leading-7 text-white/70 md:text-lg">
+              Este espacio está pensado para ayudarte a explorar publicaciones,
+              conocer mejor cada caso y acercarte a una adopción responsable con
+              más información y mejor contexto.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <Sparkles className="mb-3 h-5 w-5 text-white" />
-            <p className="mb-1 text-sm font-medium text-white">
-              Más que un listado
-            </p>
-            <p className="text-sm text-white/60">
-              Un espacio pensado para conectar historias.
-            </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <Heart className="mb-3 h-5 w-5 text-white" />
+              <p className="mb-1 text-sm font-medium text-white">
+                Adopción responsable
+              </p>
+              <p className="text-sm text-white/60">
+                Más contexto para tomar mejores decisiones.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <Search className="mb-3 h-5 w-5 text-white" />
+              <p className="mb-1 text-sm font-medium text-white">
+                Exploración simple
+              </p>
+              <p className="text-sm text-white/60">
+                Filtros claros para encontrar mejor.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <Sparkles className="mb-3 h-5 w-5 text-white" />
+              <p className="mb-1 text-sm font-medium text-white">
+                Más que un listado
+              </p>
+              <p className="text-sm text-white/60">
+                Un espacio pensado para conectar historias.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -323,8 +356,8 @@ async function AnimalsExplorerContent({
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-white/20"
             >
               <option value="">Todas</option>
-              <option value="Perro">Perros</option>
-              <option value="Gato">Gatos</option>
+              <option value="perro">Perros</option>
+              <option value="gato">Gatos</option>
             </select>
           </div>
 
@@ -336,8 +369,8 @@ async function AnimalsExplorerContent({
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-white/20"
             >
               <option value="">Todos</option>
-              <option value="Macho">Macho</option>
-              <option value="Hembra">Hembra</option>
+              <option value="macho">Macho</option>
+              <option value="hembra">Hembra</option>
             </select>
           </div>
 
@@ -349,9 +382,9 @@ async function AnimalsExplorerContent({
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-white/20"
             >
               <option value="">Todos</option>
-              <option value="Pequeño">Pequeño</option>
-              <option value="Mediano">Mediano</option>
-              <option value="Grande">Grande</option>
+              <option value="pequeno">Pequeño</option>
+              <option value="mediano">Mediano</option>
+              <option value="grande">Grande</option>
             </select>
           </div>
 
@@ -395,9 +428,13 @@ async function AnimalsExplorerContent({
           {filtrosActivos.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {q && <FilterChip label={`Búsqueda: ${q}`} />}
-              {especie && <FilterChip label={`Especie: ${especie}`} />}
-              {sexo && <FilterChip label={`Sexo: ${sexo}`} />}
-              {tamano && <FilterChip label={`Tamaño: ${tamano}`} />}
+              {especie && (
+                <FilterChip label={`Especie: ${formatValue(especie)}`} />
+              )}
+              {sexo && <FilterChip label={`Sexo: ${formatValue(sexo)}`} />}
+              {tamano && (
+                <FilterChip label={`Tamaño: ${formatValue(tamano)}`} />
+              )}
               {ciudad && <FilterChip label={`Ciudad: ${ciudad}`} />}
             </div>
           )}
