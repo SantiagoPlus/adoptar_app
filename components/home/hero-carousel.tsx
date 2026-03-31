@@ -33,8 +33,8 @@ const slides: Slide[] = [
     description:
       "Conocé casos reales, explorá publicaciones individuales y accedé a una experiencia más ordenada para adoptar, publicar y seguir cada proceso.",
     primaryCta: {
-      label: "Ingresar para explorar",
-      href: "/auth/login?next=/animales",
+      label: "Ver animales",
+      href: "/animales",
     },
     secondaryCta: {
       label: "Ver publicaciones recientes",
