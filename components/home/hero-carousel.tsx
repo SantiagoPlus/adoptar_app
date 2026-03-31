@@ -67,8 +67,8 @@ const slides: Slide[] = [
     description:
       "La plataforma busca reunir veterinarias, entrenadores, paseadores, cuidadores y otros perfiles para crear una red más útil alrededor del bienestar animal.",
     primaryCta: {
-      label: "Explorar la visión",
-      href: "#vision",
+      label: "Explorá visión",
+      href: "/vision",
     },
     secondaryCta: {
       label: "Quiero ofrecer servicios",
