@@ -27,6 +27,21 @@ export const updates: UpdatePost[] = [
     ],
   },
   {
+    slug: "en-que-vamos-a-enfocarnos-en-las-proximas-etapas",
+    category: "Roadmap",
+    title: "En qué vamos a enfocarnos en las próximas etapas",
+    summary:
+      "Compartimos las prioridades de trabajo para las próximas semanas, para que sepas qué mejoras estamos consolidando y qué novedades vas a empezar a ver.",
+    date: "31 Mar 2026",
+    status: "En progreso",
+    content: [
+      "En esta etapa el foco principal de Adopta App es consolidar una base sólida y presentable antes de sumar nuevas funciones. Eso significa cerrar pendientes que impactan directamente en la confianza del producto: coherencia entre secciones públicas y privadas, accesos sin errores, mensajes claros y una estructura mínima de ayuda, soporte y documentos básicos.",
+      "Una vez que esa base esté ordenada, el siguiente objetivo es fortalecer el núcleo de adopción para que el circuito principal sea claro y confiable tanto para quienes publican como para quienes solicitan. En concreto, vamos a trabajar sobre una experiencia de inicio más entendible, un centro de adopción consistente, herramientas estables para gestionar publicaciones y un flujo de solicitudes más predecible de principio a fin.",
+      "En paralelo, ya estamos preparando la evolución lógica del proyecto: que Adopta App no sea útil solo en el momento de adoptar, sino también después. Por eso, los próximos módulos apuntan a sumar herramientas de retención vinculadas a la vida cotidiana con mascotas, como “Mis mascotas” y una libreta sanitaria e historial de salud que ordenen el seguimiento y los recordatorios. Más adelante, esta línea se conectará con una visión más amplia de plataforma y servicios, sin adelantar promesas antes de tiempo.",
+      "Este roadmap busca dar transparencia sobre el orden de construcción: primero estabilidad y núcleo confiable, después utilidad recurrente y, recién cuando corresponda, expansión hacia servicios del ecosistema animal.",
+    ],
+  },
+  {
     slug: "estado-actual-del-mvp",
     category: "Novedades y Actualizaciones",
     title: "Estado actual del MVP",
