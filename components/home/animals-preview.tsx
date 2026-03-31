@@ -25,6 +25,10 @@ export type AnimalPreview = {
 export async function AnimalsPreview() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const { data, error } = await supabase
     .from("animales_adopcion")
     .select(
@@ -83,15 +87,15 @@ export async function AnimalsPreview() {
           <p className="text-base leading-7 text-white/70 md:text-lg">
             Conocé algunas de las publicaciones más recientes dentro de la
             plataforma. Para explorar el listado completo y usar el buscador,
-            ingresá a tu cuenta.
+            {user ? " entrá al explorador completo." : " ingresá a tu cuenta."}
           </p>
         </div>
 
         <Link
-          href="/auth/login?next=/animales"
+          href="/animales"
           className="inline-flex items-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10"
         >
-          Ingresar para ver todos
+          {user ? "Ver todos los animales" : "Ingresar para ver todos"}
         </Link>
       </div>
 
