@@ -12,6 +12,21 @@ export type UpdatePost = {
 
 export const updates: UpdatePost[] = [
   {
+    slug: "bienvenidos-a-novedades-y-actualizaciones-de-adopta-app",
+    category: "Novedades y Actualizaciones",
+    title: "Bienvenidos a Novedades y Actualizaciones de Adopta App",
+    summary:
+      "Inauguramos este espacio para compartir avances reales del proyecto, de forma clara y transparente. Acá vas a poder seguir qué se implementó, qué mejoró y en qué estamos trabajando.",
+    date: "31 Mar 2026",
+    status: "Hecho",
+    content: [
+      "Hoy abrimos oficialmente la sección “Novedades y Actualizaciones” de Adopta App. Este espacio nace para contar, en lenguaje simple y con foco en lo que importa, cómo evoluciona la plataforma y qué cambios ya están disponibles para quienes la usan o la siguen de cerca.",
+      "Adopta App comenzó con un objetivo concreto: ordenar y facilitar la adopción responsable con un circuito más claro para publicar casos, enviar solicitudes y acompañar el proceso hasta el cierre de una adopción. A partir de esa base, el proyecto avanza por etapas, priorizando una experiencia consistente y una construcción sólida antes de sumar módulos más amplios.",
+      "En esta página vas a encontrar publicaciones breves con mejoras visibles, cierres de hitos y decisiones de producto que marcan dirección. La idea no es prometer de más: cada actualización busca diferenciar lo que ya está implementado de lo que está en camino, para que puedas entender el estado real del proyecto en cada momento.",
+      "Si te interesa acompañar el desarrollo, te invitamos a volver a este espacio periódicamente y compartirlo con otras personas u organizaciones que trabajen alrededor de la adopción y el bienestar animal. Gracias por estar cerca: construir una plataforma útil también es una forma de cuidar.",
+    ],
+  },
+  {
     slug: "estado-actual-del-mvp",
     category: "Novedades y Actualizaciones",
     title: "Estado actual del MVP",
