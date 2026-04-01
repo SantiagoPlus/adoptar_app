@@ -47,8 +47,8 @@ function formatHora(value?: string | null) {
   if (!value) return "";
 
   return new Date(value).toLocaleString("es-AR", {
-    dateStyle: "short",
-    timeStyle: "short",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -80,15 +80,40 @@ export default function ChatConversationClient({
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const pollingRef = useRef<number | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const normalizedOtherName = useMemo(
     () => detail.other_user_nombre ?? "Usuario",
     [detail.other_user_nombre],
   );
 
+  function scrollToBottom(behavior: ScrollBehavior = "smooth") {
+    bottomRef.current?.scrollIntoView({ behavior });
+  }
+
+  function resizeTextarea() {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    el.style.height = "0px";
+    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+  }
+
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToBottom("auto");
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom("smooth");
   }, [messages]);
+
+  useEffect(() => {
+    resizeTextarea();
+  }, [body]);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     async function refreshMessages() {
@@ -128,9 +153,7 @@ export default function ChatConversationClient({
     };
   }, [conversationId]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function sendCurrentMessage() {
     const trimmed = body.trim();
     if (!trimmed || isSending) return;
 
@@ -176,6 +199,10 @@ export default function ChatConversationClient({
       if (Array.isArray(data.messages)) {
         setMessages(data.messages);
       }
+
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
     } catch (err) {
       setMessages((prev) =>
         prev.filter(
@@ -193,12 +220,26 @@ export default function ChatConversationClient({
     }
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await sendCurrentMessage();
+  }
+
+  async function handleKeyDown(
+    event: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      await sendCurrentMessage();
+    }
+  }
+
   return (
     <div className="flex min-h-[75vh] flex-1 flex-col gap-4">
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="mb-2 text-2xl font-bold">{normalizedOtherName}</h1>
+            <h1 className="mb-1 text-2xl font-bold">{normalizedOtherName}</h1>
 
             <p className="text-sm text-white/60">
               {detail.animal_nombre
@@ -215,7 +256,7 @@ export default function ChatConversationClient({
         </div>
       </section>
 
-      <section className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-6">
+      <section className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-4 md:p-6">
         {messages.length === 0 ? (
           <p className="text-sm text-white/60">
             Todavía no hay mensajes en esta conversación.
@@ -238,7 +279,7 @@ export default function ChatConversationClient({
             return (
               <article
                 key={message.id_message}
-                className={`max-w-[85%] rounded-2xl p-4 ${
+                className={`max-w-[88%] rounded-3xl px-4 py-3 md:max-w-[78%] ${
                   isMine
                     ? "ml-auto bg-white text-black"
                     : "bg-black/30 text-white"
@@ -247,7 +288,7 @@ export default function ChatConversationClient({
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <p
                     className={`text-xs font-medium ${
-                      isMine ? "text-black/70" : "text-white/60"
+                      isMine ? "text-black/70" : "text-white/55"
                     }`}
                   >
                     {message.sender_nombre ?? "Usuario"}
@@ -255,7 +296,7 @@ export default function ChatConversationClient({
 
                   <p
                     className={`text-xs ${
-                      isMine ? "text-black/60" : "text-white/40"
+                      isMine ? "text-black/55" : "text-white/35"
                     }`}
                   >
                     {formatHora(message.created_at)}
@@ -273,22 +314,22 @@ export default function ChatConversationClient({
         <div ref={bottomRef} />
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <section className="sticky bottom-0 rounded-2xl border border-white/10 bg-black/95 p-4 backdrop-blur">
         <form onSubmit={handleSubmit} className="space-y-3">
-          <label htmlFor="body" className="block text-sm text-white/70">
-            Escribir mensaje
-          </label>
-
-          <textarea
-            id="body"
-            name="body"
-            rows={4}
-            placeholder="Escribí tu mensaje..."
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            disabled={isSending}
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none disabled:opacity-70"
-          />
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+            <textarea
+              ref={textareaRef}
+              id="body"
+              name="body"
+              rows={1}
+              placeholder="Escribí tu mensaje..."
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSending}
+              className="max-h-[180px] min-h-[28px] w-full resize-none bg-transparent text-white outline-none placeholder:text-white/40 disabled:opacity-70"
+            />
+          </div>
 
           {error && (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
@@ -296,11 +337,15 @@ export default function ChatConversationClient({
             </div>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-white/45">
+              Enter para enviar · Shift + Enter para salto de línea
+            </p>
+
             <button
               type="submit"
               disabled={isSending || !body.trim()}
-              className="rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-2xl bg-white px-5 py-3 font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSending ? "Enviando..." : "Enviar"}
             </button>
