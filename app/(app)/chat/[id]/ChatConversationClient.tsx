@@ -52,6 +52,21 @@ function formatHora(value?: string | null) {
   });
 }
 
+async function parseJsonResponse(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+  const text = await response.text();
+
+  if (!contentType.includes("application/json")) {
+    throw new Error("La respuesta del servidor no fue JSON.");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("No se pudo interpretar la respuesta del servidor.");
+  }
+}
+
 export default function ChatConversationClient({
   conversationId,
   currentUser,
@@ -83,12 +98,17 @@ export default function ChatConversationClient({
           {
             method: "GET",
             cache: "no-store",
+            credentials: "same-origin",
+            headers: {
+              Accept: "application/json",
+            },
           },
         );
 
-        if (!response.ok) return;
+        const data = await parseJsonResponse(response);
 
-        const data = await response.json();
+        if (!response.ok || !data?.ok) return;
+
         if (Array.isArray(data.messages)) {
           setMessages(data.messages);
         }
@@ -138,16 +158,18 @@ export default function ChatConversationClient({
         `/api/chat/conversations/${conversationId}/messages`,
         {
           method: "POST",
+          credentials: "same-origin",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
           },
           body: JSON.stringify({ body: trimmed }),
         },
       );
 
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
 
-      if (!response.ok) {
+      if (!response.ok || !data?.ok) {
         throw new Error(data?.error ?? "No se pudo enviar el mensaje.");
       }
 
@@ -156,7 +178,9 @@ export default function ChatConversationClient({
       }
     } catch (err) {
       setMessages((prev) =>
-        prev.filter((message) => message.id_message !== optimisticMessage.id_message),
+        prev.filter(
+          (message) => message.id_message !== optimisticMessage.id_message,
+        ),
       );
       setBody(trimmed);
       setError(
