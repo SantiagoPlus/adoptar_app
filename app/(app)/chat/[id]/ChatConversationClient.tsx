@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 type ConversationDetail = {
   id_conversation: string;
@@ -79,8 +80,8 @@ export default function ChatConversationClient({
   const [error, setError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const pollingRef = useRef<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const channelRef = useRef<any>(null);
 
   const normalizedOtherName = useMemo(
     () => detail.other_user_nombre ?? "Usuario",
@@ -97,6 +98,32 @@ export default function ChatConversationClient({
 
     el.style.height = "0px";
     el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+  }
+
+  async function refreshMessages() {
+    try {
+      const response = await fetch(
+        `/api/chat/conversations/${conversationId}/messages`,
+        {
+          method: "GET",
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+
+      const data = await parseJsonResponse(response);
+
+      if (!response.ok || !data?.ok) return;
+
+      if (Array.isArray(data.messages)) {
+        setMessages(data.messages);
+      }
+    } catch {
+      // silencioso por ahora
+    }
   }
 
   useEffect(() => {
@@ -116,39 +143,29 @@ export default function ChatConversationClient({
   }, []);
 
   useEffect(() => {
-    async function refreshMessages() {
-      try {
-        const response = await fetch(
-          `/api/chat/conversations/${conversationId}/messages`,
-          {
-            method: "GET",
-            cache: "no-store",
-            credentials: "same-origin",
-            headers: {
-              Accept: "application/json",
-            },
-          },
-        );
+    const supabase = createClient();
+    const topic = `chat:${conversationId}`;
 
-        const data = await parseJsonResponse(response);
+    const channel = supabase.channel(topic, {
+      config: {
+        private: true,
+        broadcast: {
+          self: false,
+        },
+      },
+    });
 
-        if (!response.ok || !data?.ok) return;
+    channel
+      .on("broadcast", { event: "message:new" }, async () => {
+        await refreshMessages();
+      })
+      .subscribe();
 
-        if (Array.isArray(data.messages)) {
-          setMessages(data.messages);
-        }
-      } catch {
-        // silencioso por ahora
-      }
-    }
-
-    pollingRef.current = window.setInterval(() => {
-      void refreshMessages();
-    }, 4000);
+    channelRef.current = channel;
 
     return () => {
-      if (pollingRef.current) {
-        window.clearInterval(pollingRef.current);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
       }
     };
   }, [conversationId]);
@@ -198,6 +215,17 @@ export default function ChatConversationClient({
 
       if (Array.isArray(data.messages)) {
         setMessages(data.messages);
+      }
+
+      if (channelRef.current) {
+        await channelRef.current.send({
+          type: "broadcast",
+          event: "message:new",
+          payload: {
+            conversationId,
+            sentAt: Date.now(),
+          },
+        });
       }
 
       requestAnimationFrame(() => {
