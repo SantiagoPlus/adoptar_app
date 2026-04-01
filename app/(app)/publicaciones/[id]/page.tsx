@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUsuario } from "@/lib/server/auth";
+import { getOrCreateAdoptionConversation } from "@/lib/server/chat";
 import {
   getPublicacionDelPublicador,
   getSolicitudesDePublicacion,
@@ -157,6 +158,24 @@ async function eliminarPublicacion(formData: FormData) {
   });
 }
 
+async function abrirChatDesdeSolicitud(formData: FormData) {
+  "use server";
+
+  const idSolicitud = String(formData.get("id_solicitud") ?? "").trim();
+  const idAnimal = String(formData.get("id_animal") ?? "").trim();
+
+  if (!idSolicitud || !idAnimal) {
+    redirect("/publicaciones?error=solicitud_invalida");
+  }
+
+  try {
+    const idConversation = await getOrCreateAdoptionConversation(idSolicitud);
+    redirect(`/chat/${idConversation}`);
+  } catch {
+    redirect(`/publicaciones/${idAnimal}?error=chat_no_disponible`);
+  }
+}
+
 function FeedbackBanner({
   ok,
   error,
@@ -262,6 +281,7 @@ function FeedbackBanner({
       "Ocurrió un error al eliminar las fotos asociadas a la publicación.",
     error_eliminacion_publicacion:
       "Ocurrió un error al eliminar la publicación.",
+    chat_no_disponible: "No se pudo abrir el chat para esta solicitud.",
   };
 
   return (
@@ -566,6 +586,10 @@ async function PublicacionContent({
               const solicitudActiva =
                 solicitud.estado === "pendiente" ||
                 solicitud.estado === "en_revision";
+              const puedeAbrirChat =
+                solicitud.estado === "pendiente" ||
+                solicitud.estado === "en_revision" ||
+                solicitud.estado === "adoptado";
 
               return (
                 <article
@@ -635,6 +659,19 @@ async function PublicacionContent({
                           className="rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-medium text-green-200 transition hover:bg-green-500/20"
                         >
                           Marcar como adoptado
+                        </button>
+                      </form>
+                    )}
+
+                    {puedeAbrirChat && (
+                      <form action={abrirChatDesdeSolicitud}>
+                        <input type="hidden" name="id_solicitud" value={solicitud.id_solicitud} />
+                        <input type="hidden" name="id_animal" value={animalTipado.id_animal} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                        >
+                          Abrir chat
                         </button>
                       </form>
                     )}
