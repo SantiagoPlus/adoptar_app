@@ -168,12 +168,15 @@ async function abrirChatDesdeSolicitud(formData: FormData) {
     redirect("/publicaciones?error=solicitud_invalida");
   }
 
+  let idConversation: string;
+
   try {
-    const idConversation = await getOrCreateAdoptionConversation(idSolicitud);
-    redirect(`/chat/${idConversation}`);
+    idConversation = await getOrCreateAdoptionConversation(idSolicitud);
   } catch {
     redirect(`/publicaciones/${idAnimal}?error=chat_no_disponible`);
   }
+
+  redirect(`/chat/${idConversation}`);
 }
 
 function FeedbackBanner({
