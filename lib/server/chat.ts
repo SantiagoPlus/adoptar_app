@@ -167,3 +167,27 @@ export async function markConversationAsRead(
     );
   }
 }
+
+export async function submitChatReport(
+  idConversation: string,
+  motivo: string,
+  detalle?: string,
+): Promise<string> {
+  const { supabase } = await requireAuth();
+
+  const { data, error } = await supabase.rpc("submit_chat_report", {
+    p_id_conversation: idConversation,
+    p_motivo: motivo,
+    p_detalle: detalle ?? null,
+  });
+
+  if (error) {
+    throw new Error(`No se pudo reportar la conversación: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("La función no devolvió id_report");
+  }
+
+  return data as string;
+}
