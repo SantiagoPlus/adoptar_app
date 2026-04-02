@@ -127,6 +127,7 @@ export default function ChatInboxClient({ initialInbox }: Props) {
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(
     initialInbox.length > 0 ? new Date().toISOString() : null,
   );
+  const [search, setSearch] = useState("");
 
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelsRef = useRef<any[]>([]);
@@ -136,6 +137,24 @@ export default function ChatInboxClient({ initialInbox }: Props) {
     () => inbox.map((item) => item.id_conversation),
     [inbox],
   );
+
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredInbox = useMemo(() => {
+    if (!normalizedSearch) return inbox;
+
+    return inbox.filter((item) => {
+      const userName = (item.other_user_nombre ?? "").toLowerCase();
+      const animalName = (item.animal_nombre ?? "").toLowerCase();
+      const preview = (item.last_message_body ?? "").toLowerCase();
+
+      return (
+        userName.includes(normalizedSearch) ||
+        animalName.includes(normalizedSearch) ||
+        preview.includes(normalizedSearch)
+      );
+    });
+  }, [inbox, normalizedSearch]);
 
   async function refreshInbox() {
     try {
@@ -239,34 +258,21 @@ export default function ChatInboxClient({ initialInbox }: Props) {
     };
   }, []);
 
-  if (inbox.length === 0) {
-    return (
-      <div className="space-y-4">
-        <InboxConnectionBadge
-          status={connectionStatus}
-          lastSyncAt={lastSyncAt}
-        />
-
-        {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-            {error}
-          </div>
-        )}
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
-          <p className="mb-2 text-white/80">Todavía no tenés conversaciones.</p>
-          <p className="text-sm text-white/60">
-            Los chats van a aparecer cuando una solicitud habilite una
-            conversación.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <InboxConnectionBadge status={connectionStatus} lastSyncAt={lastSyncAt} />
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3 md:p-4">
+        <div className="rounded-2xl border border-white/10 bg-black/30 px-3 py-2.5">
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por persona, animal o mensaje..."
+            className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+          />
+        </div>
+      </div>
 
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
@@ -274,101 +280,120 @@ export default function ChatInboxClient({ initialInbox }: Props) {
         </div>
       )}
 
-      <div className="space-y-3">
-        {inbox.map((item) => {
-          const isUnread = item.unread_count > 0;
-          const title = item.other_user_nombre ?? "Usuario";
-          const subtitle = item.animal_nombre
-            ? `Consulta por ${item.animal_nombre}`
-            : "Conversación";
-          const preview = item.last_message_body ?? "Sin mensajes todavía.";
-          const ts = item.last_message_created_at ?? item.updated_at;
+      {inbox.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
+          <p className="mb-2 text-white/80">Todavía no tenés conversaciones.</p>
+          <p className="text-sm text-white/60">
+            Los chats van a aparecer cuando una solicitud habilite una
+            conversación.
+          </p>
+        </div>
+      ) : filteredInbox.length === 0 ? (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
+          <p className="mb-2 text-white/80">
+            No encontramos conversaciones con esa búsqueda.
+          </p>
+          <p className="text-sm text-white/60">
+            Probá con otro nombre, el animal o una palabra del mensaje.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredInbox.map((item) => {
+            const isUnread = item.unread_count > 0;
+            const title = item.other_user_nombre ?? "Usuario";
+            const subtitle = item.animal_nombre
+              ? `Consulta por ${item.animal_nombre}`
+              : "Conversación";
+            const preview = item.last_message_body ?? "Sin mensajes todavía.";
+            const ts = item.last_message_created_at ?? item.updated_at;
 
-          return (
-            <Link
-              key={item.id_conversation}
-              href={`/chat/${item.id_conversation}`}
-              className={`block rounded-2xl border p-4 transition md:p-5 ${
-                isUnread
-                  ? "border-white/20 bg-white/10 hover:bg-white/15"
-                  : "border-white/10 bg-white/5 hover:bg-white/10"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/30 text-sm font-semibold text-white/85">
-                  {title.trim().charAt(0).toUpperCase() || "U"}
-                </div>
+            return (
+              <Link
+                key={item.id_conversation}
+                href={`/chat/${item.id_conversation}`}
+                className={`block rounded-2xl border p-4 transition md:p-5 ${
+                  isUnread
+                    ? "border-white/20 bg-white/10 hover:bg-white/15"
+                    : "border-white/10 bg-white/5 hover:bg-white/10"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/30 text-sm font-semibold text-white/85">
+                    {title.trim().charAt(0).toUpperCase() || "U"}
+                  </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2
-                          className={`truncate text-base md:text-lg ${
-                            isUnread
-                              ? "font-bold text-white"
-                              : "font-semibold text-white"
-                          }`}
-                        >
-                          {title}
-                        </h2>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2
+                            className={`truncate text-base md:text-lg ${
+                              isUnread
+                                ? "font-bold text-white"
+                                : "font-semibold text-white"
+                            }`}
+                          >
+                            {title}
+                          </h2>
 
-                        {isUnread && (
-                          <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-white" />
-                        )}
+                          {isUnread && (
+                            <span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-white" />
+                          )}
+                        </div>
+
+                        <p className="truncate text-sm text-white/60">
+                          {subtitle}
+                        </p>
                       </div>
 
-                      <p className="truncate text-sm text-white/60">
-                        {subtitle}
-                      </p>
+                      <div className="shrink-0 text-right">
+                        <p className="text-[11px] text-white/45 md:text-xs">
+                          {formatHora(ts)}
+                        </p>
+
+                        {item.unread_count > 0 && (
+                          <span className="mt-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-2 py-1 text-[11px] font-semibold leading-none text-black">
+                            {item.unread_count > 99 ? "99+" : item.unread_count}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="shrink-0 text-right">
-                      <p className="text-[11px] text-white/45 md:text-xs">
-                        {formatHora(ts)}
-                      </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                          item.estado === "activa"
+                            ? "border-green-500/20 bg-green-500/10 text-green-200"
+                            : item.estado === "cerrada"
+                              ? "border-white/10 bg-white/5 text-white/55"
+                              : "border-red-500/20 bg-red-500/10 text-red-200"
+                        }`}
+                      >
+                        {getEstadoLabel(item.estado)}
+                      </span>
 
-                      {item.unread_count > 0 && (
-                        <span className="mt-2 inline-flex min-w-6 items-center justify-center rounded-full bg-white px-2 py-1 text-[11px] font-semibold leading-none text-black">
-                          {item.unread_count > 99 ? "99+" : item.unread_count}
+                      {item.context_type === "adoption_request" && (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/55">
+                          Adopción
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full border px-2.5 py-1 text-[11px] ${
-                        item.estado === "activa"
-                          ? "border-green-500/20 bg-green-500/10 text-green-200"
-                          : item.estado === "cerrada"
-                            ? "border-white/10 bg-white/5 text-white/55"
-                            : "border-red-500/20 bg-red-500/10 text-red-200"
+                    <p
+                      className={`mt-3 line-clamp-2 text-sm leading-6 ${
+                        isUnread ? "text-white/90" : "text-white/70"
                       }`}
                     >
-                      {getEstadoLabel(item.estado)}
-                    </span>
-
-                    {item.context_type === "adoption_request" && (
-                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/55">
-                        Adopción
-                      </span>
-                    )}
+                      {preview}
+                    </p>
                   </div>
-
-                  <p
-                    className={`mt-3 line-clamp-2 text-sm leading-6 ${
-                      isUnread ? "text-white/90" : "text-white/70"
-                    }`}
-                  >
-                    {preview}
-                  </p>
                 </div>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
