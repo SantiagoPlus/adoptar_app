@@ -9,6 +9,12 @@ type Props = {
   initialConversationIds: string[];
 };
 
+type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "offline";
+
 function MessagesIcon() {
   return (
     <svg
@@ -49,6 +55,8 @@ export default function ChatNavButton({
 }: Props) {
   const [unreadTotal, setUnreadTotal] = useState(initialUnreadTotal);
   const [conversationIds, setConversationIds] = useState(initialConversationIds);
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>("connecting");
 
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelsRef = useRef<any[]>([]);
@@ -100,6 +108,13 @@ export default function ChatNavButton({
     });
     channelsRef.current = [];
 
+    if (conversationIds.length === 0) {
+      setConnectionStatus("offline");
+      return;
+    }
+
+    setConnectionStatus("connecting");
+
     conversationIds.forEach((conversationId) => {
       const topic = `chat:${conversationId}`;
 
@@ -115,7 +130,19 @@ export default function ChatNavButton({
         .on("broadcast", { event: "message:new" }, async () => {
           await refreshUnreadTotal();
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === "SUBSCRIBED") {
+            setConnectionStatus("connected");
+          } else if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            setConnectionStatus("offline");
+          } else {
+            setConnectionStatus("reconnecting");
+          }
+        });
 
       channelsRef.current.push(channel);
     });
@@ -145,8 +172,29 @@ export default function ChatNavButton({
       href="/chat"
       aria-label="Abrir chats"
       className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
+      title={
+        connectionStatus === "connected"
+          ? "Chats conectados"
+          : connectionStatus === "reconnecting"
+            ? "Chats reconectando"
+            : connectionStatus === "offline"
+              ? "Chats con fallback activo"
+              : "Chats conectando"
+      }
     >
       <MessagesIcon />
+
+      <span
+        className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-black ${
+          connectionStatus === "connected"
+            ? "bg-green-400"
+            : connectionStatus === "reconnecting"
+              ? "bg-yellow-400"
+              : connectionStatus === "offline"
+                ? "bg-red-400"
+                : "bg-white/60"
+        }`}
+      />
 
       {unreadTotal > 0 && (
         <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold leading-none text-black">
