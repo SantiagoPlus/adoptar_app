@@ -112,7 +112,7 @@ function InboxConnectionBadge({
 
       {lastSyncAt && (
         <span className="text-[11px] text-white/40">
-          Última sync {formatHora(lastSyncAt)}
+          Última actualización {formatHora(lastSyncAt)}
         </span>
       )}
     </div>
@@ -170,7 +170,7 @@ export default function ChatInboxClient({ initialInbox }: Props) {
       const data = await parseJsonResponse(response);
 
       if (!response.ok || !data?.ok) {
-        throw new Error(data?.error ?? "No se pudo actualizar la bandeja.");
+        throw new Error(data?.error ?? "No se pudo actualizar la lista.");
       }
 
       if (Array.isArray(data.inbox)) {
@@ -182,7 +182,7 @@ export default function ChatInboxClient({ initialInbox }: Props) {
       setError(
         err instanceof Error
           ? err.message
-          : "No se pudo actualizar la bandeja de chats.",
+          : "No se pudo actualizar la lista de chats.",
       );
     }
   }
@@ -282,19 +282,19 @@ export default function ChatInboxClient({ initialInbox }: Props) {
 
       {inbox.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
-          <p className="mb-2 text-white/80">Todavía no tenés conversaciones.</p>
+          <p className="mb-2 text-white/80">Todavía no tenés chats activos.</p>
           <p className="text-sm text-white/60">
-            Los chats van a aparecer cuando una solicitud habilite una
-            conversación.
+            Las conversaciones van a aparecer cuando una solicitud habilite el
+            contacto entre las partes.
           </p>
         </div>
       ) : filteredInbox.length === 0 ? (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 md:p-8">
           <p className="mb-2 text-white/80">
-            No encontramos conversaciones con esa búsqueda.
+            No encontramos chats con esa búsqueda.
           </p>
           <p className="text-sm text-white/60">
-            Probá con otro nombre, el animal o una palabra del mensaje.
+            Probá con otro nombre, el animal o una palabra del último mensaje.
           </p>
         </div>
       ) : (
@@ -305,7 +305,10 @@ export default function ChatInboxClient({ initialInbox }: Props) {
             const subtitle = item.animal_nombre
               ? `Consulta por ${item.animal_nombre}`
               : "Conversación";
-            const preview = item.last_message_body ?? "Sin mensajes todavía.";
+            const preview =
+              item.last_message_type === "system"
+                ? "Actualización del sistema"
+                : item.last_message_body ?? "Sin mensajes todavía.";
             const ts = item.last_message_created_at ?? item.updated_at;
 
             return (
