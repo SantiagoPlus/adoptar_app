@@ -41,10 +41,10 @@ export default function ChatPage() {
       <section className="mx-auto max-w-4xl px-6 py-10">
         <div className="mb-8">
           <Link
-            href="/perfil"
+            href="/"
             className="text-sm text-white/60 transition hover:text-white"
           >
-            ← Volver a mi cuenta
+            ← Volver al inicio
           </Link>
         </div>
 
@@ -52,8 +52,8 @@ export default function ChatPage() {
           <p className="mb-2 text-sm text-white/60">Mensajería</p>
           <h1 className="mb-3 text-3xl font-bold">Chats</h1>
           <p className="text-white/70">
-            Acá vas a ver las conversaciones activas vinculadas a tus procesos
-            dentro de la plataforma.
+            Acá podés seguir tus conversaciones activas vinculadas a solicitudes
+            y procesos dentro de la plataforma.
           </p>
         </header>
 
