@@ -113,14 +113,14 @@ function ConnectionBadge({ status }: { status: ConnectionStatus }) {
       dot: "bg-green-400",
     },
     reconnecting: {
-      label: "Reconectando",
+      label: "Sincronizando",
       className: "border-yellow-500/20 bg-yellow-500/10 text-yellow-200",
       dot: "bg-yellow-400",
     },
     offline: {
-      label: "Sin conexión realtime",
-      className: "border-red-500/20 bg-red-500/10 text-red-200",
-      dot: "bg-red-400",
+      label: "Actualización periódica",
+      className: "border-white/10 bg-white/5 text-white/60",
+      dot: "bg-white/50",
     },
   };
 
@@ -149,6 +149,12 @@ export default function ChatConversationClient({
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("connecting");
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
+
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDetail, setReportDetail] = useState("");
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportFeedback, setReportFeedback] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -358,6 +364,55 @@ export default function ChatConversationClient({
     }
   }
 
+  async function handleReportSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const motivo = reportReason.trim();
+    const detalle = reportDetail.trim();
+
+    if (!motivo || isReporting) return;
+
+    setIsReporting(true);
+    setReportFeedback(null);
+
+    try {
+      const response = await fetch(
+        `/api/chat/conversations/${conversationId}/report`,
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            motivo,
+            detalle,
+          }),
+        },
+      );
+
+      const data = await parseJsonResponse(response);
+
+      if (!response.ok || !data?.ok) {
+        throw new Error(data?.error ?? "No se pudo enviar el reporte.");
+      }
+
+      setReportFeedback("Gracias. Recibimos tu reporte para revisión.");
+      setReportReason("");
+      setReportDetail("");
+      setShowReport(false);
+    } catch (err) {
+      setReportFeedback(
+        err instanceof Error
+          ? err.message
+          : "No se pudo enviar el reporte.",
+      );
+    } finally {
+      setIsReporting(false);
+    }
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-132px)] flex-1 flex-col gap-3 md:gap-4">
       <section className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 md:px-6 md:py-5">
@@ -384,12 +439,78 @@ export default function ChatConversationClient({
             </div>
           </div>
 
-          {detail.other_user_email && (
-            <p className="hidden max-w-[220px] truncate text-sm text-white/45 md:block">
-              {detail.other_user_email}
-            </p>
-          )}
+          <div className="flex flex-col items-end gap-2">
+            {detail.other_user_email && (
+              <p className="hidden max-w-[220px] truncate text-sm text-white/45 md:block">
+                {detail.other_user_email}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowReport((prev) => !prev)}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10 hover:text-white"
+            >
+              Reportar conversación
+            </button>
+          </div>
         </div>
+
+        {showReport && (
+          <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <form onSubmit={handleReportSubmit} className="space-y-3">
+              <div>
+                <label className="mb-2 block text-sm text-white/70">
+                  Motivo
+                </label>
+                <input
+                  type="text"
+                  value={reportReason}
+                  onChange={(event) => setReportReason(event.target.value)}
+                  placeholder="Ej. acoso, contenido inapropiado, spam"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/40"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm text-white/70">
+                  Detalle adicional
+                </label>
+                <textarea
+                  value={reportDetail}
+                  onChange={(event) => setReportDetail(event.target.value)}
+                  rows={3}
+                  placeholder="Contanos brevemente qué pasó"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/40"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="submit"
+                  disabled={isReporting || !reportReason.trim()}
+                  className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isReporting ? "Enviando..." : "Enviar reporte"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowReport(false)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {reportFeedback && (
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/75">
+            {reportFeedback}
+          </div>
+        )}
       </section>
 
       <section className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
