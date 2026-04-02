@@ -44,6 +44,12 @@ type Props = {
   initialMessages: ConversationMessage[];
 };
 
+type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "offline";
+
 function formatHora(value?: string | null) {
   if (!value) return "";
 
@@ -91,6 +97,45 @@ async function parseJsonResponse(response: Response) {
   }
 }
 
+function ConnectionBadge({ status }: { status: ConnectionStatus }) {
+  const config: Record<
+    ConnectionStatus,
+    { label: string; className: string; dot: string }
+  > = {
+    connecting: {
+      label: "Conectando",
+      className: "border-white/10 bg-white/5 text-white/60",
+      dot: "bg-white/50",
+    },
+    connected: {
+      label: "Conectado",
+      className: "border-green-500/20 bg-green-500/10 text-green-200",
+      dot: "bg-green-400",
+    },
+    reconnecting: {
+      label: "Reconectando",
+      className: "border-yellow-500/20 bg-yellow-500/10 text-yellow-200",
+      dot: "bg-yellow-400",
+    },
+    offline: {
+      label: "Sin conexión realtime",
+      className: "border-red-500/20 bg-red-500/10 text-red-200",
+      dot: "bg-red-400",
+    },
+  };
+
+  const item = config[status];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] ${item.className}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${item.dot}`} />
+      {item.label}
+    </span>
+  );
+}
+
 export default function ChatConversationClient({
   conversationId,
   currentUser,
@@ -101,10 +146,14 @@ export default function ChatConversationClient({
   const [body, setBody] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>("connecting");
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const channelRef = useRef<any>(null);
+  const fallbackIntervalRef = useRef<number | null>(null);
 
   const normalizedOtherName = useMemo(
     () => detail.other_user_nombre ?? "Usuario",
@@ -143,6 +192,7 @@ export default function ChatConversationClient({
 
       if (Array.isArray(data.messages)) {
         setMessages(data.messages);
+        setLastSyncAt(new Date().toISOString());
       }
     } catch {
       // silencioso por ahora
@@ -169,6 +219,8 @@ export default function ChatConversationClient({
     const supabase = createClient();
     const topic = `chat:${conversationId}`;
 
+    setConnectionStatus("connecting");
+
     const channel = supabase.channel(topic, {
       config: {
         private: true,
@@ -182,13 +234,33 @@ export default function ChatConversationClient({
       .on("broadcast", { event: "message:new" }, async () => {
         await refreshMessages();
       })
-      .subscribe();
+      .subscribe((status: string) => {
+        if (status === "SUBSCRIBED") {
+          setConnectionStatus("connected");
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          setConnectionStatus("offline");
+        } else {
+          setConnectionStatus("reconnecting");
+        }
+      });
 
     channelRef.current = channel;
+
+    fallbackIntervalRef.current = window.setInterval(async () => {
+      await refreshMessages();
+    }, 30000);
 
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
+      }
+
+      if (fallbackIntervalRef.current) {
+        window.clearInterval(fallbackIntervalRef.current);
       }
     };
   }, [conversationId]);
@@ -238,6 +310,7 @@ export default function ChatConversationClient({
 
       if (Array.isArray(data.messages)) {
         setMessages(data.messages);
+        setLastSyncAt(new Date().toISOString());
       }
 
       if (channelRef.current) {
@@ -300,9 +373,15 @@ export default function ChatConversationClient({
                 : "Conversación"}
             </p>
 
-            <p className="mt-2 text-xs text-white/45">
-              Estado: {detail.estado}
-            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <p className="text-xs text-white/45">Estado: {detail.estado}</p>
+              <ConnectionBadge status={connectionStatus} />
+              {lastSyncAt && (
+                <span className="text-[11px] text-white/35">
+                  Última sync {formatHora(lastSyncAt)}
+                </span>
+              )}
+            </div>
           </div>
 
           {detail.other_user_email && (
