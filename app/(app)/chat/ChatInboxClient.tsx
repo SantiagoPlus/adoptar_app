@@ -78,7 +78,7 @@ function InboxConnectionBadge({
     { label: string; className: string; dot: string }
   > = {
     connecting: {
-      label: "Conectando",
+      label: "Sincronizando",
       className: "border-white/10 bg-white/5 text-white/60",
       dot: "bg-white/50",
     },
@@ -88,14 +88,14 @@ function InboxConnectionBadge({
       dot: "bg-green-400",
     },
     reconnecting: {
-      label: "Reconectando",
+      label: "Sincronizando",
       className: "border-yellow-500/20 bg-yellow-500/10 text-yellow-200",
       dot: "bg-yellow-400",
     },
     offline: {
-      label: "Fallback activo",
-      className: "border-red-500/20 bg-red-500/10 text-red-200",
-      dot: "bg-red-400",
+      label: "Actualización periódica",
+      className: "border-white/10 bg-white/5 text-white/60",
+      dot: "bg-white/50",
     },
   };
 
