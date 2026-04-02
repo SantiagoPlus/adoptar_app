@@ -26,6 +26,12 @@ type Props = {
   initialInbox: ChatInboxItem[];
 };
 
+type ConnectionStatus =
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "offline";
+
 function formatHora(value?: string | null) {
   if (!value) return "";
 
@@ -60,9 +66,67 @@ async function parseJsonResponse(response: Response) {
   }
 }
 
+function InboxConnectionBadge({
+  status,
+  lastSyncAt,
+}: {
+  status: ConnectionStatus;
+  lastSyncAt: string | null;
+}) {
+  const config: Record<
+    ConnectionStatus,
+    { label: string; className: string; dot: string }
+  > = {
+    connecting: {
+      label: "Conectando",
+      className: "border-white/10 bg-white/5 text-white/60",
+      dot: "bg-white/50",
+    },
+    connected: {
+      label: "Conectado",
+      className: "border-green-500/20 bg-green-500/10 text-green-200",
+      dot: "bg-green-400",
+    },
+    reconnecting: {
+      label: "Reconectando",
+      className: "border-yellow-500/20 bg-yellow-500/10 text-yellow-200",
+      dot: "bg-yellow-400",
+    },
+    offline: {
+      label: "Fallback activo",
+      className: "border-red-500/20 bg-red-500/10 text-red-200",
+      dot: "bg-red-400",
+    },
+  };
+
+  const item = config[status];
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] ${item.className}`}
+      >
+        <span className={`h-2 w-2 rounded-full ${item.dot}`} />
+        {item.label}
+      </span>
+
+      {lastSyncAt && (
+        <span className="text-[11px] text-white/40">
+          Última sync {formatHora(lastSyncAt)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function ChatInboxClient({ initialInbox }: Props) {
   const [inbox, setInbox] = useState<ChatInboxItem[]>(initialInbox);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>("connecting");
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(
+    initialInbox.length > 0 ? new Date().toISOString() : null,
+  );
 
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null);
   const channelsRef = useRef<any[]>([]);
@@ -93,6 +157,7 @@ export default function ChatInboxClient({ initialInbox }: Props) {
       if (Array.isArray(data.inbox)) {
         setInbox(data.inbox);
         setError(null);
+        setLastSyncAt(new Date().toISOString());
       }
     } catch (err) {
       setError(
@@ -115,6 +180,13 @@ export default function ChatInboxClient({ initialInbox }: Props) {
     });
     channelsRef.current = [];
 
+    if (conversationIds.length === 0) {
+      setConnectionStatus("offline");
+      return;
+    }
+
+    setConnectionStatus("connecting");
+
     conversationIds.forEach((conversationId) => {
       const topic = `chat:${conversationId}`;
 
@@ -130,7 +202,19 @@ export default function ChatInboxClient({ initialInbox }: Props) {
         .on("broadcast", { event: "message:new" }, async () => {
           await refreshInbox();
         })
-        .subscribe();
+        .subscribe((status: string) => {
+          if (status === "SUBSCRIBED") {
+            setConnectionStatus("connected");
+          } else if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            setConnectionStatus("offline");
+          } else {
+            setConnectionStatus("reconnecting");
+          }
+        });
 
       channelsRef.current.push(channel);
     });
@@ -144,8 +228,8 @@ export default function ChatInboxClient({ initialInbox }: Props) {
   }, [conversationIds]);
 
   useEffect(() => {
-    fallbackIntervalRef.current = window.setInterval(() => {
-      void refreshInbox();
+    fallbackIntervalRef.current = window.setInterval(async () => {
+      await refreshInbox();
     }, 30000);
 
     return () => {
@@ -158,6 +242,11 @@ export default function ChatInboxClient({ initialInbox }: Props) {
   if (inbox.length === 0) {
     return (
       <div className="space-y-4">
+        <InboxConnectionBadge
+          status={connectionStatus}
+          lastSyncAt={lastSyncAt}
+        />
+
         {error && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
             {error}
@@ -177,6 +266,8 @@ export default function ChatInboxClient({ initialInbox }: Props) {
 
   return (
     <div className="space-y-4">
+      <InboxConnectionBadge status={connectionStatus} lastSyncAt={lastSyncAt} />
+
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
           {error}
@@ -214,7 +305,9 @@ export default function ChatInboxClient({ initialInbox }: Props) {
                       <div className="flex flex-wrap items-center gap-2">
                         <h2
                           className={`truncate text-base md:text-lg ${
-                            isUnread ? "font-bold text-white" : "font-semibold text-white"
+                            isUnread
+                              ? "font-bold text-white"
+                              : "font-semibold text-white"
                           }`}
                         >
                           {title}
