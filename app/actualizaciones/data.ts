@@ -12,6 +12,21 @@ export type UpdatePost = {
 
 export const updates: UpdatePost[] = [
   {
+    slug: "chat-integrado-al-flujo-de-adopcion-mensajeria-operativa-en-el-mvp",
+    category: "Novedades y Actualizaciones",
+    title: "Chat integrado al flujo de adopción: mensajería operativa en el MVP",
+    summary:
+      "El módulo de chat ya funciona como parte estable del MVP y quedó integrado al circuito principal de adopción. Ahora publicadores y solicitantes pueden conversar con historial, estados de lectura y actualización en tiempo real.",
+    date: "02 Apr 2026",
+    status: "Hecho",
+    content: [
+      "En esta etapa, Adopta App consolidó el módulo de chat como un subsistema operativo dentro del MVP. La mensajería ya no es una prueba técnica aislada: quedó integrada al proceso de adopción y permite conversaciones persistentes entre las partes involucradas, con permisos restringidos por participante y acceso contextual desde solicitudes reales.",
+      "Además de la conversación en sí, el producto suma una bandeja en “/chat” que funciona como inbox base, con acceso rápido desde la navegación privada y un indicador de mensajes no leídos. Esto mejora la continuidad del intercambio y reduce fricción: la comunicación sucede donde corresponde, sin perder el contexto del animal y la solicitud.",
+      "A nivel de experiencia, el chat ya se siente cercano a una mensajería real: envío sin recargas completas, visualización inmediata del mensaje y sincronización en tiempo real entre sesiones, junto con estados de leído/no leído. Para esta fase, el resultado se considera suficientemente sólido para sostener el flujo principal sin bloquear el avance del producto.",
+      "Por último, se incorporó una base mínima de moderación mediante reportes persistidos, limitada a participantes de la conversación. Quedan frentes de mejora para una etapa posterior —como una vista administrativa para revisar reportes y acciones sobre conversaciones—, pero el módulo actual ya cumple su rol dentro de la adopción responsable y acompaña la dirección de Adopta App de construir una plataforma clara, seria y en evolución.",
+    ],
+  },
+  {
     slug: "bienvenidos-a-novedades-y-actualizaciones-de-adopta-app",
     category: "Novedades y Actualizaciones",
     title: "Bienvenidos a Novedades y Actualizaciones de Adopta App",
