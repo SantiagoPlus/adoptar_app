@@ -9,7 +9,7 @@ type Mascota = {
   nombre: string;
   especie: string;
   raza: string | null;
-  foto_url: string | null;
+  url_foto: string | null;
 };
 
 function Card({
@@ -154,10 +154,10 @@ function MascotaCard({ mascota }: { mascota: Mascota }) {
       className="block overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]"
     >
       <div className="aspect-[4/3] w-full overflow-hidden bg-white/10">
-        {mascota.foto_url ? (
+        {mascota.url_foto ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={mascota.foto_url}
+            src={mascota.url_foto}
             alt={mascota.nombre}
             className="h-full w-full object-cover"
           />
@@ -234,7 +234,7 @@ async function MascotasSectionContent() {
 
   const { data: mascotas, error } = await supabase
     .from("mascotas")
-    .select("id_mascota, nombre, especie, raza, foto_url")
+    .select("id_mascota, nombre, especie, raza, url_foto")
     .eq("id_usuario", usuario.id_usuario)
     .order("created_at", { ascending: false });
 
