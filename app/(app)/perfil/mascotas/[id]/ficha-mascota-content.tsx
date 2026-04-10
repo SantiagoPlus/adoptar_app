@@ -3,7 +3,12 @@ import { redirect } from "next/navigation";
 import { PawPrint } from "lucide-react";
 import { MascotaFichaTabs } from "./mascota-ficha-tabs";
 
-export async function FichaMascotaContent({ id_mascota }: { id_mascota: string }) {
+export async function FichaMascotaContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: id_mascota } = await params;
   const supabase = await createClient();
 
   const {

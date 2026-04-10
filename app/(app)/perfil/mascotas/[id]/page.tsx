@@ -3,13 +3,11 @@ import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { FichaMascotaContent } from "./ficha-mascota-content";
 
-export default async function FichaMascotaPage({
+export default function FichaMascotaPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-6 py-10">
@@ -24,7 +22,7 @@ export default async function FichaMascotaPage({
         </div>
 
         <Suspense fallback={<div className="text-white/50">Cargando ficha de mascota...</div>}>
-          <FichaMascotaContent id_mascota={id} />
+          <FichaMascotaContent params={params} />
         </Suspense>
       </section>
     </main>
