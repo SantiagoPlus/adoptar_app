@@ -1,7 +1,16 @@
-//perfil
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { PerfilPersonalContent } from "./perfil-personal-content";
+
+type Mascota = {
+  id_mascota: string;
+  nombre: string;
+  especie: string;
+  raza: string | null;
+  foto_url: string | null;
+};
 
 function Card({
   eyebrow,
@@ -52,7 +61,11 @@ function Card({
       </div>
 
       {cta ? (
-        <p className={isCompact ? "mt-3 text-sm text-white/60" : "mt-4 text-sm text-white/60"}>
+        <p
+          className={
+            isCompact ? "mt-3 text-sm text-white/60" : "mt-4 text-sm text-white/60"
+          }
+        >
           {cta}
         </p>
       ) : null}
@@ -81,31 +94,177 @@ function PerfilPersonalSkeleton() {
         <div className="h-px w-full bg-white/10" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_1.9fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-full border border-white/10 bg-white/10" />
-            <div className="flex-1">
-              <div className="mb-2 h-3 w-16 rounded bg-white/10" />
-              <div className="mb-2 h-6 w-40 rounded bg-white/10" />
-              <div className="h-4 w-56 rounded bg-white/10" />
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-full border border-white/10 bg-white/10" />
+          <div className="flex-1">
+            <div className="mb-2 h-3 w-16 rounded bg-white/10" />
+            <div className="mb-2 h-6 w-40 rounded bg-white/10" />
+            <div className="h-4 w-56 rounded bg-white/10" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MascotasSectionSkeleton() {
+  return (
+    <section className="mb-10">
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Mis mascotas</h2>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
+            Gestión de Salud
+          </span>
+        </div>
+        <div className="h-px w-full bg-white/10" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
+          >
+            <div className="aspect-[4/3] animate-pulse bg-white/10" />
+            <div className="p-4">
+              <div className="mb-2 h-5 w-24 rounded bg-white/10" />
+              <div className="mb-4 h-4 w-28 rounded bg-white/10" />
+              <div className="h-4 w-16 rounded bg-white/10" />
             </div>
           </div>
-        </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="grid gap-3 md:grid-cols-2">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="rounded-xl border border-white/10 bg-black/20 p-4"
-              >
-                <div className="mb-2 h-3 w-20 rounded bg-white/10" />
-                <div className="h-4 w-28 rounded bg-white/10" />
-              </div>
-            ))}
+function getMascotaSubtitle(mascota: Mascota) {
+  const especie =
+    mascota.especie.charAt(0).toUpperCase() + mascota.especie.slice(1);
+
+  return mascota.raza ? `${especie} • ${mascota.raza}` : especie;
+}
+
+function MascotaCard({ mascota }: { mascota: Mascota }) {
+  return (
+    <Link
+      href={`/mascotas/${mascota.id_mascota}`}
+      className="block overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20 hover:bg-white/[0.07]"
+    >
+      <div className="aspect-[4/3] w-full overflow-hidden bg-white/10">
+        {mascota.foto_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={mascota.foto_url}
+            alt={mascota.nombre}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-white/35">
+            <span className="text-xs uppercase tracking-wide">Sin foto</span>
           </div>
+        )}
+      </div>
+
+      <div className="p-4">
+        <h3 className="line-clamp-1 text-lg font-semibold text-[#f5a623]">
+          {mascota.nombre}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-sm text-white/70">
+          {getMascotaSubtitle(mascota)}
+        </p>
+
+        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-sm text-white/80">
+          <span>Ver ficha</span>
+          <span aria-hidden>→</span>
         </div>
+      </div>
+    </Link>
+  );
+}
+
+function AgregarMascotaCard() {
+  return (
+    <Link
+      href="/mascotas/nueva"
+      className="block overflow-hidden rounded-2xl border border-dashed border-[#f5a623]/60 bg-white/5 transition hover:border-[#f5a623] hover:bg-white/[0.07]"
+    >
+      <div className="flex aspect-[4/3] items-center justify-center bg-white/[0.02]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f5a623]/20 text-3xl text-[#f5a623]">
+          +
+        </div>
+      </div>
+
+      <div className="p-4 text-center">
+        <h3 className="text-base font-semibold text-white">Agregar Mascota</h3>
+        <p className="mt-1 text-sm text-white/60">
+          Crear ficha y habilitar seguimiento
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+async function MascotasSectionContent() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const { data: usuario, error: usuarioError } = await supabase
+    .from("usuarios")
+    .select("id_usuario")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (usuarioError || !usuario) {
+    return (
+      <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+        No se pudo cargar el vínculo de tu cuenta con tus mascotas.
+      </div>
+    );
+  }
+
+  const { data: mascotas, error } = await supabase
+    .from("mascotas")
+    .select("id_mascota, nombre, especie, raza, foto_url")
+    .eq("id_usuario", usuario.id_usuario)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+        Ocurrió un error al cargar tus mascotas.
+      </div>
+    );
+  }
+
+  const items = (mascotas ?? []) as Mascota[];
+
+  return (
+    <section className="mb-10">
+      <div className="mb-6">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-semibold">Mis mascotas</h2>
+          <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+            Gestión de Salud
+          </span>
+        </div>
+        <div className="h-px w-full bg-white/10" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
+        <AgregarMascotaCard />
+        {items.map((mascota) => (
+          <MascotaCard key={mascota.id_mascota} mascota={mascota} />
+        ))}
       </div>
     </section>
   );
@@ -137,40 +296,9 @@ export default function PerfilPage() {
           <PerfilPersonalContent />
         </Suspense>
 
-        <section className="mb-10">
-          <div className="mb-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-2xl font-semibold">Mis mascotas</h2>
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-                Desarrollo posterior
-              </span>
-            </div>
-            <div className="h-px w-full bg-white/10" />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card
-              eyebrow="Gestión personal"
-              title="Mis mascotas"
-              description="Acá vas a poder registrar tus mascotas, acceder a la información de cada una y gestionar su seguimiento."
-              cta="Próximamente"
-            />
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="mb-2 text-xs uppercase tracking-wide text-white/50">
-                Arquitectura definida
-              </p>
-              <h3 className="mb-2 text-lg font-semibold text-white">
-                Libreta sanitaria dentro de cada mascota
-              </h3>
-              <p className="text-sm leading-6 text-white/70">
-                La libreta sanitaria no funciona como módulo independiente. Va a
-                estar dentro de cada ficha de mascota, junto con vacunas,
-                controles, observaciones y seguimiento.
-              </p>
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<MascotasSectionSkeleton />}>
+          <MascotasSectionContent />
+        </Suspense>
 
         <section>
           <div className="mb-6">
