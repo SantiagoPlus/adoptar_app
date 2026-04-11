@@ -61,9 +61,9 @@ export async function FichaMascotaContent({
 
   return (
     <>
-      <div className="mb-4 rounded-[28px] border border-white/10 bg-white/[0.02] p-5 md:p-7">
-        <div className="flex items-center gap-4 md:gap-6">
-          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/10 bg-black/50 md:h-28 md:w-28">
+      <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-5 md:p-6">
+        <div className="flex items-center gap-4 md:gap-5">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black/50 md:h-28 md:w-28">
             {mascota.url_foto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -93,34 +93,29 @@ export async function FichaMascotaContent({
         </div>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:p-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="mb-1 text-[11px] uppercase tracking-[0.16em] text-white/45">
-              Vinculación futura
-            </p>
-            <h2 className="text-base font-semibold text-white md:text-lg">
-              Acceso de la mascota por QR
-            </h2>
-            <p className="mt-1 text-sm text-white/60">
-              Este acceso va a permitir vincular servicios y acciones futuras
-              sobre la mascota, como atención veterinaria, paseos u otros registros.
-            </p>
+      <div className="group relative mb-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] transition hover:border-amber-500/30 hover:bg-white/[0.05]">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/[0.02] via-transparent to-transparent opacity-70" />
+
+        <div className="relative flex items-center justify-between gap-4 px-4 py-3 md:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-amber-500/15 bg-amber-500/10 text-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.10)]">
+              <QrCode className="h-5 w-5" />
+            </div>
+
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-white">
+                Configurar Acceso QR y Servicios
+              </p>
+              <p className="truncate text-sm text-white/55">
+                Vinculación con veterinarios, paseadores y pagos profesionales.
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/55">
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">
               Próximamente
             </span>
-
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/70 transition disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <QrCode className="h-4 w-4" />
-              Acceso por QR
-            </button>
           </div>
         </div>
       </div>
