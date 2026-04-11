@@ -131,9 +131,11 @@ function getEstadoTone(value: string) {
 function FeedbackBanner({
   ok,
   error,
+  dbError,
 }: {
   ok?: string | null;
   error?: string | null;
+  dbError?: string | null;
 }) {
   if (ok === "aplicacion_registrada") {
     return (
@@ -169,7 +171,12 @@ function FeedbackBanner({
 
   return (
     <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-      {messages[error] ?? "Ocurrió un error inesperado."}
+      <div>{messages[error] ?? "Ocurrió un error inesperado."}</div>
+      {dbError ? (
+        <div className="mt-2 text-xs text-red-200/80">
+          Detalle técnico: {decodeURIComponent(dbError)}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -193,6 +200,7 @@ export function MascotaFichaTabs({
 
   const ok = searchParams.get("ok");
   const error = searchParams.get("error");
+  const dbError = searchParams.get("db_error");
 
   const libretaOrdenada = useMemo(() => {
     return [...libreta].sort((a, b) => {
@@ -263,7 +271,7 @@ export function MascotaFichaTabs({
         </div>
       </div>
 
-      <FeedbackBanner ok={ok} error={error} />
+      <FeedbackBanner ok={ok} error={error} dbError={dbError} />
 
       {activeTab === "libreta" && (
         <section className="space-y-5">
