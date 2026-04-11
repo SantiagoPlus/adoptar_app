@@ -52,19 +52,22 @@ export function NuevaMascotaForm() {
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error de inserción:", insertError);
+        throw new Error(insertError.message || "Error al Guardar en Base de Datos");
+      }
 
       // Navegar a la ficha con el id_mascota
       if (data?.id_mascota) {
         router.push(`/perfil/mascotas/${data.id_mascota}?success=true`);
+        router.refresh();
       } else {
+        setLoading(false);
         router.push("/perfil");
       }
       
-      router.refresh();
-      
     } catch (err: any) {
-      console.error(err);
+      console.error("Error capturado:", err);
       setError(err.message || "Ocurrió un error al registrar la mascota.");
       setLoading(false);
     }
@@ -95,7 +98,7 @@ export function NuevaMascotaForm() {
             required
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           >
-            <option value="" disabled className="bg-black text-white">Selecciona una opción</option>
+            <option value="" disabled selected className="bg-black text-white">Selecciona una especie</option>
             <option value="perro" className="bg-zinc-800">Perro</option>
             <option value="gato" className="bg-zinc-800">Gato</option>
             <option value="otro" className="bg-zinc-800">Otro</option>
@@ -116,13 +119,14 @@ export function NuevaMascotaForm() {
 
         <div>
           <label className="mb-2 block text-sm font-medium text-white/80">
-            Sexo
+            Sexo *
           </label>
           <select
             name="sexo"
+            required
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           >
-            <option value="" className="bg-zinc-800">No especificado</option>
+            <option value="" disabled selected className="bg-black text-white">Selecciona el sexo</option>
             <option value="macho" className="bg-zinc-800">Macho</option>
             <option value="hembra" className="bg-zinc-800">Hembra</option>
           </select>
@@ -141,8 +145,9 @@ export function NuevaMascotaForm() {
       </div>
 
       {error ? (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
-          {error}
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200 animate-in fade-in slide-in-from-top-1">
+          <p className="font-semibold mb-1">No se pudo guardar:</p>
+          <p>{error}</p>
         </div>
       ) : null}
 
@@ -150,9 +155,14 @@ export function NuevaMascotaForm() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 font-medium text-black transition hover:bg-amber-400 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 font-medium text-black transition hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Guardando..." : "Crear Perfil Mascota"}
+          {loading ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></span>
+              Guardando...
+            </>
+          ) : "Crear Perfil Mascota"}
         </button>
       </div>
     </form>
