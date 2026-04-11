@@ -7,6 +7,10 @@ function normalizeText(value: FormDataEntryValue | null) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
 }
 
+function encodeError(message: string) {
+  return encodeURIComponent(message.slice(0, 180));
+}
+
 export async function registrarAplicacion(formData: FormData) {
   const supabase = await createClient();
 
@@ -34,14 +38,14 @@ export async function registrarAplicacion(formData: FormData) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
   }
 
-  if (
-    ![
-      "vacunacion",
-      "desparasitacion_interna",
-      "desparasitacion_externa",
-      "control_preventivo",
-    ].includes(tipo)
-  ) {
+  const tiposValidos = [
+    "vacunacion",
+    "desparasitacion_interna",
+    "desparasitacion_externa",
+    "control_preventivo",
+  ];
+
+  if (!tiposValidos.includes(tipo)) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=tipo_invalido`);
   }
 
@@ -52,6 +56,7 @@ export async function registrarAplicacion(formData: FormData) {
     .single();
 
   if (usuarioError || !usuario) {
+    console.error("registrarAplicacion.usuarioError", usuarioError);
     redirect(`/mascotas/${idMascota}?tab=libreta&error=usuario_no_encontrado`);
   }
 
@@ -62,6 +67,7 @@ export async function registrarAplicacion(formData: FormData) {
     .single();
 
   if (mascotaError || !mascota) {
+    console.error("registrarAplicacion.mascotaError", mascotaError);
     redirect(`/mascotas/${idMascota}?tab=libreta&error=mascota_no_encontrada`);
   }
 
@@ -102,12 +108,19 @@ export async function registrarAplicacion(formData: FormData) {
     observaciones: observaciones || null,
   };
 
+  console.log("registrarAplicacion.payload", payload);
+
   const { error: insertError } = await supabase
     .from("mascotas_libreta_sanitaria")
     .insert(payload);
 
   if (insertError) {
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=error_creacion_registro`);
+    console.error("registrarAplicacion.insertError", insertError);
+    redirect(
+      `/mascotas/${idMascota}?tab=libreta&error=error_creacion_registro&db_error=${encodeError(
+        insertError.message || "error_desconocido",
+      )}`,
+    );
   }
 
   redirect(`/mascotas/${idMascota}?tab=libreta&ok=aplicacion_registrada`);
@@ -157,6 +170,7 @@ export async function registrarVisita(formData: FormData) {
     .single();
 
   if (usuarioError || !usuario) {
+    console.error("registrarVisita.usuarioError", usuarioError);
     redirect(`/mascotas/${idMascota}?tab=historial&error=usuario_no_encontrado`);
   }
 
@@ -167,6 +181,7 @@ export async function registrarVisita(formData: FormData) {
     .single();
 
   if (mascotaError || !mascota) {
+    console.error("registrarVisita.mascotaError", mascotaError);
     redirect(`/mascotas/${idMascota}?tab=historial&error=mascota_no_encontrada`);
   }
 
@@ -202,12 +217,19 @@ export async function registrarVisita(formData: FormData) {
     observaciones: observaciones || null,
   };
 
+  console.log("registrarVisita.payload", payload);
+
   const { error: insertError } = await supabase
     .from("mascotas_historial_clinico")
     .insert(payload);
 
   if (insertError) {
-    redirect(`/mascotas/${idMascota}?tab=historial&error=error_creacion_historial`);
+    console.error("registrarVisita.insertError", insertError);
+    redirect(
+      `/mascotas/${idMascota}?tab=historial&error=error_creacion_historial&db_error=${encodeError(
+        insertError.message || "error_desconocido",
+      )}`,
+    );
   }
 
   redirect(`/mascotas/${idMascota}?tab=historial&ok=visita_registrada`);
