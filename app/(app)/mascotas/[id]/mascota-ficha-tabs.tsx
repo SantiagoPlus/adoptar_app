@@ -71,7 +71,7 @@ function formatFecha(value: string | null) {
 }
 
 function getLibrettaTone(tipo: string) {
-  if (tipo === "vacunacion") {
+  if (tipo === "vacunacion" || tipo === "vacuna") {
     return {
       icon: <Syringe className="h-5 w-5" />,
       accent: "text-emerald-300",
@@ -81,7 +81,7 @@ function getLibrettaTone(tipo: string) {
     };
   }
 
-  if (tipo === "desparasitacion_interna") {
+  if (tipo === "desparasitacion_interna" || tipo === "desparasitacion") {
     return {
       icon: <Pill className="h-5 w-5" />,
       accent: "text-amber-300",
@@ -139,7 +139,7 @@ function FeedbackBanner({
 }) {
   if (ok === "aplicacion_registrada") {
     return (
-      <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+      <div className="mb-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
         El registro preventivo fue creado correctamente.
       </div>
     );
@@ -147,7 +147,7 @@ function FeedbackBanner({
 
   if (ok === "visita_registrada") {
     return (
-      <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+      <div className="mb-5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
         El evento clínico fue creado correctamente.
       </div>
     );
@@ -170,7 +170,7 @@ function FeedbackBanner({
   };
 
   return (
-    <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+    <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
       <div>{messages[error] ?? "Ocurrió un error inesperado."}</div>
       {dbError ? (
         <div className="mt-2 text-xs text-red-200/80">
@@ -239,15 +239,15 @@ export function MascotaFichaTabs({
         item={detalleItem}
       />
 
-      <div className="mb-5 rounded-2xl bg-white/[0.03] p-1.5">
+      <div className="mb-5 rounded-xl bg-white/[0.03] p-1.5">
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setActiveTab("libreta")}
             className={[
-              "flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition",
+              "flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
               activeTab === "libreta"
-                ? "bg-white/[0.02] text-white"
+                ? "bg-amber-500 text-black"
                 : "bg-transparent text-white/55 hover:bg-white/[0.03] hover:text-white",
             ].join(" ")}
           >
@@ -259,7 +259,7 @@ export function MascotaFichaTabs({
             type="button"
             onClick={() => setActiveTab("historial")}
             className={[
-              "flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition",
+              "flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
               activeTab === "historial"
                 ? "bg-emerald-500 text-black"
                 : "bg-transparent text-white/55 hover:bg-white/[0.03] hover:text-white",
@@ -275,72 +275,68 @@ export function MascotaFichaTabs({
 
       {activeTab === "libreta" && (
         <section className="space-y-5">
-          <div className="overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-r from-[#0f0f0f] via-[#090909] to-[#120e07] p-7">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-5">
-                <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
-                  <ShieldCheck className="h-9 w-9" />
-                </div>
-
-                <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-                    Estado preventivo · <span className="text-emerald-400">protegido</span>
-                  </p>
-
-                  <h2 className="text-4xl font-bold tracking-tight text-white">
-                    Ecosistema de Salud
-                  </h2>
-
-                  <p className="mt-3 text-sm text-white/60">
-                    Microchip: <span className="font-medium text-white/85">900-111-000-1234</span>
-                    <span className="mx-3 text-white/25">•</span>
-                    Dueño: <span className="font-medium text-white/85">Santiago B.</span>
-                  </p>
-                </div>
+          <div className="overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-r from-[#0f0f0f] via-[#090909] to-[#120e07] p-6 md:p-7">
+            <div className="flex items-start gap-4 md:gap-5">
+              <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-5 text-amber-400">
+                <ShieldCheck className="h-8 w-8" />
               </div>
 
-              <div className="flex items-center">
-                <RegistrarAplicacionModal idMascota={id_mascota} />
+              <div className="min-w-0 flex-1">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
+                  Estado preventivo · <span className="text-emerald-400">protegido</span>
+                </p>
+
+                <h2 className="text-4xl font-black italic tracking-tight text-white md:text-5xl">
+                  Ecosistema de Salud
+                </h2>
+
+                <p className="mt-3 text-sm text-white/60">
+                  Microchip: <span className="font-medium text-white/85">900-111-000-1234</span>
+                  <span className="mx-3 text-white/25">•</span>
+                  Dueño: <span className="font-medium text-white/85">Santiago B.</span>
+                </p>
+
+                <div className="mt-5">
+                  <RegistrarAplicacionModal idMascota={id_mascota} />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-[#080808] p-6">
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.03] text-white/70">
-                  <Activity className="h-5 w-5" />
-                </div>
-
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-                    Línea de vida médica
-                  </p>
-                  <h3 className="mt-1 text-3xl font-black italic tracking-tight text-white">
-                    LÍNEA DE VIDA MÉDICA
-                  </h3>
-                </div>
+          <div className="rounded-[22px] border border-white/10 bg-[#080808] p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.03] text-white/70">
+                <Activity className="h-5 w-5" />
               </div>
 
-              <div className="grid grid-cols-4 gap-2 rounded-2xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
-                <div className="flex h-11 items-center justify-center rounded-xl bg-amber-500 px-4 text-black">
-                  Prevención
-                </div>
-                <div className="flex h-11 items-center justify-center rounded-xl px-4 text-white/40">
-                  Clínica
-                </div>
-                <div className="flex h-11 items-center justify-center rounded-xl px-4 text-white/40">
-                  Diagnóstico
-                </div>
-                <div className="flex h-11 items-center justify-center rounded-xl px-4 text-white/40">
-                  Vida
-                </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
+                  Línea de vida médica
+                </p>
+                <h3 className="mt-1 text-3xl font-black italic tracking-tight text-white md:text-4xl">
+                  LÍNEA DE VIDA MÉDICA
+                </h3>
+              </div>
+            </div>
+
+            <div className="mb-5 grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
+              <div className="flex h-11 items-center justify-center rounded-lg bg-amber-500 px-4 text-black">
+                Prevención
+              </div>
+              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+                Clínica
+              </div>
+              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+                Diagnóstico
+              </div>
+              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+                Vida
               </div>
             </div>
 
             <div className="space-y-4">
               {libretaOrdenada.length === 0 ? (
-                <div className="rounded-[24px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+                <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
                   <p className="text-xl font-medium text-white/70">
                     La libreta sanitaria está vacía.
                   </p>
@@ -357,12 +353,12 @@ export function MascotaFichaTabs({
                   return (
                     <article
                       key={item.id_registro}
-                      className="rounded-[24px] border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/15 hover:bg-white/[0.03]"
+                      className="rounded-[20px] border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                     >
                       <div className="flex items-center gap-4">
                         <div
                           className={[
-                            "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border",
+                            "flex h-16 w-16 shrink-0 items-center justify-center rounded-[16px] border",
                             tone.bg,
                             tone.border,
                             tone.accent,
@@ -436,7 +432,7 @@ export function MascotaFichaTabs({
                           <button
                             type="button"
                             onClick={() => openLibrettaDetail(item)}
-                            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                            className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
                           >
                             <ChevronRight className="h-5 w-5" />
                           </button>
@@ -453,7 +449,7 @@ export function MascotaFichaTabs({
 
       {activeTab === "historial" && (
         <section className="space-y-5">
-          <div className="rounded-[28px] border border-white/10 bg-[#080808] p-6">
+          <div className="rounded-[22px] border border-white/10 bg-[#080808] p-6">
             <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-400/80">
@@ -468,14 +464,14 @@ export function MascotaFichaTabs({
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="flex h-12 items-center gap-3 rounded-2xl bg-white/[0.03] px-4 text-white/40">
+                <div className="flex h-12 items-center gap-3 rounded-xl bg-white/[0.03] px-4 text-white/40">
                   <Search className="h-4 w-4" />
                   <span className="text-sm">Buscar registro...</span>
                 </div>
 
                 <button
                   type="button"
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.03] text-white/45"
+                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.03] text-white/45"
                 >
                   <Filter className="h-4 w-4" />
                 </button>
@@ -483,17 +479,17 @@ export function MascotaFichaTabs({
             </div>
 
             <div className="mb-5 flex items-center justify-between gap-3">
-              <div className="grid grid-cols-4 gap-2 rounded-2xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
-                <div className="flex h-12 items-center justify-center rounded-xl bg-emerald-500 text-black">
+              <div className="grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
+                <div className="flex h-12 items-center justify-center rounded-lg bg-emerald-500 text-black">
                   Historial total
                 </div>
-                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
                   Consultas
                 </div>
-                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
                   Cirugías
                 </div>
-                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
                   Estudios / Lab
                 </div>
               </div>
@@ -503,7 +499,7 @@ export function MascotaFichaTabs({
 
             <div className="space-y-4">
               {historialOrdenado.length === 0 ? (
-                <div className="rounded-[24px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+                <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
                   <p className="text-xl font-medium text-white/70">
                     Sin historial clínico cargado.
                   </p>
@@ -515,7 +511,7 @@ export function MascotaFichaTabs({
                 historialOrdenado.map((item) => (
                   <article
                     key={item.id_historial}
-                    className="rounded-[24px] border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/15 hover:bg-white/[0.03]"
+                    className="rounded-[20px] border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/15 hover:bg-white/[0.03]"
                   >
                     <div className="grid gap-5 lg:grid-cols-[180px_1fr_48px]">
                       <div>
@@ -557,7 +553,7 @@ export function MascotaFichaTabs({
                           {(item.titulo || item.motivo_consulta).toUpperCase()}
                         </h4>
 
-                        <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 px-4 py-4 text-white/70">
+                        <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-4 text-white/70">
                           {item.resultado_resumen ||
                             item.diagnostico ||
                             item.tratamiento_indicado ||
@@ -582,7 +578,7 @@ export function MascotaFichaTabs({
                         <button
                           type="button"
                           onClick={() => openHistorialDetail(item)}
-                          className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                          className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
                         >
                           <ChevronRight className="h-5 w-5" />
                         </button>
