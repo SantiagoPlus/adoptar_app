@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
 import { RegistrarVisitaModal } from "./registrar-visita-modal";
+import { EventoDetalleModal } from "./evento-detalle-modal";
 
 type LibretaItem = {
   id_registro: string;
@@ -34,6 +35,8 @@ type LibretaItem = {
   lote: string | null;
   profesional_nombre: string | null;
   profesional_matricula: string | null;
+  profesional_documento?: string | null;
+  institucion?: string | null;
   estado_validacion: string;
   fecha_proximo_evento: string | null;
 };
@@ -49,10 +52,15 @@ type HistorialItem = {
   categoria: string | null;
   profesional_nombre: string | null;
   profesional_matricula: string | null;
+  profesional_documento?: string | null;
   institucion: string | null;
   estado_validacion: string;
   tipo_estudio: string | null;
   resultado_resumen: string | null;
+  medicacion_o_tratamiento?: string | null;
+  dosis?: string | null;
+  duracion_tratamiento?: string | null;
+  fecha_proximo_control?: string | null;
 };
 
 function formatFecha(value: string | null) {
@@ -179,6 +187,9 @@ export function MascotaFichaTabs({
   const initialTab = searchParams.get("tab") === "historial" ? "historial" : "libreta";
 
   const [activeTab, setActiveTab] = useState<"libreta" | "historial">(initialTab);
+  const [detalleOpen, setDetalleOpen] = useState(false);
+  const [detalleKind, setDetalleKind] = useState<"libreta" | "historial">("libreta");
+  const [detalleItem, setDetalleItem] = useState<LibretaItem | HistorialItem | null>(null);
 
   const ok = searchParams.get("ok");
   const error = searchParams.get("error");
@@ -199,8 +210,27 @@ export function MascotaFichaTabs({
     });
   }, [historial]);
 
+  function openLibrettaDetail(item: LibretaItem) {
+    setDetalleKind("libreta");
+    setDetalleItem(item);
+    setDetalleOpen(true);
+  }
+
+  function openHistorialDetail(item: HistorialItem) {
+    setDetalleKind("historial");
+    setDetalleItem(item);
+    setDetalleOpen(true);
+  }
+
   return (
     <div>
+      <EventoDetalleModal
+        open={detalleOpen}
+        onClose={() => setDetalleOpen(false)}
+        kind={detalleKind}
+        item={detalleItem}
+      />
+
       <div className="mb-5 rounded-2xl bg-white/[0.03] p-1.5">
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -397,6 +427,7 @@ export function MascotaFichaTabs({
 
                           <button
                             type="button"
+                            onClick={() => openLibrettaDetail(item)}
                             className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
                           >
                             <ChevronRight className="h-5 w-5" />
@@ -542,6 +573,7 @@ export function MascotaFichaTabs({
                       <div className="flex items-start justify-end">
                         <button
                           type="button"
+                          onClick={() => openHistorialDetail(item)}
                           className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
                         >
                           <ChevronRight className="h-5 w-5" />
