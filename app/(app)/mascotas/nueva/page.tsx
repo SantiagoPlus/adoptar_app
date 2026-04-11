@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SubmitButton } from "./submit-button";
 
 type SearchParams = Promise<{ error?: string; ok?: string }>;
 
@@ -9,10 +10,6 @@ function normalizeText(value: FormDataEntryValue | null) {
   return String(value ?? "")
     .trim()
     .replace(/\s+/g, " ");
-}
-
-function normalizeLower(value: string) {
-  return value.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function isValidHttpUrl(value: string) {
@@ -69,32 +66,6 @@ async function registrarMascota(formData: FormData) {
 
   if (urlFoto && !isValidHttpUrl(urlFoto)) {
     redirect("/mascotas/nueva?error=url_foto_invalida");
-  }
-
-  const nombreNorm = normalizeLower(nombre);
-  const razaNorm = normalizeLower(raza);
-
-  const { data: existentes, error: existentesError } = await supabase
-    .from("mascotas")
-    .select("id_mascota, nombre, especie, raza, fecha_nacimiento")
-    .eq("id_usuario", usuario.id_usuario)
-    .eq("especie", especie);
-
-  if (existentesError) {
-    redirect("/mascotas/nueva?error=error_validacion");
-  }
-
-  const duplicada = (existentes ?? []).find((item) => {
-    const sameNombre = normalizeLower(item.nombre ?? "") === nombreNorm;
-    const sameRaza = normalizeLower(item.raza ?? "") === razaNorm;
-    const sameFecha =
-      String(item.fecha_nacimiento ?? "") === String(fechaNacimiento || "");
-
-    return sameNombre && sameRaza && sameFecha;
-  });
-
-  if (duplicada?.id_mascota) {
-    redirect(`/mascotas/${duplicada.id_mascota}?ok=mascota_existente`);
   }
 
   const payload = {
@@ -162,7 +133,8 @@ function NuevaMascotaSkeleton() {
           />
         ))}
       </div>
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 flex justify-end gap-3">
+        <div className="h-12 w-28 animate-pulse rounded-xl bg-white/10" />
         <div className="h-12 w-40 animate-pulse rounded-xl bg-white/10" />
       </div>
     </div>
@@ -192,7 +164,6 @@ function FeedbackBanner({
     especie_invalida: "La especie indicada no es válida.",
     sexo_invalido: "El sexo indicado no es válido.",
     url_foto_invalida: "La URL de la foto no es válida.",
-    error_validacion: "No se pudo validar si la mascota ya existía.",
     error_creacion: "Ocurrió un error al registrar la mascota.",
   };
 
@@ -296,12 +267,7 @@ async function NuevaMascotaContent({
             Cancelar
           </Link>
 
-          <button
-            type="submit"
-            className="rounded-xl bg-[#b8860b] px-5 py-3 font-medium text-black transition hover:opacity-90"
-          >
-            Registrar mascota
-          </button>
+          <SubmitButton />
         </div>
       </form>
     </>
