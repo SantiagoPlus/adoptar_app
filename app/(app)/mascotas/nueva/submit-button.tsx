@@ -1,0 +1,18 @@
+"use client";
+
+import { useFormStatus } from "react-dom";
+
+export function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-disabled={pending}
+      className="rounded-xl bg-[#b8860b] px-5 py-3 font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {pending ? "Guardando..." : "Registrar mascota"}
+    </button>
+  );
+}
