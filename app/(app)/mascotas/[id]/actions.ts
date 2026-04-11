@@ -11,6 +11,14 @@ function encodeError(message: string) {
   return encodeURIComponent(message.slice(0, 180));
 }
 
+function mapLibrettaTipo(tipoUI: string) {
+  if (tipoUI === "vacunacion") return "vacuna";
+  if (tipoUI === "desparasitacion_interna") return "desparasitacion";
+  if (tipoUI === "desparasitacion_externa") return "desparasitacion";
+  if (tipoUI === "control_preventivo") return "control";
+  return "otro";
+}
+
 export async function registrarAplicacion(formData: FormData) {
   const supabase = await createClient();
 
@@ -19,7 +27,7 @@ export async function registrarAplicacion(formData: FormData) {
   } = await supabase.auth.getUser();
 
   const idMascota = normalizeText(formData.get("id_mascota"));
-  const tipo = normalizeText(formData.get("tipo"));
+  const tipoUI = normalizeText(formData.get("tipo"));
   const titulo = normalizeText(formData.get("titulo"));
   const descripcion = normalizeText(formData.get("descripcion"));
   const fechaAplicacion = normalizeText(formData.get("fecha_aplicacion"));
@@ -34,18 +42,18 @@ export async function registrarAplicacion(formData: FormData) {
     redirect(`/auth/login?next=/mascotas/${idMascota}`);
   }
 
-  if (!idMascota || !tipo || !titulo || !fechaAplicacion) {
+  if (!idMascota || !tipoUI || !titulo || !fechaAplicacion) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
   }
 
-  const tiposValidos = [
+  const tiposUIValidos = [
     "vacunacion",
     "desparasitacion_interna",
     "desparasitacion_externa",
     "control_preventivo",
   ];
 
-  if (!tiposValidos.includes(tipo)) {
+  if (!tiposUIValidos.includes(tipoUI)) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=tipo_invalido`);
   }
 
@@ -80,14 +88,8 @@ export async function registrarAplicacion(formData: FormData) {
       ? "avalado_manual"
       : "cargado_por_tutor";
 
-  const categoria =
-    tipo === "vacunacion"
-      ? "vacuna"
-      : tipo === "desparasitacion_interna"
-        ? "parasitos_internos"
-        : tipo === "desparasitacion_externa"
-          ? "parasitos_externos"
-          : "control";
+  const tipo = mapLibrettaTipo(tipoUI);
+  const categoria = tipoUI;
 
   const payload = {
     id_mascota: idMascota,
