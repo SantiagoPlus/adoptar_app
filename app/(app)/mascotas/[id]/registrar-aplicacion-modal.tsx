@@ -12,7 +12,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex h-14 items-center justify-center rounded-2xl bg-amber-500 px-6 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex h-14 items-center justify-center rounded-xl bg-amber-500 px-6 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? "Guardando..." : "CONFIRMAR REGISTRO AVALADO"}
     </button>
@@ -35,7 +35,7 @@ function TipoButton({
       type="button"
       onClick={() => onClick(value)}
       className={[
-        "flex h-14 items-center justify-center rounded-2xl border px-4 text-sm font-semibold transition",
+        "flex h-14 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition",
         active
           ? "border-amber-500 bg-amber-500/10 text-amber-400"
           : "border-white/10 bg-white/[0.03] text-white/55 hover:bg-white/[0.05] hover:text-white",
@@ -66,7 +66,7 @@ export function RegistrarAplicacionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-14 items-center gap-3 rounded-2xl bg-amber-500 px-6 text-sm font-semibold text-black transition hover:opacity-90"
+        className="inline-flex h-14 items-center gap-3 rounded-xl bg-white px-6 text-sm font-semibold text-black transition hover:opacity-90"
       >
         <Plus className="h-4 w-4" />
         REGISTRAR DOSIS / VISITA
@@ -74,13 +74,13 @@ export function RegistrarAplicacionModal({
 
       {open ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-[32px] border border-white/10 bg-[#080808] shadow-2xl">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[24px] border border-white/10 bg-[#080808] shadow-2xl">
             <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-white/10" />
 
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.05] text-white/70 transition hover:bg-white/[0.08] hover:text-white"
+              className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.05] text-white/70 transition hover:bg-white/[0.08] hover:text-white"
             >
               <X className="h-5 w-5" />
             </button>
@@ -128,7 +128,7 @@ export function RegistrarAplicacionModal({
                       type="date"
                       name="fecha_aplicacion"
                       required
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                      className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                     />
                   </div>
                 </div>
@@ -142,7 +142,7 @@ export function RegistrarAplicacionModal({
                     name="titulo"
                     required
                     placeholder={descripcionPlaceholder}
-                    className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                    className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                   />
                 </div>
 
@@ -157,7 +157,7 @@ export function RegistrarAplicacionModal({
                       type="text"
                       name="lote"
                       placeholder="Ej: ABC-1234"
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                      className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                     />
                   </div>
 
@@ -169,7 +169,7 @@ export function RegistrarAplicacionModal({
                       type="text"
                       name="fabricante"
                       placeholder="Ej: Merial, Zoetis..."
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                      className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                     />
                   </div>
 
@@ -180,7 +180,7 @@ export function RegistrarAplicacionModal({
                     <input
                       type="date"
                       name="fecha_proximo_evento"
-                      className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                      className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                     />
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export function RegistrarAplicacionModal({
                         type="text"
                         name="profesional_nombre"
                         placeholder="Nombre completo"
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                        className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                       />
                     </div>
 
@@ -207,7 +207,7 @@ export function RegistrarAplicacionModal({
                         type="text"
                         name="profesional_matricula"
                         placeholder="Ej: MP 1234 / MN 5678"
-                        className="h-14 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
+                        className="h-14 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-white outline-none"
                       />
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export function RegistrarAplicacionModal({
                     Evidencia veterinaria (foto sello/etiqueta)
                   </label>
 
-                  <div className="flex h-24 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/35">
+                  <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/35">
                     <div className="flex items-center gap-3">
                       <Camera className="h-5 w-5" />
                       <span>Capturar Firma o Sticker del Frasco</span>
@@ -232,7 +232,7 @@ export function RegistrarAplicacionModal({
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="flex h-14 items-center justify-center rounded-2xl border border-white/10 bg-transparent px-6 text-sm font-semibold text-white/75 transition hover:bg-white/[0.04] hover:text-white"
+                    className="flex h-14 items-center justify-center rounded-xl border border-white/10 bg-transparent px-6 text-sm font-semibold text-white/75 transition hover:bg-white/[0.04] hover:text-white"
                   >
                     CANCELAR
                   </button>
