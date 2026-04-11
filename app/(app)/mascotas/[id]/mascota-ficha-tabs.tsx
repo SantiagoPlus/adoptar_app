@@ -274,8 +274,8 @@ export function MascotaFichaTabs({
       <FeedbackBanner ok={ok} error={error} dbError={dbError} />
 
       {activeTab === "libreta" && (
-        <section className="space-y-5">
-          <div className="overflow-hidden rounded-[22px] border border-white/10 bg-gradient-to-r from-[#0f0f0f] via-[#090909] to-[#120e07] p-6 md:p-7">
+        <section className="rounded-[22px] border border-white/10 bg-[#080808] p-5 md:p-6">
+          <div className="overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-r from-[#0f0f0f] via-[#090909] to-[#120e07] p-6 md:p-7">
             <div className="flex items-start gap-4 md:gap-5">
               <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-5 text-amber-400">
                 <ShieldCheck className="h-8 w-8" />
@@ -303,291 +303,287 @@ export function MascotaFichaTabs({
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-white/10 bg-[#080808] p-5 md:p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.03] text-white/70">
-                <Activity className="h-5 w-5" />
-              </div>
-
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-                  Línea de vida médica
-                </p>
-                <h3 className="mt-1 text-3xl font-black italic tracking-tight text-white md:text-4xl">
-                  LÍNEA DE VIDA MÉDICA
-                </h3>
-              </div>
+          <div className="mt-6 mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.03] text-white/70">
+              <Activity className="h-5 w-5" />
             </div>
 
-            <div className="mb-5 grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
-              <div className="flex h-11 items-center justify-center rounded-lg bg-amber-500 px-4 text-black">
-                Prevención
-              </div>
-              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
-                Clínica
-              </div>
-              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
-                Diagnóstico
-              </div>
-              <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
-                Vida
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {libretaOrdenada.length === 0 ? (
-                <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
-                  <p className="text-xl font-medium text-white/70">
-                    La libreta sanitaria está vacía.
-                  </p>
-                  <p className="mt-3 text-sm text-white/35">
-                    Empezá registrando una vacuna, desparasitación o control preventivo.
-                  </p>
-                </div>
-              ) : (
-                libretaOrdenada.map((item) => {
-                  const tone = getLibrettaTone(item.tipo);
-                  const badge = getValidationBadge(item.estado_validacion);
-                  const estadoEvento = getEstadoEvento(item);
-
-                  return (
-                    <article
-                      key={item.id_registro}
-                      className="rounded-[20px] border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/15 hover:bg-white/[0.03]"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={[
-                            "flex h-16 w-16 shrink-0 items-center justify-center rounded-[16px] border",
-                            tone.bg,
-                            tone.border,
-                            tone.accent,
-                          ].join(" ")}
-                        >
-                          {tone.icon}
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-2 flex flex-wrap items-center gap-2">
-                            <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${tone.accent}`}>
-                              {tone.label}
-                            </span>
-                            <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-                              {badge}
-                            </span>
-                          </div>
-
-                          <h4 className="truncate text-3xl font-black italic tracking-tight text-white">
-                            {(item.titulo || item.producto_nombre || item.descripcion).toUpperCase()}
-                          </h4>
-
-                          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-white/55">
-                            {item.producto_nombre ? (
-                              <span>
-                                Marca: <span className="text-white/75">{item.producto_nombre}</span>
-                              </span>
-                            ) : null}
-
-                            {(item.lote || item.producto_lote) ? (
-                              <span>
-                                Lote: <span className="text-white/75">{item.lote || item.producto_lote}</span>
-                              </span>
-                            ) : null}
-
-                            {item.profesional_nombre ? (
-                              <span>
-                                Vet:{" "}
-                                <span className="text-white/75">
-                                  {item.profesional_nombre}
-                                  {item.profesional_matricula ? ` (${item.profesional_matricula})` : ""}
-                                </span>
-                              </span>
-                            ) : null}
-                          </div>
-
-                          {item.observaciones ? (
-                            <p className="mt-2 text-sm italic text-white/35">
-                              “{item.observaciones}”
-                            </p>
-                          ) : null}
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-3">
-                          <div className="hidden text-right md:block">
-                            <div className="mb-2 flex items-center justify-end gap-2 text-sm text-white/45">
-                              <CalendarDays className="h-4 w-4" />
-                              {formatFecha(item.fecha_aplicacion)}
-                            </div>
-
-                            <span
-                              className={[
-                                "inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
-                                getEstadoTone(estadoEvento),
-                              ].join(" ")}
-                            >
-                              {estadoEvento}
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => openLibrettaDetail(item)}
-                            className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
-                          >
-                            <ChevronRight className="h-5 w-5" />
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })
-              )}
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
+                Línea de vida médica
+              </p>
+              <h3 className="mt-1 text-3xl font-black italic tracking-tight text-white md:text-4xl">
+                LÍNEA DE VIDA MÉDICA
+              </h3>
             </div>
           </div>
-        </section>
-      )}
 
-      {activeTab === "historial" && (
-        <section className="space-y-5">
-          <div className="rounded-[22px] border border-white/10 bg-[#080808] p-6">
-            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-400/80">
-                  Historial médico total
-                </p>
-                <h3 className="mt-2 text-5xl font-black italic tracking-tight text-white">
-                  EXPEDIENTE CLÍNICO
-                </h3>
-                <p className="mt-3 max-w-2xl text-sm text-white/45">
-                  Registro auditado de todas las intervenciones, patologías y diagnósticos del paciente.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 items-center gap-3 rounded-xl bg-white/[0.03] px-4 text-white/40">
-                  <Search className="h-4 w-4" />
-                  <span className="text-sm">Buscar registro...</span>
-                </div>
-
-                <button
-                  type="button"
-                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.03] text-white/45"
-                >
-                  <Filter className="h-4 w-4" />
-                </button>
-              </div>
+          <div className="mb-5 grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
+            <div className="flex h-11 items-center justify-center rounded-lg bg-amber-500 px-4 text-black">
+              Prevención
             </div>
-
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div className="grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
-                <div className="flex h-12 items-center justify-center rounded-lg bg-emerald-500 text-black">
-                  Historial total
-                </div>
-                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
-                  Consultas
-                </div>
-                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
-                  Cirugías
-                </div>
-                <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
-                  Estudios / Lab
-                </div>
-              </div>
-
-              <RegistrarVisitaModal idMascota={id_mascota} />
+            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+              Clínica
             </div>
+            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+              Diagnóstico
+            </div>
+            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+              Vida
+            </div>
+          </div>
 
-            <div className="space-y-4">
-              {historialOrdenado.length === 0 ? (
-                <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
-                  <p className="text-xl font-medium text-white/70">
-                    Sin historial clínico cargado.
-                  </p>
-                  <p className="mt-3 text-sm text-white/35">
-                    Empezá cargando consultas, estudios, cirugías o tratamientos.
-                  </p>
-                </div>
-              ) : (
-                historialOrdenado.map((item) => (
+          <div className="space-y-4">
+            {libretaOrdenada.length === 0 ? (
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+                <p className="text-xl font-medium text-white/70">
+                  La libreta sanitaria está vacía.
+                </p>
+                <p className="mt-3 text-sm text-white/35">
+                  Empezá registrando una vacuna, desparasitación o control preventivo.
+                </p>
+              </div>
+            ) : (
+              libretaOrdenada.map((item) => {
+                const tone = getLibrettaTone(item.tipo);
+                const badge = getValidationBadge(item.estado_validacion);
+                const estadoEvento = getEstadoEvento(item);
+
+                return (
                   <article
-                    key={item.id_historial}
-                    className="rounded-[20px] border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/15 hover:bg-white/[0.03]"
+                    key={item.id_registro}
+                    className="rounded-[20px] border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                   >
-                    <div className="grid gap-5 lg:grid-cols-[180px_1fr_48px]">
-                      <div>
-                        <p className="text-4xl font-black italic tracking-tight text-white">
-                          {formatFecha(item.fecha_visita)}
-                        </p>
-
-                        <div className="mt-4 space-y-2 text-sm text-white/55">
-                          {item.institucion ? <p>{item.institucion}</p> : null}
-                          {item.profesional_nombre ? (
-                            <p>
-                              {item.profesional_nombre}
-                              {item.profesional_matricula ? ` · ${item.profesional_matricula}` : ""}
-                            </p>
-                          ) : null}
-                        </div>
-
-                        <div className="mt-4 inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
-                          {getValidationBadge(item.estado_validacion)}
-                        </div>
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={[
+                          "flex h-16 w-16 shrink-0 items-center justify-center rounded-[16px] border",
+                          tone.bg,
+                          tone.border,
+                          tone.accent,
+                        ].join(" ")}
+                      >
+                        {tone.icon}
                       </div>
 
-                      <div>
-                        <div className="mb-3 flex flex-wrap gap-2">
-                          {item.categoria ? (
-                            <span className="rounded-md bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">
-                              {item.categoria}
-                            </span>
-                          ) : null}
-
-                          {item.tipo_estudio ? (
-                            <span className="rounded-md bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">
-                              {item.tipo_estudio}
-                            </span>
-                          ) : null}
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${tone.accent}`}>
+                            {tone.label}
+                          </span>
+                          <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                            {badge}
+                          </span>
                         </div>
 
-                        <h4 className="text-4xl font-black italic tracking-tight text-white">
-                          {(item.titulo || item.motivo_consulta).toUpperCase()}
+                        <h4 className="truncate text-3xl font-black italic tracking-tight text-white">
+                          {(item.titulo || item.producto_nombre || item.descripcion).toUpperCase()}
                         </h4>
 
-                        <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-4 text-white/70">
-                          {item.resultado_resumen ||
-                            item.diagnostico ||
-                            item.tratamiento_indicado ||
-                            item.observaciones ||
-                            "Sin resumen clínico cargado."}
+                        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-white/55">
+                          {item.producto_nombre ? (
+                            <span>
+                              Marca: <span className="text-white/75">{item.producto_nombre}</span>
+                            </span>
+                          ) : null}
+
+                          {(item.lote || item.producto_lote) ? (
+                            <span>
+                              Lote: <span className="text-white/75">{item.lote || item.producto_lote}</span>
+                            </span>
+                          ) : null}
+
+                          {item.profesional_nombre ? (
+                            <span>
+                              Vet:{" "}
+                              <span className="text-white/75">
+                                {item.profesional_nombre}
+                                {item.profesional_matricula ? ` (${item.profesional_matricula})` : ""}
+                              </span>
+                            </span>
+                          ) : null}
                         </div>
 
-                        <div className="mt-4 flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-wide text-white/35">
-                          <button type="button" className="inline-flex items-center gap-2 hover:text-white/70">
-                            <FileText className="h-4 w-4" />
-                            Ver informe completo
-                          </button>
-
-                          <button type="button" className="inline-flex items-center gap-2 hover:text-white/70">
-                            <Paperclip className="h-4 w-4" />
-                            Ver adjuntos
-                          </button>
-                        </div>
+                        {item.observaciones ? (
+                          <p className="mt-2 text-sm italic text-white/35">
+                            “{item.observaciones}”
+                          </p>
+                        ) : null}
                       </div>
 
-                      <div className="flex items-start justify-end">
+                      <div className="flex shrink-0 items-center gap-3">
+                        <div className="hidden text-right md:block">
+                          <div className="mb-2 flex items-center justify-end gap-2 text-sm text-white/45">
+                            <CalendarDays className="h-4 w-4" />
+                            {formatFecha(item.fecha_aplicacion)}
+                          </div>
+
+                          <span
+                            className={[
+                              "inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
+                              getEstadoTone(estadoEvento),
+                            ].join(" ")}
+                          >
+                            {estadoEvento}
+                          </span>
+                        </div>
+
                         <button
                           type="button"
-                          onClick={() => openHistorialDetail(item)}
-                          className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                          onClick={() => openLibrettaDetail(item)}
+                          className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
                         >
                           <ChevronRight className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
                   </article>
-                ))
-              )}
+                );
+              })
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === "historial" && (
+        <section className="rounded-[22px] border border-white/10 bg-[#080808] p-6">
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-400/80">
+                Historial médico total
+              </p>
+              <h3 className="mt-2 text-5xl font-black italic tracking-tight text-white">
+                EXPEDIENTE CLÍNICO
+              </h3>
+              <p className="mt-3 max-w-2xl text-sm text-white/45">
+                Registro auditado de todas las intervenciones, patologías y diagnósticos del paciente.
+              </p>
             </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 items-center gap-3 rounded-xl bg-white/[0.03] px-4 text-white/40">
+                <Search className="h-4 w-4" />
+                <span className="text-sm">Buscar registro...</span>
+              </div>
+
+              <button
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.03] text-white/45"
+              >
+                <Filter className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
+              <div className="flex h-12 items-center justify-center rounded-lg bg-emerald-500 text-black">
+                Historial total
+              </div>
+              <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
+                Consultas
+              </div>
+              <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
+                Cirugías
+              </div>
+              <div className="flex h-12 items-center justify-center rounded-lg text-white/45">
+                Estudios / Lab
+              </div>
+            </div>
+
+            <RegistrarVisitaModal idMascota={id_mascota} />
+          </div>
+
+          <div className="space-y-4">
+            {historialOrdenado.length === 0 ? (
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+                <p className="text-xl font-medium text-white/70">
+                  Sin historial clínico cargado.
+                </p>
+                <p className="mt-3 text-sm text-white/35">
+                  Empezá cargando consultas, estudios, cirugías o tratamientos.
+                </p>
+              </div>
+            ) : (
+              historialOrdenado.map((item) => (
+                <article
+                  key={item.id_historial}
+                  className="rounded-[20px] border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/15 hover:bg-white/[0.03]"
+                >
+                  <div className="grid gap-5 lg:grid-cols-[180px_1fr_48px]">
+                    <div>
+                      <p className="text-4xl font-black italic tracking-tight text-white">
+                        {formatFecha(item.fecha_visita)}
+                      </p>
+
+                      <div className="mt-4 space-y-2 text-sm text-white/55">
+                        {item.institucion ? <p>{item.institucion}</p> : null}
+                        {item.profesional_nombre ? (
+                          <p>
+                            {item.profesional_nombre}
+                            {item.profesional_matricula ? ` · ${item.profesional_matricula}` : ""}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-4 inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                        {getValidationBadge(item.estado_validacion)}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {item.categoria ? (
+                          <span className="rounded-md bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">
+                            {item.categoria}
+                          </span>
+                        ) : null}
+
+                        {item.tipo_estudio ? (
+                          <span className="rounded-md bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">
+                            {item.tipo_estudio}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <h4 className="text-4xl font-black italic tracking-tight text-white">
+                        {(item.titulo || item.motivo_consulta).toUpperCase()}
+                      </h4>
+
+                      <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-4 text-white/70">
+                        {item.resultado_resumen ||
+                          item.diagnostico ||
+                          item.tratamiento_indicado ||
+                          item.observaciones ||
+                          "Sin resumen clínico cargado."}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-wide text-white/35">
+                        <button type="button" className="inline-flex items-center gap-2 hover:text-white/70">
+                          <FileText className="h-4 w-4" />
+                          Ver informe completo
+                        </button>
+
+                        <button type="button" className="inline-flex items-center gap-2 hover:text-white/70">
+                          <Paperclip className="h-4 w-4" />
+                          Ver adjuntos
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-end">
+                      <button
+                        type="button"
+                        onClick={() => openHistorialDetail(item)}
+                        className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
       )}
