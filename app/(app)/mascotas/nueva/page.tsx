@@ -5,6 +5,26 @@ import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Promise<{ error?: string; ok?: string }>;
 
+function normalizeText(value: FormDataEntryValue | null) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function normalizeLower(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function isValidHttpUrl(value: string) {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 async function registrarMascota(formData: FormData) {
   "use server";
 
@@ -28,12 +48,12 @@ async function registrarMascota(formData: FormData) {
     redirect("/mascotas/nueva?error=usuario_no_encontrado");
   }
 
-  const nombre = String(formData.get("nombre") ?? "").trim();
-  const especie = String(formData.get("especie") ?? "").trim();
-  const raza = String(formData.get("raza") ?? "").trim();
-  const sexo = String(formData.get("sexo") ?? "").trim();
-  const fechaNacimiento = String(formData.get("fecha_nacimiento") ?? "").trim();
-  const urlFoto = String(formData.get("url_foto") ?? "").trim();
+  const nombre = normalizeText(formData.get("nombre"));
+  const especie = normalizeText(formData.get("especie"));
+  const raza = normalizeText(formData.get("raza"));
+  const sexo = normalizeText(formData.get("sexo"));
+  const fechaNacimiento = normalizeText(formData.get("fecha_nacimiento"));
+  const urlFoto = normalizeText(formData.get("url_foto"));
 
   if (!nombre || !especie) {
     redirect("/mascotas/nueva?error=campos_obligatorios");
@@ -47,6 +67,36 @@ async function registrarMascota(formData: FormData) {
     redirect("/mascotas/nueva?error=sexo_invalido");
   }
 
+  if (urlFoto && !isValidHttpUrl(urlFoto)) {
+    redirect("/mascotas/nueva?error=url_foto_invalida");
+  }
+
+  const nombreNorm = normalizeLower(nombre);
+  const razaNorm = normalizeLower(raza);
+
+  const { data: existentes, error: existentesError } = await supabase
+    .from("mascotas")
+    .select("id_mascota, nombre, especie, raza, fecha_nacimiento")
+    .eq("id_usuario", usuario.id_usuario)
+    .eq("especie", especie);
+
+  if (existentesError) {
+    redirect("/mascotas/nueva?error=error_validacion");
+  }
+
+  const duplicada = (existentes ?? []).find((item) => {
+    const sameNombre = normalizeLower(item.nombre ?? "") === nombreNorm;
+    const sameRaza = normalizeLower(item.raza ?? "") === razaNorm;
+    const sameFecha =
+      String(item.fecha_nacimiento ?? "") === String(fechaNacimiento || "");
+
+    return sameNombre && sameRaza && sameFecha;
+  });
+
+  if (duplicada?.id_mascota) {
+    redirect(`/mascotas/${duplicada.id_mascota}?ok=mascota_existente`);
+  }
+
   const payload = {
     id_usuario: usuario.id_usuario,
     nombre,
@@ -57,13 +107,17 @@ async function registrarMascota(formData: FormData) {
     url_foto: urlFoto || null,
   };
 
-  const { error: insertError } = await supabase.from("mascotas").insert(payload);
+  const { data: creada, error: insertError } = await supabase
+    .from("mascotas")
+    .insert(payload)
+    .select("id_mascota")
+    .single();
 
-  if (insertError) {
+  if (insertError || !creada) {
     redirect("/mascotas/nueva?error=error_creacion");
   }
 
-  redirect("/perfil?ok=mascota_creada");
+  redirect(`/mascotas/${creada.id_mascota}?ok=mascota_creada`);
 }
 
 function Campo({
@@ -137,6 +191,8 @@ function FeedbackBanner({
     campos_obligatorios: "Completá al menos nombre y especie.",
     especie_invalida: "La especie indicada no es válida.",
     sexo_invalido: "El sexo indicado no es válido.",
+    url_foto_invalida: "La URL de la foto no es válida.",
+    error_validacion: "No se pudo validar si la mascota ya existía.",
     error_creacion: "Ocurrió un error al registrar la mascota.",
   };
 
@@ -158,7 +214,10 @@ async function NuevaMascotaContent({
     <>
       <FeedbackBanner error={error} ok={ok} />
 
-      <form action={registrarMascota} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <form
+        action={registrarMascota}
+        className="rounded-3xl border border-white/10 bg-white/5 p-6"
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <Campo
             label="Nombre de tu mascota *"
