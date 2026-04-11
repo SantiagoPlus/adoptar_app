@@ -17,6 +17,7 @@ import {
   Activity,
 } from "lucide-react";
 import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
+import { RegistrarVisitaModal } from "./registrar-visita-modal";
 
 type LibretaItem = {
   id_registro: string;
@@ -102,12 +103,8 @@ function getLibrettaTone(tipo: string) {
 }
 
 function getValidationBadge(value: string) {
-  if (value === "validado_profesional") {
-    return "VALIDADO";
-  }
-  if (value === "avalado_manual") {
-    return "AVALADO";
-  }
+  if (value === "validado_profesional") return "VALIDADO";
+  if (value === "avalado_manual") return "AVALADO";
   return "CARGADO";
 }
 
@@ -138,6 +135,14 @@ function FeedbackBanner({
     );
   }
 
+  if (ok === "visita_registrada") {
+    return (
+      <div className="mb-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+        El evento clínico fue creado correctamente.
+      </div>
+    );
+  }
+
   if (!error) return null;
 
   const messages: Record<string, string> = {
@@ -147,6 +152,11 @@ function FeedbackBanner({
     mascota_no_encontrada: "No se encontró la mascota indicada.",
     sin_permisos: "No tenés permisos para registrar datos en esta mascota.",
     error_creacion_registro: "Ocurrió un error al guardar el registro.",
+    campos_obligatorios_historial:
+      "Completá al menos categoría, título, motivo y fecha de visita.",
+    categoria_invalida_historial:
+      "La categoría del evento clínico no es válida.",
+    error_creacion_historial: "Ocurrió un error al guardar el evento clínico.",
   };
 
   return (
@@ -433,19 +443,23 @@ export function MascotaFichaTabs({
               </div>
             </div>
 
-            <div className="mb-6 grid grid-cols-4 gap-2 rounded-2xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
-              <div className="flex h-12 items-center justify-center rounded-xl bg-emerald-500 text-black">
-                Historial total
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div className="grid grid-cols-4 gap-2 rounded-2xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide">
+                <div className="flex h-12 items-center justify-center rounded-xl bg-emerald-500 text-black">
+                  Historial total
+                </div>
+                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                  Consultas
+                </div>
+                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                  Cirugías
+                </div>
+                <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
+                  Estudios / Lab
+                </div>
               </div>
-              <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
-                Consultas
-              </div>
-              <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
-                Cirugías
-              </div>
-              <div className="flex h-12 items-center justify-center rounded-xl text-white/45">
-                Estudios / Lab
-              </div>
+
+              <RegistrarVisitaModal idMascota={id_mascota} />
             </div>
 
             <div className="space-y-4">
@@ -455,7 +469,7 @@ export function MascotaFichaTabs({
                     Sin historial clínico cargado.
                   </p>
                   <p className="mt-3 text-sm text-white/35">
-                    Más adelante esta pestaña va a concentrar consultas, estudios, cirugías y tratamientos.
+                    Empezá cargando consultas, estudios, cirugías o tratamientos.
                   </p>
                 </div>
               ) : (
