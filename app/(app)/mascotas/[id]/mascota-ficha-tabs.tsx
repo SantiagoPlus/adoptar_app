@@ -42,32 +42,34 @@ export function MascotaFichaTabs({
 
   return (
     <div>
-      <div className="mb-5 grid grid-cols-2 gap-3">
-        <button
-          onClick={() => setActiveTab("libreta")}
-          className={[
-            "flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition",
-            activeTab === "libreta"
-              ? "bg-amber-500 text-black"
-              : "bg-white/[0.02] text-white/60 hover:bg-white/[0.05] hover:text-white",
-          ].join(" ")}
-        >
-          <Syringe className="h-4 w-4" />
-          <span className="truncate">Libreta Sanitaria</span>
-        </button>
+      <div className="mb-5 rounded-2xl bg-white/[0.03] p-1.5">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setActiveTab("libreta")}
+            className={[
+              "flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition",
+              activeTab === "libreta"
+                ? "bg-amber-500 text-black"
+                : "bg-transparent text-white/70 hover:bg-white/[0.04] hover:text-white",
+            ].join(" ")}
+          >
+            <Syringe className="h-4 w-4" />
+            <span className="truncate">Libreta Sanitaria</span>
+          </button>
 
-        <button
-          onClick={() => setActiveTab("historial")}
-          className={[
-            "flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition",
-            activeTab === "historial"
-              ? "bg-amber-500 text-black"
-              : "bg-white/[0.02] text-white/60 hover:bg-white/[0.05] hover:text-white",
-          ].join(" ")}
-        >
-          <Stethoscope className="h-4 w-4" />
-          <span className="truncate">Historial Clínico</span>
-        </button>
+          <button
+            onClick={() => setActiveTab("historial")}
+            className={[
+              "flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition",
+              activeTab === "historial"
+                ? "bg-amber-500 text-black"
+                : "bg-transparent text-white/70 hover:bg-white/[0.04] hover:text-white",
+            ].join(" ")}
+          >
+            <Stethoscope className="h-4 w-4" />
+            <span className="truncate">Historial Clínico</span>
+          </button>
+        </div>
       </div>
 
       <div className="rounded-[28px] border border-white/10 bg-white/[0.02] p-5 md:p-7">
@@ -196,7 +198,7 @@ export function MascotaFichaTabs({
                     {visita.tratamiento_indicado ? (
                       <div className="mt-3">
                         <p className="mb-1 text-[11px] uppercase text-white/40">
-                          Tratamiento Indicado
+                          Tratamiento indicado
                         </p>
                         <p className="text-sm leading-relaxed text-white/80">
                           {visita.tratamiento_indicado}
