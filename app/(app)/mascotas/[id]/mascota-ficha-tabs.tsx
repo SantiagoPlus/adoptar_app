@@ -512,15 +512,15 @@ export function MascotaFichaTabs({
               historialOrdenado.map((item) => (
                 <article
                   key={item.id_historial}
-                  className="rounded-[20px] border border-white/10 bg-white/[0.02] p-5 transition hover:border-white/15 hover:bg-white/[0.03]"
+                  className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                 >
-                  <div className="grid gap-5 lg:grid-cols-[180px_1fr_48px]">
+                  <div className="grid grid-cols-[160px_minmax(0,1fr)_44px] items-center gap-4">
                     <div>
-                      <p className="text-4xl font-black italic tracking-tight text-white">
+                      <div className="mb-2 text-[13px] text-white/45">
                         {formatFecha(item.fecha_visita)}
-                      </p>
+                      </div>
 
-                      <div className="mt-4 space-y-2 text-sm text-white/55">
+                      <div className="space-y-1 text-[13px] text-white/55">
                         {item.institucion ? <p>{item.institucion}</p> : null}
                         {item.profesional_nombre ? (
                           <p>
@@ -530,13 +530,13 @@ export function MascotaFichaTabs({
                         ) : null}
                       </div>
 
-                      <div className="mt-4 inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                      <div className="mt-3 inline-flex rounded-md bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
                         {getValidationBadge(item.estado_validacion)}
                       </div>
                     </div>
 
-                    <div>
-                      <div className="mb-3 flex flex-wrap gap-2">
+                    <div className="min-w-0">
+                      <div className="mb-2 flex flex-wrap gap-2">
                         {item.categoria ? (
                           <span className="rounded-md bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">
                             {item.categoria}
@@ -550,11 +550,11 @@ export function MascotaFichaTabs({
                         ) : null}
                       </div>
 
-                      <h4 className="text-4xl font-black italic tracking-tight text-white">
+                      <h4 className="truncate text-[22px] font-black italic leading-none tracking-tight text-white md:text-[24px]">
                         {(item.titulo || item.motivo_consulta).toUpperCase()}
                       </h4>
 
-                      <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-4 py-4 text-white/70">
+                      <div className="mt-2 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-[13px] leading-relaxed text-white/70">
                         {item.resultado_resumen ||
                           item.diagnostico ||
                           item.tratamiento_indicado ||
@@ -562,7 +562,7 @@ export function MascotaFichaTabs({
                           "Sin resumen clínico cargado."}
                       </div>
 
-                      <div className="mt-4 flex flex-wrap gap-6 text-xs font-semibold uppercase tracking-wide text-white/35">
+                      <div className="mt-3 flex flex-wrap gap-5 text-[11px] font-semibold uppercase tracking-wide text-white/35">
                         <button type="button" className="inline-flex items-center gap-2 hover:text-white/70">
                           <FileText className="h-4 w-4" />
                           Ver informe completo
@@ -575,13 +575,13 @@ export function MascotaFichaTabs({
                       </div>
                     </div>
 
-                    <div className="flex items-start justify-end">
+                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={() => openHistorialDetail(item)}
-                        className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                        className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/35 transition hover:bg-white/[0.07] hover:text-white"
                       >
-                        <ChevronRight className="h-5 w-5" />
+                        <ChevronRight className="h-4.5 w-4.5" />
                       </button>
                     </div>
                   </div>
