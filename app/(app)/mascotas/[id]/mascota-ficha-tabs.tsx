@@ -42,14 +42,14 @@ export function MascotaFichaTabs({
 
   return (
     <div>
-      <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl bg-white/5 p-1">
+      <div className="mb-5 grid grid-cols-2 gap-3">
         <button
           onClick={() => setActiveTab("libreta")}
           className={[
-            "flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium transition",
+            "flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition",
             activeTab === "libreta"
-              ? "bg-amber-500 text-black shadow"
-              : "text-white/60 hover:bg-white/5 hover:text-white",
+              ? "bg-amber-500 text-black"
+              : "bg-white/[0.02] text-white/60 hover:bg-white/[0.05] hover:text-white",
           ].join(" ")}
         >
           <Syringe className="h-4 w-4" />
@@ -59,10 +59,10 @@ export function MascotaFichaTabs({
         <button
           onClick={() => setActiveTab("historial")}
           className={[
-            "flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium transition",
+            "flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-medium transition",
             activeTab === "historial"
-              ? "bg-amber-500 text-black shadow"
-              : "text-white/60 hover:bg-white/5 hover:text-white",
+              ? "bg-amber-500 text-black"
+              : "bg-white/[0.02] text-white/60 hover:bg-white/[0.05] hover:text-white",
           ].join(" ")}
         >
           <Stethoscope className="h-4 w-4" />
@@ -70,25 +70,26 @@ export function MascotaFichaTabs({
         </button>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:p-5">
+      <div className="rounded-[28px] border border-white/10 bg-white/[0.02] p-5 md:p-7">
         {activeTab === "libreta" && (
           <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-white">
-                Aplicaciones y prevención
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-white">
+                Aplicaciones y Prevención
               </h2>
 
-              <button className="flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium transition hover:bg-white/10">
+              <button className="flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10">
                 <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Registrar dosis</span>
-                <span className="sm:hidden">Agregar</span>
+                <span>Registrar Dosis</span>
               </button>
             </div>
 
             {libreta.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-10 text-center">
-                <p className="text-white/50">La libreta sanitaria está vacía.</p>
-                <p className="mt-1 text-sm text-white/40">
+              <div className="rounded-3xl border border-white/10 bg-black/30 px-6 py-12 text-center">
+                <p className="text-lg text-white/55">
+                  La libreta sanitaria está vacía.
+                </p>
+                <p className="mt-3 text-base text-white/35">
                   Acá verás vacunas, desparasitaciones y aplicaciones preventivas.
                 </p>
               </div>
@@ -97,7 +98,7 @@ export function MascotaFichaTabs({
                 {libreta.map((item) => (
                   <div
                     key={item.id_registro}
-                    className="rounded-xl border border-white/10 bg-white/5 p-4"
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
                   >
                     <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
                       <div>
@@ -142,19 +143,18 @@ export function MascotaFichaTabs({
 
         {activeTab === "historial" && (
           <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-white">Bitácora médica</h2>
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h2 className="text-2xl font-semibold text-white">Bitácora Médica</h2>
 
-              <button className="flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium transition hover:bg-white/10">
+              <button className="flex shrink-0 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:bg-white/10">
                 <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Agregar visita</span>
-                <span className="sm:hidden">Agregar</span>
+                <span>Agregar Visita</span>
               </button>
             </div>
 
             {historial.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-10 text-center">
-                <p className="text-white/50">
+              <div className="rounded-3xl border border-white/10 bg-black/30 px-6 py-12 text-center">
+                <p className="text-lg text-white/55">
                   Sin historial de visitas o controles médicos.
                 </p>
               </div>
@@ -163,7 +163,7 @@ export function MascotaFichaTabs({
                 {historial.map((visita) => (
                   <div
                     key={visita.id_historial}
-                    className="rounded-xl border border-white/10 bg-white/5 p-4"
+                    className="rounded-2xl border border-white/10 bg-white/5 p-4"
                   >
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
@@ -196,7 +196,7 @@ export function MascotaFichaTabs({
                     {visita.tratamiento_indicado ? (
                       <div className="mt-3">
                         <p className="mb-1 text-[11px] uppercase text-white/40">
-                          Tratamiento indicado
+                          Tratamiento Indicado
                         </p>
                         <p className="text-sm leading-relaxed text-white/80">
                           {visita.tratamiento_indicado}
