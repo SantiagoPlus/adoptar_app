@@ -61,9 +61,9 @@ export async function FichaMascotaContent({
 
   return (
     <>
-      <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.02] p-4 md:p-5">
-        <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/50 md:h-24 md:w-24">
+      <div className="mb-5 rounded-[28px] border border-white/10 bg-white/[0.02] p-5 md:p-7">
+        <div className="flex items-center gap-4 md:gap-6">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/10 bg-black/50 md:h-28 md:w-28">
             {mascota.url_foto ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -72,22 +72,22 @@ export async function FichaMascotaContent({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <PawPrint className="h-8 w-8 text-white/30 md:h-10 md:w-10" />
+              <PawPrint className="h-10 w-10 text-white/30 md:h-12 md:w-12" />
             )}
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="mb-1 text-[11px] uppercase tracking-wider text-amber-500/80">
+            <p className="mb-1 text-[11px] uppercase tracking-[0.18em] text-amber-500/90">
               Ficha médica
             </p>
 
-            <h1 className="truncate text-3xl font-bold tracking-tight md:text-4xl">
+            <h1 className="truncate text-4xl font-bold tracking-tight md:text-5xl">
               {mascota.nombre}
             </h1>
 
-            <p className="mt-1 text-sm text-white/60 md:text-base capitalize">
+            <p className="mt-2 text-sm text-white/65 md:text-base capitalize">
               {mascota.especie} • {mascota.raza || "Mestizo"} •{" "}
-              {mascota.sexo || "Sexo no especificado"}
+              {mascota.sexo || "No especificado"}
             </p>
           </div>
         </div>
