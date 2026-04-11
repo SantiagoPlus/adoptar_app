@@ -356,12 +356,12 @@ export function MascotaFichaTabs({
                 return (
                   <article
                     key={item.id_registro}
-                    className="rounded-[20px] border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/15 hover:bg-white/[0.03]"
+                    className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="grid grid-cols-[56px_minmax(0,1fr)_140px_44px] items-center gap-4">
                       <div
                         className={[
-                          "flex h-16 w-16 shrink-0 items-center justify-center rounded-[16px] border",
+                          "flex h-14 w-14 items-center justify-center rounded-[14px] border",
                           tone.bg,
                           tone.border,
                           tone.accent,
@@ -370,8 +370,8 @@ export function MascotaFichaTabs({
                         {tone.icon}
                       </div>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <div className="min-w-0">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-2">
                           <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${tone.accent}`}>
                             {tone.label}
                           </span>
@@ -380,11 +380,11 @@ export function MascotaFichaTabs({
                           </span>
                         </div>
 
-                        <h4 className="truncate text-3xl font-black italic tracking-tight text-white">
+                        <h4 className="truncate text-[22px] font-black italic leading-none tracking-tight text-white md:text-[24px]">
                           {(item.titulo || item.producto_nombre || item.descripcion).toUpperCase()}
                         </h4>
 
-                        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-white/55">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/55">
                           {item.producto_nombre ? (
                             <span>
                               Marca: <span className="text-white/75">{item.producto_nombre}</span>
@@ -409,35 +409,35 @@ export function MascotaFichaTabs({
                         </div>
 
                         {item.observaciones ? (
-                          <p className="mt-2 text-sm italic text-white/35">
+                          <p className="mt-1.5 truncate text-[13px] italic text-white/35">
                             “{item.observaciones}”
                           </p>
                         ) : null}
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-3">
-                        <div className="hidden text-right md:block">
-                          <div className="mb-2 flex items-center justify-end gap-2 text-sm text-white/45">
-                            <CalendarDays className="h-4 w-4" />
-                            {formatFecha(item.fecha_aplicacion)}
-                          </div>
-
-                          <span
-                            className={[
-                              "inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide",
-                              getEstadoTone(estadoEvento),
-                            ].join(" ")}
-                          >
-                            {estadoEvento}
-                          </span>
+                      <div className="text-right">
+                        <div className="mb-2 flex items-center justify-end gap-2 text-[13px] text-white/45">
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          {formatFecha(item.fecha_aplicacion)}
                         </div>
 
+                        <span
+                          className={[
+                            "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
+                            getEstadoTone(estadoEvento),
+                          ].join(" ")}
+                        >
+                          {estadoEvento}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-end">
                         <button
                           type="button"
                           onClick={() => openLibrettaDetail(item)}
-                          className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                          className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/35 transition hover:bg-white/[0.07] hover:text-white"
                         >
-                          <ChevronRight className="h-5 w-5" />
+                          <ChevronRight className="h-4.5 w-4.5" />
                         </button>
                       </div>
                     </div>
