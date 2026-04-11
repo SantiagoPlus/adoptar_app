@@ -11,7 +11,7 @@ export default function FichaMascotaPage({
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-6xl px-5 py-8 md:px-6 md:py-10">
-        <div className="mb-6">
+        <div className="mb-5">
           <Link
             href="/perfil"
             className="inline-flex items-center gap-2 text-sm text-white/60 transition hover:text-white"
