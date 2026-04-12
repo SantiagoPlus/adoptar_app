@@ -21,7 +21,7 @@ function formatFecha(value: string | null) {
   return date.toLocaleDateString("es-AR");
 }
 
-function getLibrettaTone(tipo: string) {
+function getLibretaTone(tipo: string) {
   if (tipo === "vacunacion" || tipo === "vacuna") {
     return {
       icon: <ClipboardPlus className="h-5 w-5" />,
@@ -76,6 +76,7 @@ function getEstadoTone(value: string) {
   if (value === "PRÓXIMO") {
     return "bg-amber-500/15 text-amber-300 border border-amber-500/20";
   }
+
   return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20";
 }
 
@@ -122,9 +123,13 @@ function FeedbackBanner({
 export function LibretaContent({
   idMascota,
   libreta,
+  ownerDisplayName,
+  qrMicrochip,
 }: {
   idMascota: string;
   libreta: LibretaItem[];
+  ownerDisplayName: string;
+  qrMicrochip: string | null;
 }) {
   const searchParams = useSearchParams();
   const ok = searchParams.get("ok");
@@ -163,7 +168,8 @@ export function LibretaContent({
 
               <div className="min-w-0 flex-1">
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-                  Estado preventivo · <span className="text-emerald-400">protegido</span>
+                  Estado preventivo ·{" "}
+                  <span className="text-emerald-400">protegido</span>
                 </p>
 
                 <h2 className="text-4xl font-black italic tracking-tight text-white md:text-5xl">
@@ -171,7 +177,15 @@ export function LibretaContent({
                 </h2>
 
                 <p className="mt-3 text-sm text-white/60">
-                  Registro preventivo digital de vacunas, desparasitaciones y controles.
+                  QR/Microchip:{" "}
+                  <span className="font-medium text-white/85">
+                    {qrMicrochip?.trim() || "No informado"}
+                  </span>
+                  <span className="mx-3 text-white/25">•</span>
+                  Dueño:{" "}
+                  <span className="font-medium text-white/85">
+                    {ownerDisplayName}
+                  </span>
                 </p>
               </div>
             </div>
@@ -221,12 +235,13 @@ export function LibretaContent({
                 La libreta sanitaria está vacía.
               </p>
               <p className="mt-3 text-sm text-white/35">
-                Empezá registrando una vacuna, desparasitación o control preventivo.
+                Empezá registrando una vacuna, desparasitación o control
+                preventivo.
               </p>
             </div>
           ) : (
             libretaOrdenada.map((item) => {
-              const tone = getLibrettaTone(item.tipo);
+              const tone = getLibretaTone(item.tipo);
               const badge = getValidationBadge(item.estado_validacion);
               const estadoEvento = getEstadoEvento(item);
 
@@ -249,7 +264,9 @@ export function LibretaContent({
 
                     <div className="min-w-0">
                       <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                        <span className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${tone.accent}`}>
+                        <span
+                          className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${tone.accent}`}
+                        >
                           {tone.label}
                         </span>
                         <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
@@ -258,19 +275,29 @@ export function LibretaContent({
                       </div>
 
                       <h4 className="truncate text-[22px] font-black italic leading-none tracking-tight text-white md:text-[24px]">
-                        {(item.titulo || item.producto_nombre || item.descripcion).toUpperCase()}
+                        {(
+                          item.titulo ||
+                          item.producto_nombre ||
+                          item.descripcion
+                        ).toUpperCase()}
                       </h4>
 
                       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/55">
                         {item.producto_nombre ? (
                           <span>
-                            Marca: <span className="text-white/75">{item.producto_nombre}</span>
+                            Marca:{" "}
+                            <span className="text-white/75">
+                              {item.producto_nombre}
+                            </span>
                           </span>
                         ) : null}
 
-                        {(item.lote || item.producto_lote) ? (
+                        {item.lote || item.producto_lote ? (
                           <span>
-                            Lote: <span className="text-white/75">{item.lote || item.producto_lote}</span>
+                            Lote:{" "}
+                            <span className="text-white/75">
+                              {item.lote || item.producto_lote}
+                            </span>
                           </span>
                         ) : null}
 
@@ -279,7 +306,9 @@ export function LibretaContent({
                             Vet:{" "}
                             <span className="text-white/75">
                               {item.profesional_nombre}
-                              {item.profesional_matricula ? ` (${item.profesional_matricula})` : ""}
+                              {item.profesional_matricula
+                                ? ` (${item.profesional_matricula})`
+                                : ""}
                             </span>
                           </span>
                         ) : null}
