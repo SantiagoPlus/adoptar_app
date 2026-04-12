@@ -3,9 +3,9 @@
 import { createContext, useContext } from "react";
 import type { MascotaModuleShell } from "@/lib/server/mascotas";
 
-const MascotaModuleContext = createContext<MascotaModuleShell | null>(null);
+const MascotaShellContext = createContext<MascotaModuleShell | null>(null);
 
-export function MascotaModuleProvider({
+export function MascotaShellProvider({
   mascota,
   children,
 }: {
@@ -13,18 +13,18 @@ export function MascotaModuleProvider({
   children: React.ReactNode;
 }) {
   return (
-    <MascotaModuleContext.Provider value={mascota}>
+    <MascotaShellContext.Provider value={mascota}>
       {children}
-    </MascotaModuleContext.Provider>
+    </MascotaShellContext.Provider>
   );
 }
 
-export function useMascotaModuleData() {
-  const context = useContext(MascotaModuleContext);
+export function useMascotaShell() {
+  const context = useContext(MascotaShellContext);
 
   if (!context) {
     throw new Error(
-      "useMascotaModuleData debe usarse dentro de MascotaModuleProvider.",
+      "useMascotaShell debe usarse dentro de MascotaShellProvider.",
     );
   }
 
