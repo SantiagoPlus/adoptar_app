@@ -11,7 +11,7 @@ import {
   ChevronDown,
   ClipboardList,
 } from "lucide-react";
-import { registrarAplicacion } from "../actions";
+import { registrarAplicacion } from "./actions";
 
 const OPCIONES_REGISTRO = [
   {
