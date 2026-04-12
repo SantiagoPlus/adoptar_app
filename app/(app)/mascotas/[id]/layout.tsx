@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MascotaSectionNav } from "./section-nav";
+import { MascotaHeader } from "./mascota-header";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -23,11 +24,12 @@ function LayoutFallback() {
           </div>
         </div>
 
-        <div className="mb-5">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-            Mascota
-          </p>
-          <div className="h-10 w-56 rounded bg-white/5" />
+        <div className="mb-6 rounded-[22px] border border-white/10 bg-[#080808] p-6">
+          <div className="h-32 rounded-[18px] bg-white/5" />
+        </div>
+
+        <div className="mb-6 rounded-[22px] border border-white/10 bg-[#080808] p-5">
+          <div className="h-16 rounded-[14px] bg-white/5" />
         </div>
 
         <div className="mb-6 rounded-xl bg-white/[0.03] p-1.5">
@@ -73,7 +75,7 @@ async function MascotaLayoutContent({
 
   const { data: mascota } = await supabase
     .from("mascotas")
-    .select("id_mascota, id_usuario, nombre")
+    .select("id_mascota, id_usuario, nombre, especie, raza, sexo, url_foto")
     .eq("id_mascota", idMascota)
     .single();
 
@@ -94,14 +96,7 @@ async function MascotaLayoutContent({
           </Link>
         </div>
 
-        <div className="mb-5">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
-            Mascota
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {mascota.nombre}
-          </h1>
-        </div>
+        <MascotaHeader mascota={mascota} />
 
         <MascotaSectionNav idMascota={idMascota} />
 
