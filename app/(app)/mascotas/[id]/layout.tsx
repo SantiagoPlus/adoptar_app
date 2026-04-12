@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MascotaSectionNav } from "./section-nav";
 import { MascotaHeader } from "./mascota-header";
-import { MascotaModuleProvider } from "./mascota-module-provider";
+import { MascotaShellProvider } from "./mascota-module-provider";
 import { getMascotaModuleShell } from "@/lib/server/mascotas";
 
 type LayoutProps = {
@@ -67,9 +67,9 @@ async function MascotaLayoutContent({ children, params }: LayoutProps) {
         <MascotaHeader mascota={mascota} />
         <MascotaSectionNav idMascota={idMascota} />
 
-        <MascotaModuleProvider mascota={mascota}>
+        <MascotaShellProvider mascota={mascota}>
           {children}
-        </MascotaModuleProvider>
+        </MascotaShellProvider>
       </section>
     </main>
   );
