@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Activity, FileText, Pill, Scissors, Stethoscope, X } from "lucide-react";
-import { registrarVisita } from "../actions";
+import { registrarVisita } from "./actions";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
