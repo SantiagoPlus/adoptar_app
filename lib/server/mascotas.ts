@@ -15,6 +15,8 @@ export type MascotaModuleShell = {
   raza: string | null;
   sexo: string | null;
   url_foto: string | null;
+  qr_microchip: string | null;
+  owner_display_name: string;
 };
 
 export type MascotaModuleData = {
@@ -31,6 +33,20 @@ type MascotaOwnerContextOptions = {
     forbidden?: string;
   };
 };
+
+function buildOwnerDisplayName(usuario: {
+  nombre: string | null;
+  apellido: string | null;
+  email?: string | null;
+}) {
+  const nombre = String(usuario.nombre ?? "").trim();
+  const apellido = String(usuario.apellido ?? "").trim();
+  const fullName = [nombre, apellido].filter(Boolean).join(" ").trim();
+
+  if (fullName) return fullName;
+  if (usuario.email) return usuario.email;
+  return "Titular no informado";
+}
 
 export async function getMascotaOwnerContext(
   idMascota: string,
@@ -66,7 +82,11 @@ export async function getMascotaOwnerContext(
     supabase,
     authUser,
     usuario,
-    mascota: mascota as MascotaModuleShell,
+    mascota: {
+      ...(mascota as Omit<MascotaModuleShell, "qr_microchip" | "owner_display_name">),
+      qr_microchip: null,
+      owner_display_name: buildOwnerDisplayName(usuario),
+    } as MascotaModuleShell,
   };
 }
 
