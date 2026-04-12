@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MascotaSectionNav } from "./section-nav";
 import { MascotaHeader } from "./mascota-header";
+import { getMascotaModuleShell } from "@/lib/server/mascotas";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -47,41 +46,9 @@ function LayoutFallback() {
   );
 }
 
-async function MascotaLayoutContent({
-  children,
-  params,
-}: LayoutProps) {
+async function MascotaLayoutContent({ children, params }: LayoutProps) {
   const { id: idMascota } = await params;
-
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  const { data: usuario } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (!usuario) {
-    redirect("/perfil");
-  }
-
-  const { data: mascota } = await supabase
-    .from("mascotas")
-    .select("id_mascota, id_usuario, nombre, especie, raza, sexo, url_foto")
-    .eq("id_mascota", idMascota)
-    .single();
-
-  if (!mascota || mascota.id_usuario !== usuario.id_usuario) {
-    redirect("/perfil");
-  }
+  const mascota = await getMascotaModuleShell(idMascota);
 
   return (
     <main className="min-h-screen bg-black text-white">
