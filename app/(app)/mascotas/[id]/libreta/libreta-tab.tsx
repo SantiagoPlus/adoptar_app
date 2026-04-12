@@ -1,7 +1,7 @@
 "use client";
 
 import { LibretaContent } from "./libreta-content";
-import { useMascotaModuleData } from "../mascota-module-provider";
+import { useMascotaShell } from "../mascota-module-provider";
 import type { LibretaItem } from "../types";
 
 export function LibretaTab({
@@ -9,7 +9,7 @@ export function LibretaTab({
 }: {
   libreta: LibretaItem[];
 }) {
-  const mascota = useMascotaModuleData();
+  const mascota = useMascotaShell();
 
   return (
     <LibretaContent
