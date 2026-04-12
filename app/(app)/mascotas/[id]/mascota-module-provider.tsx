@@ -1,19 +1,19 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { MascotaModuleData } from "@/lib/server/mascotas";
+import type { MascotaModuleShell } from "@/lib/server/mascotas";
 
-const MascotaModuleContext = createContext<MascotaModuleData | null>(null);
+const MascotaModuleContext = createContext<MascotaModuleShell | null>(null);
 
 export function MascotaModuleProvider({
-  value,
+  mascota,
   children,
 }: {
-  value: MascotaModuleData;
+  mascota: MascotaModuleShell;
   children: React.ReactNode;
 }) {
   return (
-    <MascotaModuleContext.Provider value={value}>
+    <MascotaModuleContext.Provider value={mascota}>
       {children}
     </MascotaModuleContext.Provider>
   );
