@@ -10,6 +10,7 @@ type PageProps = {
 async function RedirectToLibreta({ params }: PageProps) {
   const { id } = await params;
   redirect(`/mascotas/${id}/libreta`);
+  return null;
 }
 
 export default function MascotaPage(props: PageProps) {
