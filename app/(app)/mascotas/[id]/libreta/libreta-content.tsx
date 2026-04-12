@@ -9,10 +9,14 @@ import {
   ChevronRight,
   ClipboardPlus,
   Activity,
+  Syringe,
+  Shield,
 } from "lucide-react";
 import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
 import { EventoDetalleModal } from "../evento-detalle-modal";
 import type { LibretaItem } from "../types";
+
+type LibretaView = "prevencion" | "clinica" | "vida";
 
 function formatFecha(value: string | null) {
   if (!value) return "Sin fecha";
@@ -21,20 +25,62 @@ function formatFecha(value: string | null) {
   return date.toLocaleDateString("es-AR");
 }
 
-function getLibretaTone(tipo: string) {
-  if (tipo === "vacunacion" || tipo === "vacuna") {
+function getLibretaCategoria(item: LibretaItem) {
+  if (item.categoria?.trim()) return item.categoria.trim();
+
+  if (item.tipo === "vacuna") return "vacunacion";
+  if (item.tipo === "desparasitacion") return "desparasitacion";
+  if (item.tipo === "control") return "control_preventivo";
+
+  return item.tipo;
+}
+
+function getLibretaTone(item: LibretaItem) {
+  const categoria = getLibretaCategoria(item);
+
+  if (categoria === "vacunacion" || categoria === "vacuna") {
     return {
-      icon: <ClipboardPlus className="h-5 w-5" />,
+      icon: <Syringe className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-emerald-300",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
-      label: "VACUNA",
+      label: "VACUNACIÓN",
     };
   }
 
-  if (tipo === "desparasitacion_interna" || tipo === "desparasitacion") {
+  if (categoria === "desparasitacion_interna") {
     return {
-      icon: <Pill className="h-5 w-5" />,
+      icon: <Pill className="h-5 w-5" strokeWidth={1.5} />,
+      accent: "text-amber-300",
+      bg: "bg-amber-500/10",
+      border: "border-amber-500/20",
+      label: "DESPARASITACIÓN INTERNA",
+    };
+  }
+
+  if (categoria === "desparasitacion_externa") {
+    return {
+      icon: <Shield className="h-5 w-5" strokeWidth={1.5} />,
+      accent: "text-cyan-300",
+      bg: "bg-cyan-500/10",
+      border: "border-cyan-500/20",
+      label: "DESPARASITACIÓN EXTERNA",
+    };
+  }
+
+  if (categoria === "control_preventivo" || categoria === "control") {
+    return {
+      icon: <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />,
+      accent: "text-white/80",
+      bg: "bg-white/[0.06]",
+      border: "border-white/10",
+      label: "CONTROL PREVENTIVO",
+    };
+  }
+
+  if (item.tipo === "desparasitacion") {
+    return {
+      icon: <Pill className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-amber-300",
       bg: "bg-amber-500/10",
       border: "border-amber-500/20",
@@ -42,22 +88,22 @@ function getLibretaTone(tipo: string) {
     };
   }
 
-  if (tipo === "desparasitacion_externa") {
+  if (item.tipo === "vacuna") {
     return {
-      icon: <ShieldCheck className="h-5 w-5" />,
-      accent: "text-cyan-300",
-      bg: "bg-cyan-500/10",
-      border: "border-cyan-500/20",
-      label: "EXTERNA",
+      icon: <Syringe className="h-5 w-5" strokeWidth={1.5} />,
+      accent: "text-emerald-300",
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500/20",
+      label: "VACUNA",
     };
   }
 
   return {
-    icon: <ClipboardPlus className="h-5 w-5" />,
-    accent: "text-emerald-300",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
-    label: "CONTROL",
+    icon: <ClipboardPlus className="h-5 w-5" strokeWidth={1.5} />,
+    accent: "text-white/75",
+    bg: "bg-white/[0.05]",
+    border: "border-white/10",
+    label: "REGISTRO",
   };
 }
 
@@ -78,6 +124,55 @@ function getEstadoTone(value: string) {
   }
 
   return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20";
+}
+
+function matchesLibretaView(item: LibretaItem, view: LibretaView) {
+  if (view === "vida") return true;
+
+  const categoria = getLibretaCategoria(item);
+
+  if (view === "prevencion") {
+    return (
+      categoria === "vacunacion" ||
+      categoria === "vacuna" ||
+      categoria === "desparasitacion" ||
+      categoria === "desparasitacion_interna" ||
+      categoria === "desparasitacion_externa" ||
+      item.tipo === "vacuna" ||
+      item.tipo === "desparasitacion"
+    );
+  }
+
+  if (view === "clinica") {
+    return (
+      categoria === "control_preventivo" ||
+      categoria === "control" ||
+      item.tipo === "control"
+    );
+  }
+
+  return true;
+}
+
+function getEmptyMessage(view: LibretaView) {
+  if (view === "prevencion") {
+    return {
+      title: "No hay registros preventivos en esta vista.",
+      body: "Acá se agrupan vacunas y desparasitaciones.",
+    };
+  }
+
+  if (view === "clinica") {
+    return {
+      title: "No hay registros clínicos en esta vista.",
+      body: "Acá se agrupan controles preventivos vinculados a la libreta.",
+    };
+  }
+
+  return {
+    title: "La libreta sanitaria está vacía.",
+    body: "Empezá registrando una vacuna, desparasitación o control preventivo.",
+  };
 }
 
 function FeedbackBanner({
@@ -138,6 +233,7 @@ export function LibretaContent({
 
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalleItem, setDetalleItem] = useState<LibretaItem | null>(null);
+  const [view, setView] = useState<LibretaView>("prevencion");
 
   const libretaOrdenada = useMemo(() => {
     return [...libreta].sort((a, b) => {
@@ -146,6 +242,24 @@ export function LibretaContent({
       return fb - fa;
     });
   }, [libreta]);
+
+  const libretaFiltrada = useMemo(() => {
+    return libretaOrdenada.filter((item) => matchesLibretaView(item, view));
+  }, [libretaOrdenada, view]);
+
+  const emptyState = getEmptyMessage(view);
+
+  const counts = useMemo(() => {
+    return {
+      prevencion: libretaOrdenada.filter((item) =>
+        matchesLibretaView(item, "prevencion"),
+      ).length,
+      clinica: libretaOrdenada.filter((item) =>
+        matchesLibretaView(item, "clinica"),
+      ).length,
+      vida: libretaOrdenada.length,
+    };
+  }, [libretaOrdenada]);
 
   return (
     <div>
@@ -163,7 +277,7 @@ export function LibretaContent({
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 items-start gap-4 md:gap-5">
               <div className="flex h-18 w-18 shrink-0 items-center justify-center rounded-[18px] border border-amber-500/20 bg-amber-500/10 p-5 text-amber-400">
-                <ShieldCheck className="h-8 w-8" />
+                <ShieldCheck className="h-8 w-8" strokeWidth={1.5} />
               </div>
 
               <div className="min-w-0 flex-1">
@@ -199,7 +313,7 @@ export function LibretaContent({
         <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.03] text-white/70">
-              <Activity className="h-5 w-5" />
+              <Activity className="h-5 w-5" strokeWidth={1.5} />
             </div>
 
             <div>
@@ -212,36 +326,70 @@ export function LibretaContent({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide lg:min-w-[560px]">
-            <div className="flex h-11 items-center justify-center rounded-lg bg-amber-500 px-4 text-black">
+          <div className="grid grid-cols-3 gap-2 rounded-xl bg-white/[0.03] p-1.5 text-xs font-semibold uppercase tracking-wide lg:min-w-[520px]">
+            <button
+              type="button"
+              onClick={() => setView("prevencion")}
+              className={[
+                "flex h-11 items-center justify-center rounded-lg px-4 transition active:scale-95",
+                view === "prevencion"
+                  ? "bg-amber-500 text-black"
+                  : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
+              ].join(" ")}
+            >
               Prevención
-            </div>
-            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+              <span className="ml-2 text-[10px] opacity-70">
+                {counts.prevencion}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setView("clinica")}
+              className={[
+                "flex h-11 items-center justify-center rounded-lg px-4 transition active:scale-95",
+                view === "clinica"
+                  ? "bg-white text-black"
+                  : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
+              ].join(" ")}
+            >
               Clínica
-            </div>
-            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
-              Diagnóstico
-            </div>
-            <div className="flex h-11 items-center justify-center rounded-lg px-4 text-white/40">
+              <span className="ml-2 text-[10px] opacity-70">
+                {counts.clinica}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setView("vida")}
+              className={[
+                "flex h-11 items-center justify-center rounded-lg px-4 transition active:scale-95",
+                view === "vida"
+                  ? "bg-emerald-500 text-black"
+                  : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
+              ].join(" ")}
+            >
               Vida
-            </div>
+              <span className="ml-2 text-[10px] opacity-70">
+                {counts.vida}
+              </span>
+            </button>
           </div>
         </div>
 
         <div className="mt-5 space-y-4">
-          {libretaOrdenada.length === 0 ? (
+          {libretaFiltrada.length === 0 ? (
             <div className="rounded-[20px] border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
               <p className="text-xl font-medium text-white/70">
-                La libreta sanitaria está vacía.
+                {emptyState.title}
               </p>
               <p className="mt-3 text-sm text-white/35">
-                Empezá registrando una vacuna, desparasitación o control
-                preventivo.
+                {emptyState.body}
               </p>
             </div>
           ) : (
-            libretaOrdenada.map((item) => {
-              const tone = getLibretaTone(item.tipo);
+            libretaFiltrada.map((item) => {
+              const tone = getLibretaTone(item);
               const badge = getValidationBadge(item.estado_validacion);
               const estadoEvento = getEstadoEvento(item);
 
@@ -323,7 +471,7 @@ export function LibretaContent({
 
                     <div className="text-right">
                       <div className="mb-2 flex items-center justify-end gap-2 text-[13px] text-white/45">
-                        <CalendarDays className="h-3.5 w-3.5" />
+                        <CalendarDays className="h-3.5 w-3.5" strokeWidth={1.5} />
                         {formatFecha(item.fecha_aplicacion)}
                       </div>
 
@@ -344,9 +492,9 @@ export function LibretaContent({
                           setDetalleItem(item);
                           setDetalleOpen(true);
                         }}
-                        className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/35 transition hover:bg-white/[0.07] hover:text-white"
+                        className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/35 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
                       >
-                        <ChevronRight className="h-4.5 w-4.5" />
+                        <ChevronRight className="h-4.5 w-4.5" strokeWidth={1.5} />
                       </button>
                     </div>
                   </div>
