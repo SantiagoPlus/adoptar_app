@@ -2,14 +2,6 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { getCurrentUsuario } from "@/lib/server/auth";
-import type {
-  HistorialItem,
-  LibretaItem,
-} from "@/app/(app)/mascotas/[id]/types";
-import {
-  mapFeedRowToLibretaItem,
-  type LibretaFeedRow,
-} from "@/lib/server/mascotas-libreta-feed";
 
 export type MascotaModuleShell = {
   id_mascota: string;
@@ -21,12 +13,6 @@ export type MascotaModuleShell = {
   url_foto: string | null;
   qr_microchip: string | null;
   owner_display_name: string;
-};
-
-export type MascotaModuleData = {
-  mascota: MascotaModuleShell;
-  libreta: LibretaItem[];
-  historial: HistorialItem[];
 };
 
 type MascotaOwnerContextOptions = {
@@ -108,53 +94,4 @@ export async function getMascotaModuleShell(idMascota: string) {
   });
 
   return mascota;
-}
-
-export async function getMascotaModuleData(
-  idMascota: string,
-): Promise<MascotaModuleData> {
-  const { supabase, mascota } = await getMascotaOwnerContext(idMascota, {
-    loginNext: `/mascotas/${idMascota}`,
-    redirects: {
-      profileMissing: "/perfil",
-      notFound: "/perfil",
-      forbidden: "/perfil",
-    },
-  });
-
-  const [
-    { data: libretaFeed, error: libretaError },
-    { data: historial, error: historialError },
-  ] = await Promise.all([
-    supabase
-      .from("vw_mascotas_libreta_feed")
-      .select("*")
-      .eq("id_mascota", idMascota)
-      .order("fecha_aplicacion", { ascending: false }),
-    supabase
-      .from("mascotas_historial_clinico")
-      .select("*")
-      .eq("id_mascota", idMascota)
-      .order("fecha_visita", { ascending: false }),
-  ]);
-
-  if (libretaError) {
-    throw new Error("No se pudo cargar la libreta sanitaria.");
-  }
-
-  if (historialError) {
-    throw new Error("No se pudo cargar el historial clínico.");
-  }
-
-  const libreta = (libretaFeed ?? []).map((row) =>
-    mapFeedRowToLibretaItem(row as LibretaFeedRow),
-  );
-
-  return JSON.parse(
-    JSON.stringify({
-      mascota,
-      libreta,
-      historial: historial ?? [],
-    }),
-  ) as MascotaModuleData;
 }
