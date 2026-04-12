@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -6,7 +7,15 @@ type PageProps = {
   }>;
 };
 
-export default async function MascotaPage(props: PageProps) {
-  const params = await props.params;
-  redirect(`/mascotas/${params.id}/libreta`);
+async function RedirectToLibreta({ params }: PageProps) {
+  const { id } = await params;
+  redirect(`/mascotas/${id}/libreta`);
+}
+
+export default function MascotaPage(props: PageProps) {
+  return (
+    <Suspense fallback={null}>
+      <RedirectToLibreta {...props} />
+    </Suspense>
+  );
 }
