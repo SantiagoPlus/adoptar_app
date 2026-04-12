@@ -5,7 +5,6 @@ import { useFormStatus } from "react-dom";
 import {
   X,
   Plus,
-  ShieldPlus,
   Syringe,
   Bug,
   ShieldCheck,
@@ -64,9 +63,9 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex h-12 md:h-14 items-center justify-center rounded-[1.25rem] md:rounded-[1.5rem] border border-amber-500/20 bg-amber-500 px-6 text-sm font-black uppercase tracking-[0.08em] text-black transition hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex h-12 items-center justify-center rounded-[1.15rem] border border-amber-500/20 bg-amber-500 px-6 text-sm font-black uppercase tracking-[0.08em] text-black transition hover:opacity-95 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {pending ? "Guardando..." : "Guardar registro preventivo"}
+      {pending ? "Guardando..." : "Guardar registro"}
     </button>
   );
 }
@@ -110,8 +109,9 @@ export function RegistrarAplicacionModal({
   const viaPlaceholder = useMemo(() => {
     if (categoria === "vacunacion") return "Ej: Subcutánea, intramuscular...";
     if (categoria === "desparasitacion_interna") return "Ej: Oral...";
-    if (categoria === "desparasitacion_externa")
+    if (categoria === "desparasitacion_externa") {
       return "Ej: Tópica, collar, spot-on...";
+    }
     return "Ej: Consulta presencial...";
   }, [categoria]);
 
@@ -122,251 +122,254 @@ export function RegistrarAplicacionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-12 md:h-14 items-center gap-3 rounded-[1.25rem] md:rounded-[1.5rem] border border-white/10 bg-white text-sm font-black uppercase tracking-[0.08em] text-black transition hover:opacity-95 active:scale-95"
+        className="inline-flex h-12 items-center gap-3 rounded-[1.15rem] border border-white/10 bg-white text-sm font-black uppercase tracking-[0.08em] text-black transition hover:opacity-95 active:scale-95"
       >
-        <div className="flex h-full items-center gap-3 px-5 md:px-6">
+        <div className="flex h-full items-center gap-3 px-5">
           <Plus className="h-4 w-4" strokeWidth={1.5} />
           Registrar aplicación
         </div>
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-md">
-          <div className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border border-white/10 bg-[#0a0a0a] shadow-2xl">
-            <div className="pointer-events-none absolute -left-12 -top-12 h-40 w-40 rounded-full bg-amber-500/10 blur-[80px]" />
-            <div className="pointer-events-none absolute -bottom-16 -right-16 h-44 w-44 rounded-full bg-emerald-500/10 blur-[90px]" />
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 px-4 py-4 backdrop-blur-md md:px-6 md:py-6">
+          <div className="flex min-h-full items-center justify-center">
+            <div className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a0a0a] shadow-2xl">
+              <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-amber-500/10 blur-[80px]" />
+              <div className="pointer-events-none absolute -bottom-16 -right-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-[90px]" />
 
-            <div className="mx-auto mt-4 h-1.5 w-16 rounded-full bg-white/10" />
+              <div className="relative z-10 mx-auto mt-3 h-1.5 w-16 rounded-full bg-white/10" />
 
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:scale-95"
-            >
-              <X className="h-5 w-5" strokeWidth={1.5} />
-            </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:scale-95"
+              >
+                <X className="h-5 w-5" strokeWidth={1.5} />
+              </button>
 
-            <div className="px-5 pb-6 pt-6 md:px-8 md:pb-8 md:pt-7">
-              <div className="mb-6 md:mb-8">
+              <div className="relative z-10 border-b border-white/10 px-5 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
                 <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                   Libreta sanitaria
                 </p>
-                <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-white">
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white md:text-4xl">
                   Registrar aplicación
                 </h2>
                 <p className="mt-2 text-sm italic text-white/40">
-                  Cargá un registro preventivo coherente con la libreta sanitaria.
+                  Cargá un registro preventivo con una lectura rápida y clara.
                 </p>
               </div>
 
-              <form action={registrarAplicacion} className="space-y-6">
-                <input type="hidden" name="id_mascota" value={idMascota} />
-                <input type="hidden" name="tipo" value={categoria} />
-                <input type="hidden" name="descripcion" value="" />
+              <div className="relative z-10 max-h-[78vh] overflow-y-auto overscroll-contain px-5 py-4 md:px-6 md:py-5">
+                <form action={registrarAplicacion} className="space-y-4">
+                  <input type="hidden" name="id_mascota" value={idMascota} />
+                  <input type="hidden" name="tipo" value={categoria} />
+                  <input type="hidden" name="descripcion" value="" />
 
-                <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Tipo de registro
-                    </label>
+                  <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Tipo de registro
+                      </label>
 
-                    <div className="relative">
-                      <select
-                        name="categoria_visible"
-                        value={categoria}
-                        onChange={(event) =>
-                          setCategoria(
-                            event.target.value as
-                              | "vacunacion"
-                              | "desparasitacion_interna"
-                              | "desparasitacion_externa"
-                              | "control_preventivo",
-                          )
-                        }
-                        className="h-12 md:h-14 w-full appearance-none rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 pr-12 text-sm font-semibold text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                      >
-                        {OPCIONES_REGISTRO.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <ChevronDown
-                        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45"
-                        strokeWidth={1.5}
-                      />
-                    </div>
-
-                    <div
-                      className={[
-                        "mt-4 rounded-[1.25rem] border p-4",
-                        activeOption.border,
-                        activeOption.bg,
-                      ].join(" ")}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={[
-                            "flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] border",
-                            activeOption.border,
-                            activeOption.bg,
-                            activeOption.accent,
-                          ].join(" ")}
+                      <div className="relative">
+                        <select
+                          name="categoria_visible"
+                          value={categoria}
+                          onChange={(event) =>
+                            setCategoria(
+                              event.target.value as
+                                | "vacunacion"
+                                | "desparasitacion_interna"
+                                | "desparasitacion_externa"
+                                | "control_preventivo",
+                            )
+                          }
+                          className="h-12 w-full appearance-none rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 pr-12 text-sm font-semibold text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                         >
-                          <ActiveIcon className="h-5 w-5" strokeWidth={1.5} />
-                        </div>
+                          {OPCIONES_REGISTRO.map((item) => (
+                            <option key={item.value} value={item.value}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
 
-                        <div className="min-w-0">
-                          <p
-                            className={`text-sm font-black uppercase tracking-[0.08em] ${activeOption.accent}`}
+                        <ChevronDown
+                          className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45"
+                          strokeWidth={1.5}
+                        />
+                      </div>
+
+                      <div
+                        className={[
+                          "mt-3 rounded-[1.15rem] border p-3",
+                          activeOption.border,
+                          activeOption.bg,
+                        ].join(" ")}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={[
+                              "flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.9rem] border",
+                              activeOption.border,
+                              activeOption.bg,
+                              activeOption.accent,
+                            ].join(" ")}
                           >
-                            {activeOption.label}
-                          </p>
-                          <p className="mt-1 text-sm italic text-white/45">
-                            {activeOption.hint}
-                          </p>
+                            <ActiveIcon className="h-4.5 w-4.5" strokeWidth={1.5} />
+                          </div>
+
+                          <div className="min-w-0">
+                            <p
+                              className={`text-sm font-black uppercase tracking-[0.08em] ${activeOption.accent}`}
+                            >
+                              {activeOption.label}
+                            </p>
+                            <p className="mt-1 text-sm italic text-white/45">
+                              {activeOption.hint}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Fecha de aplicación
+                      </label>
+                      <input
+                        type="date"
+                        name="fecha_aplicacion"
+                        required
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Fecha de aplicación
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                      Nombre del registro / producto
                     </label>
                     <input
-                      type="date"
-                      name="fecha_aplicacion"
+                      type="text"
+                      name="titulo"
                       required
-                      className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                  <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                    Nombre del registro / producto
-                  </label>
-                  <input
-                    type="text"
-                    name="titulo"
-                    required
-                    placeholder={tituloPlaceholder}
-                    className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                  />
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Lote
-                    </label>
-                    <input
-                      type="text"
-                      name="lote"
-                      placeholder="Ej: ABC-1234"
-                      className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      placeholder={tituloPlaceholder}
+                      className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                     />
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Fabricante
-                    </label>
-                    <input
-                      type="text"
-                      name="fabricante"
-                      placeholder="Ej: Merial, Zoetis..."
-                      className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Lote
+                      </label>
+                      <input
+                        type="text"
+                        name="lote"
+                        placeholder="Ej: ABC-1234"
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Vía de aplicación
-                    </label>
-                    <input
-                      type="text"
-                      name="via_aplicacion"
-                      placeholder={viaPlaceholder}
-                      className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Fabricante
+                      </label>
+                      <input
+                        type="text"
+                        name="fabricante"
+                        placeholder="Ej: Merial, Zoetis..."
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                    <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Próximo evento
-                    </label>
-                    <input
-                      type="date"
-                      name="fecha_proximo_evento"
-                      className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
-                </div>
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Vía de aplicación
+                      </label>
+                      <input
+                        type="text"
+                        name="via_aplicacion"
+                        placeholder={viaPlaceholder}
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
 
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                    Aval profesional
-                  </p>
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Próximo evento
+                      </label>
+                      <input
+                        type="date"
+                        name="fecha_proximo_evento"
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
+                  </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Profesional
                       </label>
                       <input
                         type="text"
                         name="profesional_nombre"
                         placeholder="Nombre completo"
-                        className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
 
-                    <div>
-                      <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Matrícula
                       </label>
                       <input
                         type="text"
                         name="profesional_matricula"
                         placeholder="Ej: MP 1234 / MN 5678"
-                        className="h-12 md:h-14 w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
                   </div>
 
-                  <p className="mt-3 text-xs italic text-white/35">
-                    Si completás profesional y matrícula, el registro se guarda como{" "}
-                    <span className="text-emerald-300">avalado_manual</span>.
-                  </p>
-                </div>
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                      Aval profesional
+                    </p>
+                    <p className="mt-2 text-xs italic text-white/35">
+                      Si completás profesional y matrícula, el registro se guarda como{" "}
+                      <span className="text-emerald-300">avalado_manual</span>.
+                    </p>
+                  </div>
 
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-5 backdrop-blur-md">
-                  <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                    Observaciones
-                  </label>
-                  <textarea
-                    name="observaciones"
-                    rows={3}
-                    placeholder="Dato complementario, reacción, indicación o nota breve..."
-                    className="w-full rounded-[1.25rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                  />
-                </div>
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                      Observaciones
+                    </label>
+                    <textarea
+                      name="observaciones"
+                      rows={2}
+                      placeholder="Dato complementario, reacción, indicación o nota breve..."
+                      className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                    />
+                  </div>
 
-                <div className="grid gap-3 md:grid-cols-[220px_1fr]">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="flex h-12 md:h-14 items-center justify-center rounded-[1.25rem] md:rounded-[1.5rem] border border-white/10 bg-transparent px-6 text-sm font-black uppercase tracking-[0.08em] text-white/70 transition hover:border-white/15 hover:bg-white/[0.04] hover:text-white active:scale-95"
-                  >
-                    Cancelar
-                  </button>
+                  <div className="sticky bottom-0 -mx-5 border-t border-white/10 bg-[#0a0a0a]/95 px-5 pb-1 pt-4 backdrop-blur-md md:-mx-6 md:px-6">
+                    <div className="grid gap-3 md:grid-cols-[220px_1fr]">
+                      <button
+                        type="button"
+                        onClick={() => setOpen(false)}
+                        className="flex h-12 items-center justify-center rounded-[1.15rem] border border-white/10 bg-transparent px-6 text-sm font-black uppercase tracking-[0.08em] text-white/70 transition hover:border-white/15 hover:bg-white/[0.04] hover:text-white active:scale-95"
+                      >
+                        Cancelar
+                      </button>
 
-                  <SubmitButton />
-                </div>
-              </form>
+                      <SubmitButton />
+                    </div>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
