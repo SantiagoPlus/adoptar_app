@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
-  Pill,
   CalendarDays,
   ChevronRight,
   ClipboardPlus,
+  ClipboardList,
   Activity,
   Syringe,
-  Shield,
+  Bug,
 } from "lucide-react";
 import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
 import { EventoDetalleModal } from "../evento-detalle-modal";
@@ -58,7 +58,7 @@ function getLibretaTone(item: LibretaItem) {
 
   if (categoria === "desparasitacion_interna") {
     return {
-      icon: <Pill className="h-5 w-5" strokeWidth={1.5} />,
+      icon: <Bug className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-amber-300",
       bg: "bg-amber-500/10",
       border: "border-amber-500/20",
@@ -68,7 +68,7 @@ function getLibretaTone(item: LibretaItem) {
 
   if (categoria === "desparasitacion_externa") {
     return {
-      icon: <Shield className="h-5 w-5" strokeWidth={1.5} />,
+      icon: <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-cyan-300",
       bg: "bg-cyan-500/10",
       border: "border-cyan-500/20",
@@ -78,7 +78,7 @@ function getLibretaTone(item: LibretaItem) {
 
   if (categoria === "control_preventivo" || categoria === "control") {
     return {
-      icon: <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />,
+      icon: <ClipboardList className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-white/80",
       bg: "bg-white/[0.06]",
       border: "border-white/10",
@@ -88,7 +88,7 @@ function getLibretaTone(item: LibretaItem) {
 
   if (item.tipo === "desparasitacion") {
     return {
-      icon: <Pill className="h-5 w-5" strokeWidth={1.5} />,
+      icon: <Bug className="h-5 w-5" strokeWidth={1.5} />,
       accent: "text-amber-300",
       bg: "bg-amber-500/10",
       border: "border-amber-500/20",
@@ -422,9 +422,7 @@ export function LibretaContent({
               <p className="text-xl font-medium text-white/70">
                 {emptyState.title}
               </p>
-              <p className="mt-3 text-sm text-white/35">
-                {emptyState.body}
-              </p>
+              <p className="mt-3 text-sm text-white/35">{emptyState.body}</p>
             </div>
           ) : (
             libretaFiltrada.map((item) => {
