@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { MascotaSectionNav } from "./section-nav";
 import { MascotaHeader } from "./mascota-header";
-import { getMascotaModuleShell } from "@/lib/server/mascotas";
+import { MascotaModuleProvider } from "./mascota-module-provider";
+import { getMascotaModuleData } from "@/lib/server/mascotas";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -48,7 +49,7 @@ function LayoutFallback() {
 
 async function MascotaLayoutContent({ children, params }: LayoutProps) {
   const { id: idMascota } = await params;
-  const mascota = await getMascotaModuleShell(idMascota);
+  const moduleData = await getMascotaModuleData(idMascota);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -63,11 +64,13 @@ async function MascotaLayoutContent({ children, params }: LayoutProps) {
           </Link>
         </div>
 
-        <MascotaHeader mascota={mascota} />
+        <MascotaHeader mascota={moduleData.mascota} />
 
         <MascotaSectionNav idMascota={idMascota} />
 
-        {children}
+        <MascotaModuleProvider value={moduleData}>
+          {children}
+        </MascotaModuleProvider>
       </section>
     </main>
   );
