@@ -141,7 +141,7 @@ function getValidationMeta(value: string) {
 }
 
 function getFechaAccion(item: LibretaItem) {
-  return item.fecha_proximo_evento || item.fecha_vencimiento || null;
+  return item.fecha_proximo_evento || null;
 }
 
 function getEstadoProteccionMeta(item: LibretaItem) {
