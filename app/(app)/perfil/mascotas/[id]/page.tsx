@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -7,15 +6,9 @@ type PageProps = {
   }>;
 };
 
-async function RedirectToMascota({ params }: PageProps) {
+export default async function PerfilMascotaLegacyPage({
+  params,
+}: PageProps) {
   const { id } = await params;
   redirect(`/mascotas/${id}`);
-}
-
-export default function PerfilMascotaLegacyPage(props: PageProps) {
-  return (
-    <Suspense fallback={null}>
-      <RedirectToMascota {...props} />
-    </Suspense>
-  );
 }
