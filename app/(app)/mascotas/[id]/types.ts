@@ -3,8 +3,6 @@ export type LibretaItem = {
   tipo: string;
   descripcion: string;
   fecha_aplicacion: string;
-  fecha_vencimiento: string | null;
-  producto_lote: string | null;
   observaciones: string | null;
   titulo: string | null;
   categoria: string | null;
