@@ -38,7 +38,9 @@ function getLibretaCategoria(item: LibretaItem) {
 
   if (item.tipo === "vacuna") return "vacunacion";
   if (item.tipo === "desparasitacion") return "desparasitacion";
-  if (item.tipo === "control") return "control_preventivo";
+  if (item.tipo === "control_preventivo" || item.tipo === "control") {
+    return "control_preventivo";
+  }
 
   return item.tipo;
 }
@@ -207,6 +209,7 @@ function matchesLibretaView(item: LibretaItem, view: LibretaView) {
     return (
       categoria === "control_preventivo" ||
       categoria === "control" ||
+      item.tipo === "control_preventivo" ||
       item.tipo === "control"
     );
   }
@@ -233,6 +236,67 @@ function getEmptyMessage(view: LibretaView) {
     title: "La libreta sanitaria está vacía.",
     body: "Empezá registrando una vacuna, desparasitación o control preventivo.",
   };
+}
+
+function getSecondaryMeta(item: LibretaItem) {
+  const categoria = getLibretaCategoria(item);
+
+  if (categoria === "vacunacion" || categoria === "vacuna") {
+    return [
+      item.producto_nombre
+        ? { label: "Producto", value: item.producto_nombre }
+        : null,
+      item.enfermedad_objetivo
+        ? { label: "Objetivo", value: item.enfermedad_objetivo }
+        : null,
+      item.esquema_refuerzo
+        ? { label: "Refuerzo", value: item.esquema_refuerzo }
+        : null,
+      item.via_aplicacion
+        ? { label: "Vía", value: item.via_aplicacion }
+        : null,
+      item.lote ? { label: "Lote", value: item.lote } : null,
+    ].filter(Boolean) as { label: string; value: string }[];
+  }
+
+  if (
+    categoria === "desparasitacion_interna" ||
+    categoria === "desparasitacion_externa" ||
+    item.tipo === "desparasitacion"
+  ) {
+    return [
+      item.producto_nombre
+        ? { label: "Producto", value: item.producto_nombre }
+        : null,
+      item.principio_activo
+        ? { label: "Activo", value: item.principio_activo }
+        : null,
+      item.desparasitacion_alcance
+        ? { label: "Alcance", value: item.desparasitacion_alcance }
+        : null,
+      item.frecuencia_dias
+        ? { label: "Frecuencia", value: `Cada ${item.frecuencia_dias} días` }
+        : null,
+      item.via_aplicacion
+        ? { label: "Vía", value: item.via_aplicacion }
+        : null,
+    ].filter(Boolean) as { label: string; value: string }[];
+  }
+
+  if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
+    return [
+      item.tipo_control ? { label: "Tipo", value: item.tipo_control } : null,
+      item.control_motivo
+        ? { label: "Motivo", value: item.control_motivo }
+        : null,
+      item.institucion ? { label: "Institución", value: item.institucion } : null,
+    ].filter(Boolean) as { label: string; value: string }[];
+  }
+
+  return [
+    item.producto_nombre ? { label: "Producto", value: item.producto_nombre } : null,
+    item.lote ? { label: "Lote", value: item.lote } : null,
+  ].filter(Boolean) as { label: string; value: string }[];
 }
 
 function FeedbackBanner({
@@ -429,13 +493,14 @@ export function LibretaContent({
               const tone = getLibretaTone(item);
               const validationMeta = getValidationMeta(item.estado_validacion);
               const estadoProteccionMeta = getEstadoProteccionMeta(item);
+              const secondaryMeta = getSecondaryMeta(item);
 
               return (
                 <article
                   key={item.id_registro}
                   className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                 >
-                  <div className="grid grid-cols-[56px_minmax(0,1fr)_160px_44px] items-center gap-4">
+                  <div className="grid grid-cols-[56px_minmax(0,1fr)_170px_44px] items-center gap-4">
                     <div
                       className={[
                         "flex h-14 w-14 items-center justify-center rounded-[14px] border",
@@ -463,6 +528,12 @@ export function LibretaContent({
                         >
                           {validationMeta.label}
                         </span>
+
+                        {item.tiene_adjuntos ? (
+                          <span className="rounded-md border border-white/10 bg-white/[0.05] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70">
+                            ADJUNTO
+                          </span>
+                        ) : null}
                       </div>
 
                       <h4 className="truncate text-[22px] font-black italic leading-none tracking-tight text-white md:text-[24px]">
@@ -473,37 +544,28 @@ export function LibretaContent({
                         ).toUpperCase()}
                       </h4>
 
-                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/55">
-                        {item.producto_nombre ? (
-                          <span>
-                            Marca:{" "}
-                            <span className="text-white/75">
-                              {item.producto_nombre}
+                      {secondaryMeta.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/55">
+                          {secondaryMeta.map((meta) => (
+                            <span key={`${item.id_registro}-${meta.label}`}>
+                              {meta.label}:{" "}
+                              <span className="text-white/75">{meta.value}</span>
                             </span>
-                          </span>
-                        ) : null}
+                          ))}
+                        </div>
+                      ) : null}
 
-                        {item.lote || item.producto_lote ? (
-                          <span>
-                            Lote:{" "}
-                            <span className="text-white/75">
-                              {item.lote || item.producto_lote}
-                            </span>
+                      {item.profesional_nombre ? (
+                        <p className="mt-1.5 text-[13px] text-white/55">
+                          Vet:{" "}
+                          <span className="text-white/75">
+                            {item.profesional_nombre}
+                            {item.profesional_matricula
+                              ? ` (${item.profesional_matricula})`
+                              : ""}
                           </span>
-                        ) : null}
-
-                        {item.profesional_nombre ? (
-                          <span>
-                            Vet:{" "}
-                            <span className="text-white/75">
-                              {item.profesional_nombre}
-                              {item.profesional_matricula
-                                ? ` (${item.profesional_matricula})`
-                                : ""}
-                            </span>
-                          </span>
-                        ) : null}
-                      </div>
+                        </p>
+                      ) : null}
 
                       {item.observaciones ? (
                         <p className="mt-1.5 truncate text-[13px] italic text-white/35">
