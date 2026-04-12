@@ -17,6 +17,27 @@ export type LibretaItem = {
   institucion?: string | null;
   estado_validacion: string;
   fecha_proximo_evento: string | null;
+
+  dominio?: string | null;
+  subtipo_evento?: string | null;
+  via_aplicacion?: string | null;
+  dosis?: string | null;
+  created_by_role?: string | null;
+  created_by_user_id?: string | null;
+  id_proveedor?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  enfermedad_objetivo?: string | null;
+  esquema_refuerzo?: string | null;
+  desparasitacion_alcance?: string | null;
+  principio_activo?: string | null;
+  frecuencia_dias?: number | null;
+  tipo_control?: string | null;
+  control_motivo?: string | null;
+  hallazgos_resumen?: string | null;
+  indicaciones?: string | null;
+  cantidad_adjuntos?: number;
+  tiene_adjuntos?: boolean;
 };
 
 export type HistorialItem = {
