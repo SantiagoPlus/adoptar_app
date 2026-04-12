@@ -249,18 +249,6 @@ export function LibretaContent({
 
   const emptyState = getEmptyMessage(view);
 
-  const counts = useMemo(() => {
-    return {
-      prevencion: libretaOrdenada.filter((item) =>
-        matchesLibretaView(item, "prevencion"),
-      ).length,
-      clinica: libretaOrdenada.filter((item) =>
-        matchesLibretaView(item, "clinica"),
-      ).length,
-      vida: libretaOrdenada.length,
-    };
-  }, [libretaOrdenada]);
-
   return (
     <div>
       <EventoDetalleModal
@@ -338,9 +326,6 @@ export function LibretaContent({
               ].join(" ")}
             >
               Prevención
-              <span className="ml-2 text-[10px] opacity-70">
-                {counts.prevencion}
-              </span>
             </button>
 
             <button
@@ -349,14 +334,11 @@ export function LibretaContent({
               className={[
                 "flex h-11 items-center justify-center rounded-lg px-4 transition active:scale-95",
                 view === "clinica"
-                  ? "bg-white text-black"
+                  ? "bg-amber-500 text-black"
                   : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
               ].join(" ")}
             >
               Clínica
-              <span className="ml-2 text-[10px] opacity-70">
-                {counts.clinica}
-              </span>
             </button>
 
             <button
@@ -365,14 +347,11 @@ export function LibretaContent({
               className={[
                 "flex h-11 items-center justify-center rounded-lg px-4 transition active:scale-95",
                 view === "vida"
-                  ? "bg-emerald-500 text-black"
+                  ? "bg-amber-500 text-black"
                   : "text-white/40 hover:bg-white/[0.04] hover:text-white/75",
               ].join(" ")}
             >
               Vida
-              <span className="ml-2 text-[10px] opacity-70">
-                {counts.vida}
-              </span>
             </button>
           </div>
         </div>
