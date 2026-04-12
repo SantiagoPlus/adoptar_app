@@ -20,9 +20,17 @@ type LibretaView = "prevencion" | "clinica" | "vida";
 
 function formatFecha(value: string | null) {
   if (!value) return "Sin fecha";
-  const date = new Date(value);
+  const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("es-AR");
+}
+
+function parseDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
 function getLibretaCategoria(item: LibretaItem) {
@@ -107,23 +115,75 @@ function getLibretaTone(item: LibretaItem) {
   };
 }
 
-function getValidationBadge(value: string) {
-  if (value === "validado_profesional") return "VALIDADO";
-  if (value === "avalado_manual") return "AVALADO";
-  return "CARGADO";
-}
-
-function getEstadoEvento(item: LibretaItem) {
-  if (item.fecha_proximo_evento) return "PRÓXIMO";
-  return "PROTEGIDO";
-}
-
-function getEstadoTone(value: string) {
-  if (value === "PRÓXIMO") {
-    return "bg-amber-500/15 text-amber-300 border border-amber-500/20";
+function getValidationMeta(value: string) {
+  if (value === "validado_profesional") {
+    return {
+      label: "VALIDADO",
+      className:
+        "bg-emerald-500/12 text-emerald-300 border border-emerald-500/20",
+    };
   }
 
-  return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20";
+  if (value === "avalado_manual") {
+    return {
+      label: "AVALADO",
+      className:
+        "bg-amber-500/12 text-amber-300 border border-amber-500/20",
+    };
+  }
+
+  return {
+    label: "CARGADO",
+    className: "bg-white/[0.06] text-white/75 border border-white/10",
+  };
+}
+
+function getFechaAccion(item: LibretaItem) {
+  return item.fecha_proximo_evento || item.fecha_vencimiento || null;
+}
+
+function getEstadoProteccionMeta(item: LibretaItem) {
+  const fechaAccionRaw = getFechaAccion(item);
+  const fechaAccion = parseDate(fechaAccionRaw);
+
+  if (!fechaAccion) {
+    return {
+      label: "PROTEGIDO",
+      className:
+        "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+      fechaVisible: "Sin próxima fecha",
+    };
+  }
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const diffMs = fechaAccion.getTime() - hoy.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return {
+      label: "PENDIENTE",
+      className: "bg-rose-500/15 text-rose-300 border border-rose-500/20",
+      fechaVisible: formatFecha(fechaAccionRaw),
+    };
+  }
+
+  if (diffDays <= 90) {
+    return {
+      label: "PRÓXIMO",
+      className:
+        "bg-amber-500/15 text-amber-300 border border-amber-500/20",
+      fechaVisible: formatFecha(fechaAccionRaw),
+    };
+  }
+
+  return {
+    label: "PROTEGIDO",
+    className:
+      "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
+    fechaVisible: formatFecha(fechaAccionRaw),
+  };
 }
 
 function matchesLibretaView(item: LibretaItem, view: LibretaView) {
@@ -369,15 +429,15 @@ export function LibretaContent({
           ) : (
             libretaFiltrada.map((item) => {
               const tone = getLibretaTone(item);
-              const badge = getValidationBadge(item.estado_validacion);
-              const estadoEvento = getEstadoEvento(item);
+              const validationMeta = getValidationMeta(item.estado_validacion);
+              const estadoProteccionMeta = getEstadoProteccionMeta(item);
 
               return (
                 <article
                   key={item.id_registro}
                   className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 transition hover:border-white/15 hover:bg-white/[0.03]"
                 >
-                  <div className="grid grid-cols-[56px_minmax(0,1fr)_140px_44px] items-center gap-4">
+                  <div className="grid grid-cols-[56px_minmax(0,1fr)_160px_44px] items-center gap-4">
                     <div
                       className={[
                         "flex h-14 w-14 items-center justify-center rounded-[14px] border",
@@ -396,8 +456,14 @@ export function LibretaContent({
                         >
                           {tone.label}
                         </span>
-                        <span className="rounded-md bg-amber-500/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-                          {badge}
+
+                        <span
+                          className={[
+                            "rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                            validationMeta.className,
+                          ].join(" ")}
+                        >
+                          {validationMeta.label}
                         </span>
                       </div>
 
@@ -451,16 +517,16 @@ export function LibretaContent({
                     <div className="text-right">
                       <div className="mb-2 flex items-center justify-end gap-2 text-[13px] text-white/45">
                         <CalendarDays className="h-3.5 w-3.5" strokeWidth={1.5} />
-                        {formatFecha(item.fecha_aplicacion)}
+                        {estadoProteccionMeta.fechaVisible}
                       </div>
 
                       <span
                         className={[
                           "inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide",
-                          getEstadoTone(estadoEvento),
+                          estadoProteccionMeta.className,
                         ].join(" ")}
                       >
-                        {estadoEvento}
+                        {estadoProteccionMeta.label}
                       </span>
                     </div>
 
