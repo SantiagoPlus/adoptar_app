@@ -56,6 +56,12 @@ const OPCIONES_REGISTRO = [
   },
 ] as const;
 
+type CategoriaRegistro =
+  | "vacunacion"
+  | "desparasitacion_interna"
+  | "desparasitacion_externa"
+  | "control_preventivo";
+
 function SubmitButton() {
   const { pending } = useFormStatus();
 
@@ -76,12 +82,8 @@ export function RegistrarAplicacionModal({
   idMascota: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [categoria, setCategoria] = useState<
-    | "vacunacion"
-    | "desparasitacion_interna"
-    | "desparasitacion_externa"
-    | "control_preventivo"
-  >("vacunacion");
+  const [categoria, setCategoria] =
+    useState<CategoriaRegistro>("vacunacion");
 
   const activeOption = useMemo(() => {
     return (
@@ -131,42 +133,45 @@ export function RegistrarAplicacionModal({
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 px-4 py-4 backdrop-blur-md md:px-6 md:py-6">
-          <div className="flex min-h-full items-center justify-center">
-            <div className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#0a0a0a] shadow-2xl">
-              <div className="pointer-events-none absolute -left-12 -top-12 h-36 w-36 rounded-full bg-amber-500/10 blur-[80px]" />
-              <div className="pointer-events-none absolute -bottom-16 -right-16 h-40 w-40 rounded-full bg-emerald-500/10 blur-[90px]" />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md">
+          <div className="flex min-h-screen items-end justify-center px-0 py-0 md:px-4 md:py-4">
+            <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/10 bg-[#0a0a0a] shadow-2xl md:h-auto md:max-h-[94vh] md:w-[calc(100vw-32px)] md:max-w-[1480px] md:rounded-[2rem]">
+              <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-amber-500/10 blur-[90px]" />
+              <div className="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-[100px]" />
 
-              <div className="relative z-10 mx-auto mt-3 h-1.5 w-16 rounded-full bg-white/10" />
+              <div className="relative z-10 border-b border-white/10 bg-[#0a0a0a]/95 px-4 pb-4 pt-4 backdrop-blur-md md:px-6 md:pb-5 md:pt-5">
+                <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/10 md:hidden" />
 
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:scale-95"
-              >
-                <X className="h-5 w-5" strokeWidth={1.5} />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-[1rem] border border-white/10 bg-white/[0.04] text-white/70 transition hover:border-white/15 hover:bg-white/[0.08] hover:text-white active:scale-95"
+                >
+                  <X className="h-5 w-5" strokeWidth={1.5} />
+                </button>
 
-              <div className="relative z-10 border-b border-white/10 px-5 pb-4 pt-5 md:px-6 md:pb-5 md:pt-6">
                 <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                   Libreta sanitaria
                 </p>
-                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white md:text-4xl">
-                  Registrar aplicación
-                </h2>
-                <p className="mt-2 text-sm italic text-white/40">
-                  Cargá un registro preventivo con una lectura rápida y clara.
-                </p>
+
+                <div className="pr-14">
+                  <h2 className="text-[28px] leading-none font-black italic uppercase tracking-tighter text-white md:text-[38px]">
+                    Registrar aplicación
+                  </h2>
+                  <p className="mt-2 text-sm italic text-white/40">
+                    Panel preventivo compacto para carga rápida.
+                  </p>
+                </div>
               </div>
 
-              <div className="relative z-10 max-h-[78vh] overflow-y-auto overscroll-contain px-5 py-4 md:px-6 md:py-5">
+              <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
                 <form action={registrarAplicacion} className="space-y-4">
                   <input type="hidden" name="id_mascota" value={idMascota} />
                   <input type="hidden" name="tipo" value={categoria} />
                   <input type="hidden" name="descripcion" value="" />
 
-                  <div className="grid gap-4 md:grid-cols-[1.15fr_0.85fr]">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                  <div className="grid gap-4 xl:grid-cols-12">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Tipo de registro
                       </label>
@@ -176,13 +181,7 @@ export function RegistrarAplicacionModal({
                           name="categoria_visible"
                           value={categoria}
                           onChange={(event) =>
-                            setCategoria(
-                              event.target.value as
-                                | "vacunacion"
-                                | "desparasitacion_interna"
-                                | "desparasitacion_externa"
-                                | "control_preventivo",
-                            )
+                            setCategoria(event.target.value as CategoriaRegistro)
                           }
                           className="h-12 w-full appearance-none rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 pr-12 text-sm font-semibold text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                         >
@@ -232,7 +231,7 @@ export function RegistrarAplicacionModal({
                       </div>
                     </div>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Fecha de aplicación
                       </label>
@@ -243,59 +242,21 @@ export function RegistrarAplicacionModal({
                         className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
-                  </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Nombre del registro / producto
-                    </label>
-                    <input
-                      type="text"
-                      name="titulo"
-                      required
-                      placeholder={tituloPlaceholder}
-                      className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Lote
+                        Nombre del registro / producto
                       </label>
                       <input
                         type="text"
-                        name="lote"
-                        placeholder="Ej: ABC-1234"
+                        name="titulo"
+                        required
+                        placeholder={tituloPlaceholder}
                         className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Fabricante
-                      </label>
-                      <input
-                        type="text"
-                        name="fabricante"
-                        placeholder="Ej: Merial, Zoetis..."
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Vía de aplicación
-                      </label>
-                      <input
-                        type="text"
-                        name="via_aplicacion"
-                        placeholder={viaPlaceholder}
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Próximo evento
                       </label>
@@ -307,55 +268,96 @@ export function RegistrarAplicacionModal({
                     </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                  <div className="grid gap-4 xl:grid-cols-12">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Lote
+                      </label>
+                      <input
+                        type="text"
+                        name="lote"
+                        placeholder="Ej: ABC-1234"
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
+
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-3">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Fabricante
+                      </label>
+                      <input
+                        type="text"
+                        name="fabricante"
+                        placeholder="Ej: Merial, Zoetis..."
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
+
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-3">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Vía de aplicación
+                      </label>
+                      <input
+                        type="text"
+                        name="via_aplicacion"
+                        placeholder={viaPlaceholder}
+                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
+
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Profesional
                       </label>
                       <input
                         type="text"
                         name="profesional_nombre"
-                        placeholder="Nombre completo"
+                        placeholder="Nombre"
                         className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Matrícula
                       </label>
                       <input
                         type="text"
                         name="profesional_matricula"
-                        placeholder="Ej: MP 1234 / MN 5678"
+                        placeholder="Ej: MP 1234"
                         className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
                       />
                     </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Aval profesional
-                    </p>
-                    <p className="mt-2 text-xs italic text-white/35">
-                      Si completás profesional y matrícula, el registro se guarda como{" "}
-                      <span className="text-emerald-300">avalado_manual</span>.
-                    </p>
+                  <div className="grid gap-4 xl:grid-cols-12">
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-8">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Observaciones
+                      </label>
+                      <textarea
+                        name="observaciones"
+                        rows={2}
+                        placeholder="Dato complementario, reacción, indicación o nota breve..."
+                        className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      />
+                    </div>
+
+                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                        Aval profesional
+                      </p>
+                      <p className="text-sm italic text-white/40">
+                        Si completás profesional y matrícula, el registro se guarda como{" "}
+                        <span className="font-medium text-emerald-300">
+                          avalado_manual
+                        </span>
+                        .
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                    <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                      Observaciones
-                    </label>
-                    <textarea
-                      name="observaciones"
-                      rows={2}
-                      placeholder="Dato complementario, reacción, indicación o nota breve..."
-                      className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                    />
-                  </div>
-
-                  <div className="sticky bottom-0 -mx-5 border-t border-white/10 bg-[#0a0a0a]/95 px-5 pb-1 pt-4 backdrop-blur-md md:-mx-6 md:px-6">
+                  <div className="border-t border-white/10 pt-4">
                     <div className="grid gap-3 md:grid-cols-[220px_1fr]">
                       <button
                         type="button"
