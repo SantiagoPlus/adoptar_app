@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getMascotaOwnerContext } from "@/lib/server/mascotas";
 
 function normalizeText(value: FormDataEntryValue | null) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
@@ -20,12 +20,6 @@ function mapLibrettaTipo(tipoUI: string) {
 }
 
 export async function registrarAplicacion(formData: FormData) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const idMascota = normalizeText(formData.get("id_mascota"));
   const tipoUI = normalizeText(formData.get("tipo"));
   const titulo = normalizeText(formData.get("titulo"));
@@ -37,10 +31,6 @@ export async function registrarAplicacion(formData: FormData) {
   const profesionalNombre = normalizeText(formData.get("profesional_nombre"));
   const profesionalMatricula = normalizeText(formData.get("profesional_matricula"));
   const observaciones = normalizeText(formData.get("observaciones"));
-
-  if (!user) {
-    redirect(`/auth/login?next=/mascotas/${idMascota}`);
-  }
 
   if (!idMascota || !tipoUI || !titulo || !fechaAplicacion) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
@@ -57,31 +47,14 @@ export async function registrarAplicacion(formData: FormData) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=tipo_invalido`);
   }
 
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    console.error("registrarAplicacion.usuarioError", usuarioError);
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=usuario_no_encontrado`);
-  }
-
-  const { data: mascota, error: mascotaError } = await supabase
-    .from("mascotas")
-    .select("id_mascota, id_usuario")
-    .eq("id_mascota", idMascota)
-    .single();
-
-  if (mascotaError || !mascota) {
-    console.error("registrarAplicacion.mascotaError", mascotaError);
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=mascota_no_encontrada`);
-  }
-
-  if (mascota.id_usuario !== usuario.id_usuario) {
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=sin_permisos`);
-  }
+  const { supabase, usuario } = await getMascotaOwnerContext(idMascota, {
+    loginNext: `/mascotas/${idMascota}`,
+    redirects: {
+      profileMissing: `/mascotas/${idMascota}?tab=libreta&error=usuario_no_encontrado`,
+      notFound: `/mascotas/${idMascota}?tab=libreta&error=mascota_no_encontrada`,
+      forbidden: `/mascotas/${idMascota}?tab=libreta&error=sin_permisos`,
+    },
+  });
 
   const estadoValidacion =
     profesionalNombre && profesionalMatricula
@@ -110,8 +83,6 @@ export async function registrarAplicacion(formData: FormData) {
     observaciones: observaciones || null,
   };
 
-  console.log("registrarAplicacion.payload", payload);
-
   const { error: insertError } = await supabase
     .from("mascotas_libreta_sanitaria")
     .insert(payload);
@@ -129,12 +100,6 @@ export async function registrarAplicacion(formData: FormData) {
 }
 
 export async function registrarVisita(formData: FormData) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const idMascota = normalizeText(formData.get("id_mascota"));
   const categoria = normalizeText(formData.get("categoria"));
   const titulo = normalizeText(formData.get("titulo"));
@@ -153,43 +118,30 @@ export async function registrarVisita(formData: FormData) {
   const institucion = normalizeText(formData.get("institucion"));
   const observaciones = normalizeText(formData.get("observaciones"));
 
-  if (!user) {
-    redirect(`/auth/login?next=/mascotas/${idMascota}`);
-  }
-
   if (!idMascota || !categoria || !titulo || !motivoConsulta || !fechaVisita) {
-    redirect(`/mascotas/${idMascota}?tab=historial&error=campos_obligatorios_historial`);
+    redirect(
+      `/mascotas/${idMascota}?tab=historial&error=campos_obligatorios_historial`,
+    );
   }
 
-  if (!["consulta", "estudio", "cirugia", "medicacion_tratamiento"].includes(categoria)) {
-    redirect(`/mascotas/${idMascota}?tab=historial&error=categoria_invalida_historial`);
+  if (
+    !["consulta", "estudio", "cirugia", "medicacion_tratamiento"].includes(
+      categoria,
+    )
+  ) {
+    redirect(
+      `/mascotas/${idMascota}?tab=historial&error=categoria_invalida_historial`,
+    );
   }
 
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", user.id)
-    .single();
-
-  if (usuarioError || !usuario) {
-    console.error("registrarVisita.usuarioError", usuarioError);
-    redirect(`/mascotas/${idMascota}?tab=historial&error=usuario_no_encontrado`);
-  }
-
-  const { data: mascota, error: mascotaError } = await supabase
-    .from("mascotas")
-    .select("id_mascota, id_usuario")
-    .eq("id_mascota", idMascota)
-    .single();
-
-  if (mascotaError || !mascota) {
-    console.error("registrarVisita.mascotaError", mascotaError);
-    redirect(`/mascotas/${idMascota}?tab=historial&error=mascota_no_encontrada`);
-  }
-
-  if (mascota.id_usuario !== usuario.id_usuario) {
-    redirect(`/mascotas/${idMascota}?tab=historial&error=sin_permisos`);
-  }
+  const { supabase, usuario } = await getMascotaOwnerContext(idMascota, {
+    loginNext: `/mascotas/${idMascota}`,
+    redirects: {
+      profileMissing: `/mascotas/${idMascota}?tab=historial&error=usuario_no_encontrado`,
+      notFound: `/mascotas/${idMascota}?tab=historial&error=mascota_no_encontrada`,
+      forbidden: `/mascotas/${idMascota}?tab=historial&error=sin_permisos`,
+    },
+  });
 
   const estadoValidacion =
     profesionalNombre && profesionalMatricula
@@ -218,8 +170,6 @@ export async function registrarVisita(formData: FormData) {
     created_by_user_id: usuario.id_usuario,
     observaciones: observaciones || null,
   };
-
-  console.log("registrarVisita.payload", payload);
 
   const { error: insertError } = await supabase
     .from("mascotas_historial_clinico")
