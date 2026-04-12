@@ -29,7 +29,6 @@ export type LibretaFeedRow = {
   lote: string | null;
   via_aplicacion: string | null;
   dosis: string | null;
-  producto_lote: string | null;
   enfermedad_objetivo: string | null;
   esquema_refuerzo: string | null;
   desparasitacion_alcance: string | null;
@@ -49,8 +48,6 @@ export function mapFeedRowToLibretaItem(row: LibretaFeedRow): LibretaItem {
     tipo: row.tipo_evento,
     descripcion: row.descripcion ?? row.titulo,
     fecha_aplicacion: row.fecha_aplicacion,
-    fecha_vencimiento: null,
-    producto_lote: row.producto_lote,
     observaciones: row.observaciones,
     titulo: row.titulo,
     categoria: row.categoria_ui,
