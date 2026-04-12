@@ -9,7 +9,7 @@ import {
   Paperclip,
   ChevronRight,
 } from "lucide-react";
-import { RegistrarVisitaModal } from "../registrar-visita-modal";
+import { RegistrarVisitaModal } from "./registrar-visita-modal";
 import { EventoDetalleModal } from "../evento-detalle-modal";
 import type { HistorialItem } from "../types";
 
