@@ -76,6 +76,43 @@ function SubmitButton() {
   );
 }
 
+function FieldShell({
+  label,
+  children,
+  className = "",
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={[
+        "rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md",
+        className,
+      ].join(" ")}
+    >
+      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function InputBase(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={[
+        "h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition",
+        "hover:border-white/15 focus:bg-white/[0.05]",
+        props.className ?? "",
+      ].join(" ")}
+    />
+  );
+}
+
 export function RegistrarAplicacionModal({
   idMascota,
 }: {
@@ -171,7 +208,7 @@ export function RegistrarAplicacionModal({
                   <input type="hidden" name="descripcion" value="" />
 
                   <div className="grid gap-4 xl:grid-cols-12">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
+                    <div className="xl:col-span-8 rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
                       <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
                         Tipo de registro
                       </label>
@@ -231,131 +268,104 @@ export function RegistrarAplicacionModal({
                       </div>
                     </div>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Fecha de aplicación
-                      </label>
-                      <input
+                    <FieldShell label="Fecha de aplicación" className="xl:col-span-4">
+                      <InputBase
                         type="date"
                         name="fecha_aplicacion"
                         required
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                        className="focus:border-amber-500/30"
                       />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Nombre del registro / producto
-                      </label>
-                      <input
-                        type="text"
-                        name="titulo"
-                        required
-                        placeholder={tituloPlaceholder}
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Próximo evento
-                      </label>
-                      <input
-                        type="date"
-                        name="fecha_proximo_evento"
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
+                    </FieldShell>
                   </div>
 
+                  <FieldShell label="Descripción / producto">
+                    <InputBase
+                      type="text"
+                      name="titulo"
+                      required
+                      placeholder={tituloPlaceholder}
+                      className="focus:border-amber-500/30"
+                    />
+                  </FieldShell>
+
                   <div className="grid gap-4 xl:grid-cols-12">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Lote
-                      </label>
-                      <input
+                    <FieldShell label="Próximo evento" className="xl:col-span-3">
+                      <InputBase
+                        type="date"
+                        name="fecha_proximo_evento"
+                        className="focus:border-amber-500/30"
+                      />
+                    </FieldShell>
+
+                    <FieldShell label="Lote" className="xl:col-span-2">
+                      <InputBase
                         type="text"
                         name="lote"
                         placeholder="Ej: ABC-1234"
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                        className="focus:border-amber-500/30"
                       />
-                    </div>
+                    </FieldShell>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-3">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Fabricante
-                      </label>
-                      <input
+                    <FieldShell label="Fabricante" className="xl:col-span-3">
+                      <InputBase
                         type="text"
                         name="fabricante"
                         placeholder="Ej: Merial, Zoetis..."
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                        className="focus:border-amber-500/30"
                       />
-                    </div>
+                    </FieldShell>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-3">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Vía de aplicación
-                      </label>
-                      <input
+                    <FieldShell label="Vía de aplicación" className="xl:col-span-4">
+                      <InputBase
                         type="text"
                         name="via_aplicacion"
                         placeholder={viaPlaceholder}
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                        className="focus:border-amber-500/30"
                       />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Profesional
-                      </label>
-                      <input
-                        type="text"
-                        name="profesional_nombre"
-                        placeholder="Nombre"
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-2">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Matrícula
-                      </label>
-                      <input
-                        type="text"
-                        name="profesional_matricula"
-                        placeholder="Ej: MP 1234"
-                        className="h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition hover:border-white/15 focus:border-emerald-500/30 focus:bg-white/[0.05]"
-                      />
-                    </div>
+                    </FieldShell>
                   </div>
 
                   <div className="grid gap-4 xl:grid-cols-12">
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-8">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Observaciones
-                      </label>
-                      <textarea
-                        name="observaciones"
-                        rows={2}
-                        placeholder="Dato complementario, reacción, indicación o nota breve..."
-                        className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                    <FieldShell label="Profesional" className="xl:col-span-6">
+                      <InputBase
+                        type="text"
+                        name="profesional_nombre"
+                        placeholder="Nombre completo"
+                        className="focus:border-emerald-500/30"
                       />
-                    </div>
+                    </FieldShell>
 
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md xl:col-span-4">
-                      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
-                        Aval profesional
-                      </p>
-                      <p className="text-sm italic text-white/40">
-                        Si completás profesional y matrícula, el registro se guarda como{" "}
-                        <span className="font-medium text-emerald-300">
-                          avalado_manual
-                        </span>
-                        .
-                      </p>
-                    </div>
+                    <FieldShell label="Matrícula" className="xl:col-span-6">
+                      <InputBase
+                        type="text"
+                        name="profesional_matricula"
+                        placeholder="Ej: MP 1234 / MN 5678"
+                        className="focus:border-emerald-500/30"
+                      />
+                    </FieldShell>
                   </div>
+
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                      Aval profesional
+                    </p>
+                    <p className="mt-2 text-sm italic text-white/40">
+                      Si completás profesional y matrícula, el registro se guarda como{" "}
+                      <span className="font-medium text-emerald-300">
+                        avalado_manual
+                      </span>
+                      .
+                    </p>
+                  </div>
+
+                  <FieldShell label="Observaciones">
+                    <textarea
+                      name="observaciones"
+                      rows={2}
+                      placeholder="Dato complementario, reacción, indicación o nota breve..."
+                      className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                    />
+                  </FieldShell>
 
                   <div className="border-t border-white/10 pt-4">
                     <div className="grid gap-3 md:grid-cols-[220px_1fr]">
