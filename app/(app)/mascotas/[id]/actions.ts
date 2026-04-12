@@ -11,14 +11,6 @@ function encodeError(message: string) {
   return encodeURIComponent(message.slice(0, 180));
 }
 
-function mapLibretaTipo(categoriaUI: string) {
-  if (categoriaUI === "vacunacion") return "vacuna";
-  if (categoriaUI === "desparasitacion_interna") return "desparasitacion";
-  if (categoriaUI === "desparasitacion_externa") return "desparasitacion";
-  if (categoriaUI === "control_preventivo") return "control";
-  return "otro";
-}
-
 function isValidLibretaCategoria(value: string) {
   return [
     "vacunacion",
@@ -26,6 +18,33 @@ function isValidLibretaCategoria(value: string) {
     "desparasitacion_externa",
     "control_preventivo",
   ].includes(value);
+}
+
+function toNullable(value: string) {
+  return value.trim() ? value.trim() : null;
+}
+
+function parseDateValue(value: string) {
+  const normalized = value.trim();
+  if (!normalized) return null;
+
+  const date = new Date(`${normalized}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date;
+}
+
+function getDiffDays(start: string, end: string) {
+  const startDate = parseDateValue(start);
+  const endDate = parseDateValue(end);
+
+  if (!startDate || !endDate) return null;
+
+  const diffMs = endDate.getTime() - startDate.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return null;
+  return diffDays;
 }
 
 export async function registrarAplicacion(formData: FormData) {
@@ -38,7 +57,6 @@ export async function registrarAplicacion(formData: FormData) {
   const idMascota = normalizeText(formData.get("id_mascota"));
   const categoriaUI = normalizeText(formData.get("tipo"));
   const titulo = normalizeText(formData.get("titulo"));
-  const descripcion = normalizeText(formData.get("descripcion"));
   const fechaAplicacion = normalizeText(formData.get("fecha_aplicacion"));
   const fechaProximoEvento = normalizeText(formData.get("fecha_proximo_evento"));
   const lote = normalizeText(formData.get("lote"));
@@ -60,72 +78,82 @@ export async function registrarAplicacion(formData: FormData) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=tipo_invalido`);
   }
 
-  const { data: usuario, error: usuarioError } = await supabase
-    .from("usuarios")
-    .select("id_usuario")
-    .eq("auth_user_id", user.id)
-    .single();
+  let rpcErrorMessage: string | null = null;
 
-  if (usuarioError || !usuario) {
-    console.error("registrarAplicacion.usuarioError", usuarioError);
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=usuario_no_encontrado`);
+  if (categoriaUI === "vacunacion") {
+    const { error } = await supabase.rpc("registrar_evento_vacuna", {
+      p_id_mascota: idMascota,
+      p_titulo: titulo,
+      p_fecha_evento: fechaAplicacion,
+      p_fecha_proxima_accion: toNullable(fechaProximoEvento),
+      p_producto_nombre: titulo,
+      p_fabricante: toNullable(fabricante),
+      p_lote: toNullable(lote),
+      p_via_aplicacion: toNullable(viaAplicacion),
+      p_dosis: null,
+      p_enfermedad_objetivo: titulo,
+      p_esquema_refuerzo: null,
+      p_profesional_nombre: toNullable(profesionalNombre),
+      p_profesional_matricula: toNullable(profesionalMatricula),
+    });
+
+    if (error) {
+      rpcErrorMessage = error.message || "error_rpc_vacuna";
+    }
   }
 
-  const { data: mascota, error: mascotaError } = await supabase
-    .from("mascotas")
-    .select("id_mascota, id_usuario")
-    .eq("id_mascota", idMascota)
-    .single();
+  if (categoriaUI === "desparasitacion_interna" || categoriaUI === "desparasitacion_externa") {
+    const frecuenciaDias = getDiffDays(fechaAplicacion, fechaProximoEvento);
 
-  if (mascotaError || !mascota) {
-    console.error("registrarAplicacion.mascotaError", mascotaError);
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=mascota_no_encontrada`);
+    const { error } = await supabase.rpc("registrar_evento_desparasitacion", {
+      p_id_mascota: idMascota,
+      p_alcance: categoriaUI === "desparasitacion_externa" ? "externa" : "interna",
+      p_titulo: titulo,
+      p_fecha_evento: fechaAplicacion,
+      p_fecha_proxima_accion: toNullable(fechaProximoEvento),
+      p_producto_nombre: titulo,
+      p_principio_activo: null,
+      p_fabricante: toNullable(fabricante),
+      p_lote: toNullable(lote),
+      p_via_aplicacion: toNullable(viaAplicacion),
+      p_dosis: null,
+      p_profesional_nombre: toNullable(profesionalNombre),
+      p_profesional_matricula: toNullable(profesionalMatricula),
+      p_frecuencia_dias: frecuenciaDias,
+      p_observaciones: toNullable(observaciones),
+    });
+
+    if (error) {
+      rpcErrorMessage = error.message || "error_rpc_desparasitacion";
+    }
   }
 
-  if (mascota.id_usuario !== usuario.id_usuario) {
-    redirect(`/mascotas/${idMascota}?tab=libreta&error=sin_permisos`);
+  if (categoriaUI === "control_preventivo") {
+    const { error } = await supabase.rpc("registrar_evento_control_preventivo", {
+      p_id_mascota: idMascota,
+      p_titulo: titulo,
+      p_fecha_evento: fechaAplicacion,
+      p_fecha_proxima_accion: toNullable(fechaProximoEvento),
+      p_tipo_control: titulo,
+      p_motivo: toNullable(observaciones),
+      p_hallazgos_resumen: null,
+      p_indicaciones: null,
+      p_profesional_nombre: toNullable(profesionalNombre),
+      p_profesional_matricula: toNullable(profesionalMatricula),
+      p_institucion: null,
+      p_observaciones: toNullable(observaciones),
+    });
+
+    if (error) {
+      rpcErrorMessage = error.message || "error_rpc_control";
+    }
   }
 
-  const estadoValidacion =
-    profesionalNombre && profesionalMatricula
-      ? "avalado_manual"
-      : "cargado_por_tutor";
-
-  const tipo = mapLibretaTipo(categoriaUI);
-  const categoria = categoriaUI;
-
-  const payload = {
-    id_mascota: idMascota,
-    tipo,
-    categoria,
-    titulo,
-    descripcion: descripcion || titulo,
-    fecha_aplicacion: fechaAplicacion,
-    fecha_proximo_evento: fechaProximoEvento || null,
-    producto_nombre: titulo,
-    fabricante: fabricante || null,
-    lote: lote || null,
-    producto_lote: lote || null,
-    profesional_nombre: profesionalNombre || null,
-    profesional_matricula: profesionalMatricula || null,
-    estado_validacion: estadoValidacion,
-    via_aplicacion: viaAplicacion || null,
-    created_by_role: "tutor",
-    created_by_user_id: usuario.id_usuario,
-    observaciones: observaciones || null,
-  };
-
-  console.log("registrarAplicacion.payload", payload);
-
-  const { error: insertError } = await supabase
-    .from("mascotas_libreta_sanitaria")
-    .insert(payload);
-
-  if (insertError) {
-    console.error("registrarAplicacion.insertError", insertError);
+  if (rpcErrorMessage) {
+    console.error("registrarAplicacion.rpcError", rpcErrorMessage);
     redirect(
       `/mascotas/${idMascota}?tab=libreta&error=error_creacion_registro&db_error=${encodeError(
-        insertError.message || "error_desconocido",
+        rpcErrorMessage,
       )}`,
     );
   }
