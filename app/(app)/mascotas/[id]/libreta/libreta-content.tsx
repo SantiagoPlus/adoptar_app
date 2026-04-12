@@ -10,7 +10,7 @@ import {
   ClipboardPlus,
   Activity,
 } from "lucide-react";
-import { RegistrarAplicacionModal } from "../registrar-aplicacion-modal";
+import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
 import { EventoDetalleModal } from "../evento-detalle-modal";
 import type { LibretaItem } from "../types";
 
