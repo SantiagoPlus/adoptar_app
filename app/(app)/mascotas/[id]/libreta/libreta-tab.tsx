@@ -2,9 +2,14 @@
 
 import { LibretaContent } from "./libreta-content";
 import { useMascotaModuleData } from "../mascota-module-provider";
+import type { LibretaItem } from "../types";
 
-export function LibretaTab() {
-  const { mascota, libreta } = useMascotaModuleData();
+export function LibretaTab({
+  libreta,
+}: {
+  libreta: LibretaItem[];
+}) {
+  const mascota = useMascotaModuleData();
 
   return (
     <LibretaContent
