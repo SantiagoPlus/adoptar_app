@@ -1,0 +1,42 @@
+export type LibretaItem = {
+  id_registro: string;
+  tipo: string;
+  descripcion: string;
+  fecha_aplicacion: string;
+  fecha_vencimiento: string | null;
+  producto_lote: string | null;
+  observaciones: string | null;
+  titulo: string | null;
+  categoria: string | null;
+  producto_nombre: string | null;
+  fabricante: string | null;
+  lote: string | null;
+  profesional_nombre: string | null;
+  profesional_matricula: string | null;
+  profesional_documento?: string | null;
+  institucion?: string | null;
+  estado_validacion: string;
+  fecha_proximo_evento: string | null;
+};
+
+export type HistorialItem = {
+  id_historial: string;
+  fecha_visita: string;
+  motivo_consulta: string;
+  diagnostico: string | null;
+  tratamiento_indicado: string | null;
+  observaciones: string | null;
+  titulo: string | null;
+  categoria: string | null;
+  profesional_nombre: string | null;
+  profesional_matricula: string | null;
+  profesional_documento?: string | null;
+  institucion: string | null;
+  estado_validacion: string;
+  tipo_estudio: string | null;
+  resultado_resumen: string | null;
+  medicacion_o_tratamiento?: string | null;
+  dosis?: string | null;
+  duracion_tratamiento?: string | null;
+  fecha_proximo_control?: string | null;
+};
