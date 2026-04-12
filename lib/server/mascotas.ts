@@ -2,6 +2,10 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { getCurrentUsuario } from "@/lib/server/auth";
+import type {
+  HistorialItem,
+  LibretaItem,
+} from "@/app/(app)/mascotas/[id]/types";
 
 export type MascotaModuleShell = {
   id_mascota: string;
@@ -11,6 +15,12 @@ export type MascotaModuleShell = {
   raza: string | null;
   sexo: string | null;
   url_foto: string | null;
+};
+
+export type MascotaModuleData = {
+  mascota: MascotaModuleShell;
+  libreta: LibretaItem[];
+  historial: HistorialItem[];
 };
 
 type MascotaOwnerContextOptions = {
@@ -71,4 +81,49 @@ export async function getMascotaModuleShell(idMascota: string) {
   });
 
   return mascota;
+}
+
+export async function getMascotaModuleData(
+  idMascota: string,
+): Promise<MascotaModuleData> {
+  const { supabase, mascota } = await getMascotaOwnerContext(idMascota, {
+    loginNext: `/mascotas/${idMascota}`,
+    redirects: {
+      profileMissing: "/perfil",
+      notFound: "/perfil",
+      forbidden: "/perfil",
+    },
+  });
+
+  const [
+    { data: libreta, error: libretaError },
+    { data: historial, error: historialError },
+  ] = await Promise.all([
+    supabase
+      .from("mascotas_libreta_sanitaria")
+      .select("*")
+      .eq("id_mascota", idMascota)
+      .order("fecha_aplicacion", { ascending: false }),
+    supabase
+      .from("mascotas_historial_clinico")
+      .select("*")
+      .eq("id_mascota", idMascota)
+      .order("fecha_visita", { ascending: false }),
+  ]);
+
+  if (libretaError) {
+    throw new Error("No se pudo cargar la libreta sanitaria.");
+  }
+
+  if (historialError) {
+    throw new Error("No se pudo cargar el historial clínico.");
+  }
+
+  return JSON.parse(
+    JSON.stringify({
+      mascota,
+      libreta: libreta ?? [],
+      historial: historial ?? [],
+    }),
+  ) as MascotaModuleData;
 }
