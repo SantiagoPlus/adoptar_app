@@ -47,6 +47,16 @@ function getDiffDays(start: string, end: string) {
   return diffDays;
 }
 
+function parsePositiveInteger(value: string) {
+  const normalized = value.trim();
+  if (!normalized) return null;
+
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+
+  return Math.round(parsed);
+}
+
 export async function registrarAplicacion(formData: FormData) {
   const supabase = await createClient();
 
@@ -56,15 +66,32 @@ export async function registrarAplicacion(formData: FormData) {
 
   const idMascota = normalizeText(formData.get("id_mascota"));
   const categoriaUI = normalizeText(formData.get("tipo"));
+
   const titulo = normalizeText(formData.get("titulo"));
   const fechaAplicacion = normalizeText(formData.get("fecha_aplicacion"));
   const fechaProximoEvento = normalizeText(formData.get("fecha_proximo_evento"));
-  const lote = normalizeText(formData.get("lote"));
+  const observaciones = normalizeText(formData.get("observaciones"));
+
+  const productoNombre = normalizeText(formData.get("producto_nombre"));
   const fabricante = normalizeText(formData.get("fabricante"));
+  const lote = normalizeText(formData.get("lote"));
   const viaAplicacion = normalizeText(formData.get("via_aplicacion"));
+  const dosis = normalizeText(formData.get("dosis"));
+
+  const enfermedadObjetivo = normalizeText(formData.get("enfermedad_objetivo"));
+  const esquemaRefuerzo = normalizeText(formData.get("esquema_refuerzo"));
+
+  const principioActivo = normalizeText(formData.get("principio_activo"));
+  const frecuenciaDiasInput = normalizeText(formData.get("frecuencia_dias"));
+
+  const tipoControl = normalizeText(formData.get("tipo_control"));
+  const motivo = normalizeText(formData.get("motivo"));
+  const hallazgosResumen = normalizeText(formData.get("hallazgos_resumen"));
+  const indicaciones = normalizeText(formData.get("indicaciones"));
+  const institucion = normalizeText(formData.get("institucion"));
+
   const profesionalNombre = normalizeText(formData.get("profesional_nombre"));
   const profesionalMatricula = normalizeText(formData.get("profesional_matricula"));
-  const observaciones = normalizeText(formData.get("observaciones"));
 
   if (!user) {
     redirect(`/auth/login?next=/mascotas/${idMascota}`);
@@ -86,13 +113,13 @@ export async function registrarAplicacion(formData: FormData) {
       p_titulo: titulo,
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_producto_nombre: titulo,
+      p_producto_nombre: toNullable(productoNombre) ?? titulo,
       p_fabricante: toNullable(fabricante),
       p_lote: toNullable(lote),
       p_via_aplicacion: toNullable(viaAplicacion),
-      p_dosis: null,
-      p_enfermedad_objetivo: titulo,
-      p_esquema_refuerzo: null,
+      p_dosis: toNullable(dosis),
+      p_enfermedad_objetivo: toNullable(enfermedadObjetivo),
+      p_esquema_refuerzo: toNullable(esquemaRefuerzo),
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
     });
@@ -102,8 +129,13 @@ export async function registrarAplicacion(formData: FormData) {
     }
   }
 
-  if (categoriaUI === "desparasitacion_interna" || categoriaUI === "desparasitacion_externa") {
-    const frecuenciaDias = getDiffDays(fechaAplicacion, fechaProximoEvento);
+  if (
+    categoriaUI === "desparasitacion_interna" ||
+    categoriaUI === "desparasitacion_externa"
+  ) {
+    const frecuenciaDias =
+      parsePositiveInteger(frecuenciaDiasInput) ??
+      getDiffDays(fechaAplicacion, fechaProximoEvento);
 
     const { error } = await supabase.rpc("registrar_evento_desparasitacion", {
       p_id_mascota: idMascota,
@@ -111,12 +143,12 @@ export async function registrarAplicacion(formData: FormData) {
       p_titulo: titulo,
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_producto_nombre: titulo,
-      p_principio_activo: null,
+      p_producto_nombre: toNullable(productoNombre) ?? titulo,
+      p_principio_activo: toNullable(principioActivo),
       p_fabricante: toNullable(fabricante),
       p_lote: toNullable(lote),
       p_via_aplicacion: toNullable(viaAplicacion),
-      p_dosis: null,
+      p_dosis: toNullable(dosis),
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
       p_frecuencia_dias: frecuenciaDias,
@@ -134,13 +166,13 @@ export async function registrarAplicacion(formData: FormData) {
       p_titulo: titulo,
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_tipo_control: titulo,
-      p_motivo: toNullable(observaciones),
-      p_hallazgos_resumen: null,
-      p_indicaciones: null,
+      p_tipo_control: toNullable(tipoControl),
+      p_motivo: toNullable(motivo),
+      p_hallazgos_resumen: toNullable(hallazgosResumen),
+      p_indicaciones: toNullable(indicaciones),
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
-      p_institucion: null,
+      p_institucion: toNullable(institucion),
       p_observaciones: toNullable(observaciones),
     });
 
