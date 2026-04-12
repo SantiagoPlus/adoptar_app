@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -11,9 +12,44 @@ type LayoutProps = {
   }>;
 };
 
-export default async function MascotaLayout(props: LayoutProps) {
-  const params = await props.params;
-  const idMascota = params.id;
+function LayoutFallback() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <section className="mx-auto max-w-6xl px-5 py-8 md:px-6 md:py-10">
+        <div className="mb-5">
+          <div className="inline-flex items-center gap-2 text-sm text-white/40">
+            <ArrowLeft className="h-4 w-4" />
+            Cargando mascota...
+          </div>
+        </div>
+
+        <div className="mb-5">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/35">
+            Mascota
+          </p>
+          <div className="h-10 w-56 rounded bg-white/5" />
+        </div>
+
+        <div className="mb-6 rounded-xl bg-white/[0.03] p-1.5">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="h-12 rounded-lg bg-white/5" />
+            <div className="h-12 rounded-lg bg-white/5" />
+          </div>
+        </div>
+
+        <div className="rounded-[22px] border border-white/10 bg-[#080808] p-6">
+          <div className="h-40 rounded-[20px] bg-white/5" />
+        </div>
+      </section>
+    </main>
+  );
+}
+
+async function MascotaLayoutContent({
+  children,
+  params,
+}: LayoutProps) {
+  const { id: idMascota } = await params;
 
   const supabase = await createClient();
 
@@ -69,8 +105,16 @@ export default async function MascotaLayout(props: LayoutProps) {
 
         <MascotaSectionNav idMascota={idMascota} />
 
-        {props.children}
+        {children}
       </section>
     </main>
+  );
+}
+
+export default function MascotaLayout(props: LayoutProps) {
+  return (
+    <Suspense fallback={<LayoutFallback />}>
+      <MascotaLayoutContent {...props} />
+    </Suspense>
   );
 }
