@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import {
   X,
@@ -17,7 +17,6 @@ const OPCIONES_REGISTRO = [
   {
     value: "vacunacion",
     label: "Vacunación",
-    short: "Vacuna",
     icon: Syringe,
     accent: "text-emerald-300",
     border: "border-emerald-500/20",
@@ -27,7 +26,6 @@ const OPCIONES_REGISTRO = [
   {
     value: "desparasitacion_interna",
     label: "Desparasitación interna",
-    short: "Interna",
     icon: Bug,
     accent: "text-amber-300",
     border: "border-amber-500/20",
@@ -37,7 +35,6 @@ const OPCIONES_REGISTRO = [
   {
     value: "desparasitacion_externa",
     label: "Desparasitación externa",
-    short: "Externa",
     icon: ShieldCheck,
     accent: "text-cyan-300",
     border: "border-cyan-500/20",
@@ -47,7 +44,6 @@ const OPCIONES_REGISTRO = [
   {
     value: "control_preventivo",
     label: "Control preventivo",
-    short: "Control",
     icon: ClipboardList,
     accent: "text-white/80",
     border: "border-white/10",
@@ -88,11 +84,11 @@ function FieldShell({
   return (
     <div
       className={[
-        "rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md",
+        "rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md",
         className,
       ].join(" ")}
     >
-      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
         {label}
       </label>
       {children}
@@ -105,7 +101,7 @@ function InputBase(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={[
-        "h-12 w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition",
+        "h-11 w-full rounded-[1.05rem] border border-white/10 bg-white/[0.03] px-4 text-white outline-none transition",
         "hover:border-white/15 focus:bg-white/[0.05]",
         props.className ?? "",
       ].join(" ")}
@@ -121,6 +117,17 @@ export function RegistrarAplicacionModal({
   const [open, setOpen] = useState(false);
   const [categoria, setCategoria] =
     useState<CategoriaRegistro>("vacunacion");
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   const activeOption = useMemo(() => {
     return (
@@ -165,19 +172,25 @@ export function RegistrarAplicacionModal({
       >
         <div className="flex h-full items-center gap-3 px-5">
           <Plus className="h-4 w-4" strokeWidth={1.5} />
-          Registrar aplicación
+          Nuevo registro
         </div>
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
+          style={{ animation: "pet-backdrop-in 180ms ease-out" }}
+        >
           <div className="flex min-h-screen items-end justify-center px-0 py-0 md:px-4 md:py-4">
-            <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/10 bg-[#0a0a0a] shadow-2xl md:h-auto md:max-h-[94vh] md:w-[calc(100vw-32px)] md:max-w-[1480px] md:rounded-[2rem]">
+            <div
+              className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-[#0a0a0a] shadow-2xl md:h-auto md:max-h-[92vh] md:w-[calc(100vw-32px)] md:max-w-[1560px] md:rounded-[2rem]"
+              style={{ animation: "pet-sheet-up 240ms ease-out" }}
+            >
               <div className="pointer-events-none absolute -left-16 -top-16 h-44 w-44 rounded-full bg-amber-500/10 blur-[90px]" />
               <div className="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-[100px]" />
 
-              <div className="relative z-10 border-b border-white/10 bg-[#0a0a0a]/95 px-4 pb-4 pt-4 backdrop-blur-md md:px-6 md:pb-5 md:pt-5">
-                <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/10 md:hidden" />
+              <div className="relative z-10 border-b border-white/10 bg-[#0a0a0a]/95 px-4 pb-3 pt-4 backdrop-blur-md md:px-6 md:pb-4 md:pt-4">
+                <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/10" />
 
                 <button
                   type="button"
@@ -187,29 +200,29 @@ export function RegistrarAplicacionModal({
                   <X className="h-5 w-5" strokeWidth={1.5} />
                 </button>
 
-                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
                   Libreta sanitaria
                 </p>
 
                 <div className="pr-14">
-                  <h2 className="text-[28px] leading-none font-black italic uppercase tracking-tighter text-white md:text-[38px]">
+                  <h2 className="text-[26px] leading-none font-black italic uppercase tracking-tighter text-white md:text-[36px]">
                     Registrar aplicación
                   </h2>
-                  <p className="mt-2 text-sm italic text-white/40">
+                  <p className="mt-1.5 text-sm italic text-white/40">
                     Panel preventivo compacto para carga rápida.
                   </p>
                 </div>
               </div>
 
-              <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
+              <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-4">
                 <form action={registrarAplicacion} className="space-y-4">
                   <input type="hidden" name="id_mascota" value={idMascota} />
                   <input type="hidden" name="tipo" value={categoria} />
                   <input type="hidden" name="descripcion" value="" />
 
                   <div className="grid gap-4 xl:grid-cols-12">
-                    <div className="xl:col-span-8 rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                    <div className="xl:col-span-8 rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md">
+                      <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
                         Tipo de registro
                       </label>
 
@@ -220,10 +233,15 @@ export function RegistrarAplicacionModal({
                           onChange={(event) =>
                             setCategoria(event.target.value as CategoriaRegistro)
                           }
-                          className="h-12 w-full appearance-none rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 pr-12 text-sm font-semibold text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                          className="h-11 w-full appearance-none rounded-[1.05rem] border border-white/10 bg-white/[0.03] px-4 pr-12 text-sm font-semibold text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                         >
                           {OPCIONES_REGISTRO.map((item) => (
-                            <option key={item.value} value={item.value}>
+                            <option
+                              key={item.value}
+                              value={item.value}
+                              className="bg-white text-black"
+                              style={{ color: "#000000", backgroundColor: "#ffffff" }}
+                            >
                               {item.label}
                             </option>
                           ))}
@@ -237,7 +255,7 @@ export function RegistrarAplicacionModal({
 
                       <div
                         className={[
-                          "mt-3 rounded-[1.15rem] border p-3",
+                          "mt-3 rounded-[1.05rem] border p-3",
                           activeOption.border,
                           activeOption.bg,
                         ].join(" ")}
@@ -345,8 +363,8 @@ export function RegistrarAplicacionModal({
                     </FieldShell>
                   </div>
 
-                  <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.02] p-4 backdrop-blur-md">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/35">
+                  <div className="rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md">
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
                       Aval profesional
                     </p>
                     <p className="mt-2 text-sm italic text-white/40">
@@ -363,7 +381,7 @@ export function RegistrarAplicacionModal({
                       name="observaciones"
                       rows={2}
                       placeholder="Dato complementario, reacción, indicación o nota breve..."
-                      className="w-full rounded-[1.15rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
+                      className="w-full rounded-[1.05rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-white outline-none transition hover:border-white/15 focus:border-amber-500/30 focus:bg-white/[0.05]"
                     />
                   </FieldShell>
 
@@ -384,6 +402,28 @@ export function RegistrarAplicacionModal({
               </div>
             </div>
           </div>
+
+          <style jsx global>{`
+            @keyframes pet-backdrop-in {
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
+            }
+
+            @keyframes pet-sheet-up {
+              from {
+                opacity: 0;
+                transform: translateY(40px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
         </div>
       ) : null}
     </>
