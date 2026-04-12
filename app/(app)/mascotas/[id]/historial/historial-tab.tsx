@@ -1,7 +1,7 @@
 "use client";
 
 import { HistorialContent } from "./historial-content";
-import { useMascotaModuleData } from "../mascota-module-provider";
+import { useMascotaShell } from "../mascota-module-provider";
 import type { HistorialItem } from "../types";
 
 export function HistorialTab({
@@ -9,7 +9,7 @@ export function HistorialTab({
 }: {
   historial: HistorialItem[];
 }) {
-  const mascota = useMascotaModuleData();
+  const mascota = useMascotaShell();
 
   return (
     <HistorialContent
