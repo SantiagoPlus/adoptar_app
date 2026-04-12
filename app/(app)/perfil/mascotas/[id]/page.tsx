@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 
 type PageProps = {
@@ -9,6 +10,8 @@ type PageProps = {
 export default async function PerfilMascotaLegacyPage({
   params,
 }: PageProps) {
+  await connection();
+
   const { id } = await params;
   redirect(`/mascotas/${id}`);
 }
