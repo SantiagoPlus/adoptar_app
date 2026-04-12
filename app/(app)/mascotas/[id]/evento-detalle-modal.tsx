@@ -81,7 +81,7 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
         <DetailRow label="Enfermedad objetivo" value={item.enfermedad_objetivo} />
         <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
         <DetailRow label="Fabricante" value={item.fabricante} />
-        <DetailRow label="Lote" value={item.lote || item.producto_lote} />
+        <DetailRow label="Lote" value={item.lote} />
         <DetailRow label="Vía de aplicación" value={item.via_aplicacion} />
         <DetailRow label="Dosis" value={item.dosis} />
         <DetailRow label="Esquema / refuerzo" value={item.esquema_refuerzo} />
@@ -101,7 +101,7 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
         <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
         <DetailRow label="Principio activo" value={item.principio_activo} />
         <DetailRow label="Fabricante" value={item.fabricante} />
-        <DetailRow label="Lote" value={item.lote || item.producto_lote} />
+        <DetailRow label="Lote" value={item.lote} />
         <DetailRow label="Vía de aplicación" value={item.via_aplicacion} />
         <DetailRow label="Dosis" value={item.dosis} />
         <DetailRowNumber
