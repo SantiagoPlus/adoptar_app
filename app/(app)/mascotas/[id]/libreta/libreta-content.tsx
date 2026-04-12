@@ -28,7 +28,7 @@ function getLibrettaTone(tipo: string) {
       accent: "text-emerald-300",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
-      label: "RABIA",
+      label: "VACUNA",
     };
   }
 
@@ -38,7 +38,7 @@ function getLibrettaTone(tipo: string) {
       accent: "text-amber-300",
       bg: "bg-amber-500/10",
       border: "border-amber-500/20",
-      label: "INTERNA",
+      label: "DESPARASITACIÓN",
     };
   }
 
@@ -171,9 +171,7 @@ export function LibretaContent({
                 </h2>
 
                 <p className="mt-3 text-sm text-white/60">
-                  Microchip: <span className="font-medium text-white/85">900-111-000-1234</span>
-                  <span className="mx-3 text-white/25">•</span>
-                  Dueño: <span className="font-medium text-white/85">Santiago B.</span>
+                  Registro preventivo digital de vacunas, desparasitaciones y controles.
                 </p>
               </div>
             </div>
