@@ -3,8 +3,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  Syringe,
-  Stethoscope,
   ShieldCheck,
   Pill,
   CalendarDays,
@@ -73,7 +71,7 @@ function formatFecha(value: string | null) {
 function getLibrettaTone(tipo: string) {
   if (tipo === "vacunacion" || tipo === "vacuna") {
     return {
-      icon: <Syringe className="h-5 w-5" />,
+      icon: <ClipboardPlus className="h-5 w-5" />,
       accent: "text-emerald-300",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
@@ -193,7 +191,7 @@ export function MascotaFichaTabs({
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") === "historial" ? "historial" : "libreta";
 
-  const [activeTab, setActiveTab] = useState<"libreta" | "historial">(initialTab);
+  const [activeTab] = useState<"libreta" | "historial">(initialTab);
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalleKind, setDetalleKind] = useState<"libreta" | "historial">("libreta");
   const [detalleItem, setDetalleItem] = useState<LibretaItem | HistorialItem | null>(null);
@@ -238,38 +236,6 @@ export function MascotaFichaTabs({
         kind={detalleKind}
         item={detalleItem}
       />
-
-      <div className="mb-5 rounded-xl bg-white/[0.03] p-1.5">
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("libreta")}
-            className={[
-              "flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
-              activeTab === "libreta"
-                ? "bg-amber-500 text-black"
-                : "bg-transparent text-white/55 hover:bg-white/[0.03] hover:text-white",
-            ].join(" ")}
-          >
-            <Syringe className="h-4 w-4" />
-            Libreta Sanitaria
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("historial")}
-            className={[
-              "flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
-              activeTab === "historial"
-                ? "bg-emerald-500 text-black"
-                : "bg-transparent text-white/55 hover:bg-white/[0.03] hover:text-white",
-            ].join(" ")}
-          >
-            <Stethoscope className="h-4 w-4" />
-            Historial Clínico
-          </button>
-        </div>
-      </div>
 
       <FeedbackBanner ok={ok} error={error} dbError={dbError} />
 
