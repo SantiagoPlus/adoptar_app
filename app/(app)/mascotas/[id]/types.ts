@@ -23,17 +23,30 @@ export type LibretaItem = {
   created_by_role?: string | null;
   created_by_user_id?: string | null;
   id_proveedor?: string | null;
+  id_servicio?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+
+  // legado / compatibilidad
   enfermedad_objetivo?: string | null;
   esquema_refuerzo?: string | null;
-  desparasitacion_alcance?: string | null;
-  principio_activo?: string | null;
   frecuencia_dias?: number | null;
   tipo_control?: string | null;
   control_motivo?: string | null;
-  hallazgos_resumen?: string | null;
   indicaciones?: string | null;
+
+  // modelo nuevo
+  vacuna_aplicacion_unica?: boolean | null;
+  esquema_refuerzo_dias?: number | null;
+
+  desparasitacion_alcance?: string | null;
+  principio_activo?: string | null;
+  forma_administracion?: string | null;
+  desparasitacion_aplicacion_unica?: boolean | null;
+  cantidad_dias?: number | null;
+  frecuencia_horas?: number | null;
+
+  hallazgos_resumen?: string | null;
   cantidad_adjuntos?: number;
   tiene_adjuntos?: boolean;
 };
