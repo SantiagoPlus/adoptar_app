@@ -80,12 +80,15 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
         ? "Aplicación única"
         : item.esquema_refuerzo_dias
           ? `Cada ${item.esquema_refuerzo_dias} días`
-          : item.esquema_refuerzo;
+          : null;
 
     return (
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <DetailRow label="Producto" value={item.producto_nombre} />
-        <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
+        <DetailRow
+          label="Próxima acción"
+          value={formatFecha(item.fecha_proximo_evento)}
+        />
         <DetailRow label="Institución" value={item.institucion} />
         <DetailRow label="Fabricante" value={item.fabricante} />
         <DetailRow label="Lote" value={item.lote} />
@@ -112,7 +115,10 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <DetailRow label="Producto" value={item.producto_nombre} />
         <DetailRow label="Alcance" value={item.desparasitacion_alcance} />
-        <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
+        <DetailRow
+          label="Próxima acción"
+          value={formatFecha(item.fecha_proximo_evento)}
+        />
         <DetailRow label="Principio activo" value={item.principio_activo} />
         <DetailRow label="Fabricante" value={item.fabricante} />
         <DetailRow label="Lote" value={item.lote} />
@@ -138,7 +144,10 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
   if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
     return (
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <DetailRow label="Próximo control" value={formatFecha(item.fecha_proximo_evento)} />
+        <DetailRow
+          label="Próximo control"
+          value={formatFecha(item.fecha_proximo_evento)}
+        />
         <DetailRow label="Institución" value={item.institucion} />
         <DetailRow label="Resumen de la visita" value={item.hallazgos_resumen} />
       </div>
@@ -149,7 +158,10 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       <DetailRow label="Tipo" value={item.tipo} />
       <DetailRow label="Categoría" value={item.categoria} />
-      <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
+      <DetailRow
+        label="Próxima acción"
+        value={formatFecha(item.fecha_proximo_evento)}
+      />
     </div>
   );
 }
@@ -164,10 +176,16 @@ function HistorialDetails({ item }: { item: HistorialItem }) {
       <DetailRow label="Tratamiento indicado" value={item.tratamiento_indicado} />
       <DetailRow label="Tipo de estudio" value={item.tipo_estudio} />
       <DetailRow label="Resultado resumen" value={item.resultado_resumen} />
-      <DetailRow label="Medicación / tratamiento" value={item.medicacion_o_tratamiento} />
+      <DetailRow
+        label="Medicación / tratamiento"
+        value={item.medicacion_o_tratamiento}
+      />
       <DetailRow label="Dosis" value={item.dosis} />
       <DetailRow label="Duración" value={item.duracion_tratamiento} />
-      <DetailRow label="Próximo control" value={formatFecha(item.fecha_proximo_control)} />
+      <DetailRow
+        label="Próximo control"
+        value={formatFecha(item.fecha_proximo_control)}
+      />
       <DetailRow label="Institución" value={item.institucion} />
     </div>
   );
@@ -191,7 +209,8 @@ export function EventoDetalleModal({
       ? (item as LibretaItem).titulo ||
         (item as LibretaItem).producto_nombre ||
         (item as LibretaItem).descripcion
-      : (item as HistorialItem).titulo || (item as HistorialItem).motivo_consulta;
+      : (item as HistorialItem).titulo ||
+        (item as HistorialItem).motivo_consulta;
 
   const fecha =
     kind === "libreta"
