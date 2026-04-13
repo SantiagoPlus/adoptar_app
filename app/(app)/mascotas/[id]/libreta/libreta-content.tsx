@@ -78,6 +78,16 @@ function getLibretaTone(item: LibretaItem) {
     };
   }
 
+  if (categoria === "desparasitacion_mixta") {
+    return {
+      icon: <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />,
+      accent: "text-sky-300",
+      bg: "bg-sky-500/10",
+      border: "border-sky-500/20",
+      label: "DESPARASITACIÓN MIXTA",
+    };
+  }
+
   if (categoria === "control_preventivo" || categoria === "control") {
     return {
       icon: <ClipboardList className="h-5 w-5" strokeWidth={1.5} />,
@@ -147,8 +157,17 @@ function getFechaAccion(item: LibretaItem) {
 function getEstadoProteccionMeta(item: LibretaItem) {
   const fechaAccionRaw = getFechaAccion(item);
   const fechaAccion = parseDate(fechaAccionRaw);
+  const categoria = getLibretaCategoria(item);
 
   if (!fechaAccion) {
+    if (categoria === "control_preventivo") {
+      return {
+        label: "REALIZADO",
+        className: "bg-white/[0.08] text-white/80 border border-white/10",
+        fechaVisible: "Sin próxima fecha",
+      };
+    }
+
     return {
       label: "PROTEGIDO",
       className:
@@ -200,6 +219,7 @@ function matchesLibretaView(item: LibretaItem, view: LibretaView) {
       categoria === "desparasitacion" ||
       categoria === "desparasitacion_interna" ||
       categoria === "desparasitacion_externa" ||
+      categoria === "desparasitacion_mixta" ||
       item.tipo === "vacuna" ||
       item.tipo === "desparasitacion"
     );
@@ -242,16 +262,18 @@ function getSecondaryMeta(item: LibretaItem) {
   const categoria = getLibretaCategoria(item);
 
   if (categoria === "vacunacion" || categoria === "vacuna") {
+    const refuerzo =
+      item.vacuna_aplicacion_unica === true
+        ? "Aplicación única"
+        : item.esquema_refuerzo_dias
+          ? `Cada ${item.esquema_refuerzo_dias} días`
+          : item.esquema_refuerzo;
+
     return [
       item.producto_nombre
         ? { label: "Producto", value: item.producto_nombre }
         : null,
-      item.enfermedad_objetivo
-        ? { label: "Objetivo", value: item.enfermedad_objetivo }
-        : null,
-      item.esquema_refuerzo
-        ? { label: "Refuerzo", value: item.esquema_refuerzo }
-        : null,
+      refuerzo ? { label: "Refuerzo", value: refuerzo } : null,
       item.via_aplicacion
         ? { label: "Vía", value: item.via_aplicacion }
         : null,
@@ -262,8 +284,16 @@ function getSecondaryMeta(item: LibretaItem) {
   if (
     categoria === "desparasitacion_interna" ||
     categoria === "desparasitacion_externa" ||
+    categoria === "desparasitacion_mixta" ||
     item.tipo === "desparasitacion"
   ) {
+    const pauta =
+      item.desparasitacion_aplicacion_unica === true
+        ? "Aplicación única"
+        : item.cantidad_dias && item.frecuencia_horas
+          ? `${item.cantidad_dias} día(s) · cada ${item.frecuencia_horas} h`
+          : null;
+
     return [
       item.producto_nombre
         ? { label: "Producto", value: item.producto_nombre }
@@ -274,22 +304,21 @@ function getSecondaryMeta(item: LibretaItem) {
       item.desparasitacion_alcance
         ? { label: "Alcance", value: item.desparasitacion_alcance }
         : null,
-      item.frecuencia_dias
-        ? { label: "Frecuencia", value: `Cada ${item.frecuencia_dias} días` }
-        : null,
-      item.via_aplicacion
-        ? { label: "Vía", value: item.via_aplicacion }
-        : null,
+      item.forma_administracion
+        ? { label: "Forma", value: item.forma_administracion }
+        : item.via_aplicacion
+          ? { label: "Forma", value: item.via_aplicacion }
+          : null,
+      pauta ? { label: "Pauta", value: pauta } : null,
     ].filter(Boolean) as { label: string; value: string }[];
   }
 
   if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
     return [
-      item.tipo_control ? { label: "Tipo", value: item.tipo_control } : null,
-      item.control_motivo
-        ? { label: "Motivo", value: item.control_motivo }
-        : null,
       item.institucion ? { label: "Institución", value: item.institucion } : null,
+      item.hallazgos_resumen
+        ? { label: "Resumen", value: item.hallazgos_resumen }
+        : null,
     ].filter(Boolean) as { label: string; value: string }[];
   }
 
@@ -297,6 +326,31 @@ function getSecondaryMeta(item: LibretaItem) {
     item.producto_nombre ? { label: "Producto", value: item.producto_nombre } : null,
     item.lote ? { label: "Lote", value: item.lote } : null,
   ].filter(Boolean) as { label: string; value: string }[];
+}
+
+function getDisplayTitle(item: LibretaItem) {
+  const categoria = getLibretaCategoria(item);
+
+  if (item.titulo?.trim()) return item.titulo;
+
+  if (categoria === "vacunacion" && item.producto_nombre) {
+    return `Vacuna · ${item.producto_nombre}`;
+  }
+
+  if (
+    (categoria === "desparasitacion_interna" ||
+      categoria === "desparasitacion_externa" ||
+      categoria === "desparasitacion_mixta") &&
+    item.producto_nombre
+  ) {
+    return item.producto_nombre;
+  }
+
+  if (categoria === "control_preventivo") {
+    return "Control preventivo";
+  }
+
+  return item.descripcion || "Registro";
 }
 
 function FeedbackBanner({
@@ -319,11 +373,16 @@ function FeedbackBanner({
   if (!error) return null;
 
   const messages: Record<string, string> = {
-    campos_obligatorios: "Completá al menos tipo, título y fecha.",
+    campos_obligatorios:
+      "Completá los campos obligatorios del tipo de registro seleccionado.",
     tipo_invalido: "El tipo de registro no es válido.",
     usuario_no_encontrado: "No se pudo vincular tu sesión con tu perfil.",
     mascota_no_encontrada: "No se encontró la mascota indicada.",
     sin_permisos: "No tenés permisos para registrar datos en esta mascota.",
+    esquema_refuerzo_requerido:
+      "Indicá la cantidad de días del esquema de refuerzo o marcá aplicación única.",
+    tratamiento_incompleto:
+      "Si no es aplicación única, completá cantidad de días y frecuencia en horas.",
     error_creacion_registro: "Ocurrió un error al guardar el registro.",
   };
 
@@ -494,6 +553,7 @@ export function LibretaContent({
               const validationMeta = getValidationMeta(item.estado_validacion);
               const estadoProteccionMeta = getEstadoProteccionMeta(item);
               const secondaryMeta = getSecondaryMeta(item);
+              const displayTitle = getDisplayTitle(item);
 
               return (
                 <article
@@ -537,11 +597,7 @@ export function LibretaContent({
                       </div>
 
                       <h4 className="truncate text-[22px] font-black italic leading-none tracking-tight text-white md:text-[24px]">
-                        {(
-                          item.titulo ||
-                          item.producto_nombre ||
-                          item.descripcion
-                        ).toUpperCase()}
+                        {displayTitle.toUpperCase()}
                       </h4>
 
                       {secondaryMeta.length > 0 ? (
