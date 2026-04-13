@@ -202,9 +202,8 @@ function getEstadoProteccionMeta(item: LibretaItem) {
     label: "PROTEGIDO",
     className:
       "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
-      fechaVisible: formatFecha(fechaAccionRaw),
-    };
-  }
+    fechaVisible: formatFecha(fechaAccionRaw),
+  };
 }
 
 function matchesLibretaView(item: LibretaItem, view: LibretaView) {
@@ -264,11 +263,7 @@ function getDisplayTitle(item: LibretaItem) {
   if (item.titulo?.trim()) return item.titulo;
 
   if (categoria === "vacunacion" && item.producto_nombre) {
-    return `Vacuna antirrábica`.toUpperCase().includes(
-      item.producto_nombre.toUpperCase(),
-    )
-      ? item.producto_nombre
-      : `Vacuna · ${item.producto_nombre}`;
+    return `Vacuna · ${item.producto_nombre}`;
   }
 
   if (
@@ -342,7 +337,9 @@ function getTechnicalMeta(item: LibretaItem) {
         ? { label: "Producto", value: item.producto_nombre }
         : null,
       item.fabricante ? { label: "Marca", value: item.fabricante } : null,
-      item.via_aplicacion ? { label: "Aplicado en", value: item.via_aplicacion } : null,
+      item.via_aplicacion
+        ? { label: "Aplicado en", value: item.via_aplicacion }
+        : null,
       item.lote ? { label: "N° de lote", value: item.lote } : null,
       refuerzo ? { label: "Refuerzo previsto", value: refuerzo } : null,
     ].filter(Boolean) as { label: string; value: string }[];
