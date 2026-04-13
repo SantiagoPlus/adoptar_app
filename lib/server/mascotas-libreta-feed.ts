@@ -12,7 +12,7 @@ export type LibretaFeedRow = {
   fecha_aplicacion: string;
   fecha_proximo_evento: string | null;
   estado_validacion: string;
-
+  id_servicio: string | null;
   profesional_nombre: string | null;
   profesional_matricula: string | null;
   institucion: string | null;
@@ -23,12 +23,6 @@ export type LibretaFeedRow = {
   lote: string | null;
   via_aplicacion: string | null;
 
-  id_servicio: string | null;
-
-  // compatibilidad visual mínima
-  esquema_refuerzo: string | null;
-
-  // modelo nuevo
   vacuna_aplicacion_unica: boolean | null;
   esquema_refuerzo_dias: number | null;
 
@@ -48,26 +42,21 @@ export function mapFeedRowToLibretaItem(row: LibretaFeedRow): LibretaItem {
   return {
     id_registro: row.id_evento,
     tipo: row.tipo_evento,
-    categoria: row.categoria_ui,
-    titulo: row.titulo,
     descripcion: row.descripcion ?? row.titulo,
     fecha_aplicacion: row.fecha_aplicacion,
-    fecha_proximo_evento: row.fecha_proximo_evento,
-
+    observaciones: row.observaciones,
+    titulo: row.titulo,
+    categoria: row.categoria_ui,
     producto_nombre: row.producto_nombre,
     fabricante: row.fabricante,
     lote: row.lote,
-    via_aplicacion: row.via_aplicacion,
-
     profesional_nombre: row.profesional_nombre,
     profesional_matricula: row.profesional_matricula,
     institucion: row.institucion,
-    observaciones: row.observaciones,
     estado_validacion: row.estado_validacion,
-
+    fecha_proximo_evento: row.fecha_proximo_evento,
+    via_aplicacion: row.via_aplicacion,
     id_servicio: row.id_servicio,
-
-    esquema_refuerzo: row.esquema_refuerzo,
 
     vacuna_aplicacion_unica: row.vacuna_aplicacion_unica,
     esquema_refuerzo_dias: row.esquema_refuerzo_dias,
