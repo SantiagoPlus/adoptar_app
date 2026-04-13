@@ -267,7 +267,7 @@ function getSecondaryMeta(item: LibretaItem) {
         ? "Aplicación única"
         : item.esquema_refuerzo_dias
           ? `Cada ${item.esquema_refuerzo_dias} días`
-          : item.esquema_refuerzo;
+          : null;
 
     return [
       item.producto_nombre
