@@ -21,7 +21,7 @@ const OPCIONES_REGISTRO = [
     accent: "text-emerald-300",
     border: "border-emerald-500/20",
     bg: "bg-emerald-500/10",
-    hint: "Vacunas preventivas con esquema y próxima acción.",
+    hint: "Aplicación puntual con posible refuerzo futuro.",
   },
   {
     value: "desparasitacion_interna",
@@ -30,7 +30,7 @@ const OPCIONES_REGISTRO = [
     accent: "text-amber-300",
     border: "border-amber-500/20",
     bg: "bg-amber-500/10",
-    hint: "Antiparasitarios orales o internos con seguimiento propio.",
+    hint: "Orales o internas, únicas o con pauta durante varios días.",
   },
   {
     value: "desparasitacion_externa",
@@ -39,7 +39,7 @@ const OPCIONES_REGISTRO = [
     accent: "text-cyan-300",
     border: "border-cyan-500/20",
     bg: "bg-cyan-500/10",
-    hint: "Pipetas, collares u otros tratamientos externos.",
+    hint: "Pipetas, collares, sprays u otros tratamientos externos.",
   },
   {
     value: "control_preventivo",
@@ -48,7 +48,7 @@ const OPCIONES_REGISTRO = [
     accent: "text-white/80",
     border: "border-white/10",
     bg: "bg-white/[0.06]",
-    hint: "Chequeos preventivos, revisiones y seguimiento general.",
+    hint: "Visita preventiva única dentro de la libreta sanitaria.",
   },
 ] as const;
 
@@ -124,6 +124,54 @@ function TextareaBase(
   );
 }
 
+function ToggleCard({
+  checked,
+  onChange,
+  label,
+  hint,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+  hint: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={[
+        "flex min-h-[56px] w-full items-start justify-between gap-4 rounded-[1.05rem] border px-4 py-3 text-left transition",
+        checked
+          ? "border-amber-500/30 bg-amber-500/10"
+          : "border-white/10 bg-white/[0.03] hover:border-white/15",
+      ].join(" ")}
+    >
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-white">{label}</p>
+        <p className="mt-1 text-sm italic text-white/45">{hint}</p>
+      </div>
+
+      <div
+        className={[
+          "mt-0.5 flex h-6 w-11 shrink-0 rounded-full border p-1 transition",
+          checked
+            ? "border-amber-500/40 bg-amber-500/20"
+            : "border-white/10 bg-white/[0.05]",
+        ].join(" ")}
+      >
+        <div
+          className={[
+            "h-4 w-4 rounded-full transition",
+            checked
+              ? "translate-x-5 bg-amber-400"
+              : "translate-x-0 bg-white/40",
+          ].join(" ")}
+        />
+      </div>
+    </button>
+  );
+}
+
 export function RegistrarAplicacionModal({
   idMascota,
 }: {
@@ -132,6 +180,9 @@ export function RegistrarAplicacionModal({
   const [open, setOpen] = useState(false);
   const [categoria, setCategoria] =
     useState<CategoriaRegistro>("vacunacion");
+  const [vacunaAplicacionUnica, setVacunaAplicacionUnica] = useState(false);
+  const [desparasitacionAplicacionUnica, setDesparasitacionAplicacionUnica] =
+    useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -154,14 +205,20 @@ export function RegistrarAplicacionModal({
   const ActiveIcon = activeOption.icon;
 
   const titlePlaceholder = useMemo(() => {
-    if (categoria === "vacunacion") return "Ej: Rabia anual";
+    if (categoria === "vacunacion") return "Opcional. Ej: Rabia anual";
     if (categoria === "desparasitacion_interna") {
-      return "Ej: Desparasitación interna trimestral";
+      return "Opcional. Ej: Desparasitación interna";
     }
     if (categoria === "desparasitacion_externa") {
-      return "Ej: Pipeta externa mensual";
+      return "Opcional. Ej: Pipeta externa";
     }
-    return "Ej: Control preventivo general";
+    return "Opcional. Ej: Control preventivo general";
+  }, [categoria]);
+
+  const formaPlaceholder = useMemo(() => {
+    if (categoria === "desparasitacion_interna") return "Ej: Oral";
+    if (categoria === "desparasitacion_externa") return "Ej: Pipeta";
+    return "Ej: Aplicación";
   }, [categoria]);
 
   return (
@@ -219,6 +276,16 @@ export function RegistrarAplicacionModal({
                 <form action={registrarAplicacion} className="space-y-4">
                   <input type="hidden" name="id_mascota" value={idMascota} />
                   <input type="hidden" name="tipo" value={categoria} />
+                  <input
+                    type="hidden"
+                    name="vacuna_aplicacion_unica"
+                    value={vacunaAplicacionUnica ? "true" : "false"}
+                  />
+                  <input
+                    type="hidden"
+                    name="desparasitacion_aplicacion_unica"
+                    value={desparasitacionAplicacionUnica ? "true" : "false"}
+                  />
 
                   <div className="grid gap-4 xl:grid-cols-12">
                     <div className="xl:col-span-8 rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md">
@@ -239,10 +306,6 @@ export function RegistrarAplicacionModal({
                               key={item.value}
                               value={item.value}
                               className="bg-white text-black"
-                              style={{
-                                color: "#000000",
-                                backgroundColor: "#ffffff",
-                              }}
                             >
                               {item.label}
                             </option>
@@ -298,11 +361,10 @@ export function RegistrarAplicacionModal({
                     </FieldShell>
                   </div>
 
-                  <FieldShell label="Título visible del registro">
+                  <FieldShell label="Título visible (opcional)">
                     <InputBase
                       type="text"
                       name="titulo"
-                      required
                       placeholder={titlePlaceholder}
                       className="focus:border-amber-500/30"
                     />
@@ -315,16 +377,18 @@ export function RegistrarAplicacionModal({
                           <InputBase
                             type="text"
                             name="producto_nombre"
-                            placeholder="Ej: Rabia"
+                            required
+                            placeholder="Ej: Nobivac Rabia"
                             className="focus:border-emerald-500/30"
                           />
                         </FieldShell>
 
-                        <FieldShell label="Enfermedad objetivo" className="xl:col-span-4">
+                        <FieldShell label="Vía de aplicación" className="xl:col-span-4">
                           <InputBase
                             type="text"
-                            name="enfermedad_objetivo"
-                            placeholder="Ej: Rabia"
+                            name="via_aplicacion"
+                            required
+                            placeholder="Ej: Subcutánea"
                             className="focus:border-emerald-500/30"
                           />
                         </FieldShell>
@@ -338,52 +402,52 @@ export function RegistrarAplicacionModal({
                         </FieldShell>
                       </div>
 
-                      <div className="grid gap-4 xl:grid-cols-12">
-                        <FieldShell label="Fabricante" className="xl:col-span-3">
-                          <InputBase
-                            type="text"
-                            name="fabricante"
-                            placeholder="Ej: Merial"
-                            className="focus:border-emerald-500/30"
-                          />
-                        </FieldShell>
+                      <ToggleCard
+                        checked={vacunaAplicacionUnica}
+                        onChange={setVacunaAplicacionUnica}
+                        label="Aplicación única"
+                        hint="Marcala si esta vacuna no requiere refuerzo futuro."
+                      />
 
-                        <FieldShell label="Lote" className="xl:col-span-2">
+                      {!vacunaAplicacionUnica ? (
+                        <FieldShell label="Esquema de refuerzo (días)">
                           <InputBase
-                            type="text"
-                            name="lote"
-                            placeholder="Ej: ABC-123"
+                            type="number"
+                            min="1"
+                            step="1"
+                            name="esquema_refuerzo_dias"
+                            required
+                            placeholder="Ej: 90 o 365"
                             className="focus:border-emerald-500/30"
                           />
                         </FieldShell>
+                      ) : null}
 
-                        <FieldShell label="Vía de aplicación" className="xl:col-span-3">
-                          <InputBase
-                            type="text"
-                            name="via_aplicacion"
-                            placeholder="Ej: Subcutánea"
-                            className="focus:border-emerald-500/30"
-                          />
-                        </FieldShell>
+                      <details className="rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md">
+                        <summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
+                          Datos avanzados
+                        </summary>
 
-                        <FieldShell label="Dosis" className="xl:col-span-2">
-                          <InputBase
-                            type="text"
-                            name="dosis"
-                            placeholder="Ej: 1 dosis"
-                            className="focus:border-emerald-500/30"
-                          />
-                        </FieldShell>
+                        <div className="mt-4 grid gap-4 xl:grid-cols-12">
+                          <FieldShell label="Fabricante" className="xl:col-span-6">
+                            <InputBase
+                              type="text"
+                              name="fabricante"
+                              placeholder="Ej: Laboratorio / marca"
+                              className="focus:border-emerald-500/30"
+                            />
+                          </FieldShell>
 
-                        <FieldShell label="Esquema / refuerzo" className="xl:col-span-2">
-                          <InputBase
-                            type="text"
-                            name="esquema_refuerzo"
-                            placeholder="Ej: Anual"
-                            className="focus:border-emerald-500/30"
-                          />
-                        </FieldShell>
-                      </div>
+                          <FieldShell label="Lote" className="xl:col-span-6">
+                            <InputBase
+                              type="text"
+                              name="lote"
+                              placeholder="Ej: ABC-123"
+                              className="focus:border-emerald-500/30"
+                            />
+                          </FieldShell>
+                        </div>
+                      </details>
                     </>
                   ) : null}
 
@@ -395,16 +459,18 @@ export function RegistrarAplicacionModal({
                           <InputBase
                             type="text"
                             name="producto_nombre"
+                            required
                             placeholder="Ej: Comprimido antiparasitario"
                             className="focus:border-amber-500/30"
                           />
                         </FieldShell>
 
-                        <FieldShell label="Principio activo" className="xl:col-span-4">
+                        <FieldShell label="Forma de administración" className="xl:col-span-4">
                           <InputBase
                             type="text"
-                            name="principio_activo"
-                            placeholder="Ej: Fenbendazol"
+                            name="forma_administracion"
+                            required
+                            placeholder={formaPlaceholder}
                             className="focus:border-amber-500/30"
                           />
                         </FieldShell>
@@ -418,74 +484,82 @@ export function RegistrarAplicacionModal({
                         </FieldShell>
                       </div>
 
-                      <div className="grid gap-4 xl:grid-cols-12">
-                        <FieldShell label="Fabricante" className="xl:col-span-3">
-                          <InputBase
-                            type="text"
-                            name="fabricante"
-                            placeholder="Ej: Laboratorio"
-                            className="focus:border-amber-500/30"
-                          />
-                        </FieldShell>
+                      <FieldShell label="Principio activo (opcional)">
+                        <InputBase
+                          type="text"
+                          name="principio_activo"
+                          placeholder="Ej: Fenbendazol"
+                          className="focus:border-amber-500/30"
+                        />
+                      </FieldShell>
 
-                        <FieldShell label="Lote" className="xl:col-span-2">
-                          <InputBase
-                            type="text"
-                            name="lote"
-                            placeholder="Ej: LOTE-456"
-                            className="focus:border-amber-500/30"
-                          />
-                        </FieldShell>
+                      <ToggleCard
+                        checked={desparasitacionAplicacionUnica}
+                        onChange={setDesparasitacionAplicacionUnica}
+                        label="Aplicación única"
+                        hint="Desactivalo si se trata de una pauta durante varios días."
+                      />
 
-                        <FieldShell label="Vía de aplicación" className="xl:col-span-3">
-                          <InputBase
-                            type="text"
-                            name="via_aplicacion"
-                            placeholder={
-                              categoria === "desparasitacion_interna"
-                                ? "Ej: Oral"
-                                : "Ej: Tópica"
-                            }
-                            className="focus:border-amber-500/30"
-                          />
-                        </FieldShell>
+                      {!desparasitacionAplicacionUnica ? (
+                        <div className="grid gap-4 xl:grid-cols-12">
+                          <FieldShell label="Cantidad de días" className="xl:col-span-6">
+                            <InputBase
+                              type="number"
+                              min="1"
+                              step="1"
+                              name="cantidad_dias"
+                              required
+                              placeholder="Ej: 5"
+                              className="focus:border-amber-500/30"
+                            />
+                          </FieldShell>
 
-                        <FieldShell label="Dosis" className="xl:col-span-2">
-                          <InputBase
-                            type="text"
-                            name="dosis"
-                            placeholder="Ej: 1 comprimido"
-                            className="focus:border-amber-500/30"
-                          />
-                        </FieldShell>
+                          <FieldShell label="Frecuencia (horas)" className="xl:col-span-6">
+                            <InputBase
+                              type="number"
+                              min="1"
+                              step="1"
+                              name="frecuencia_horas"
+                              required
+                              placeholder="Ej: 12"
+                              className="focus:border-amber-500/30"
+                            />
+                          </FieldShell>
+                        </div>
+                      ) : null}
 
-                        <FieldShell label="Frecuencia (días)" className="xl:col-span-2">
-                          <InputBase
-                            type="number"
-                            min="1"
-                            step="1"
-                            name="frecuencia_dias"
-                            placeholder="Ej: 90"
-                            className="focus:border-amber-500/30"
-                          />
-                        </FieldShell>
-                      </div>
+                      <details className="rounded-[1.45rem] border border-white/10 bg-white/[0.02] p-3.5 backdrop-blur-md">
+                        <summary className="cursor-pointer text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
+                          Datos avanzados
+                        </summary>
+
+                        <div className="mt-4 grid gap-4 xl:grid-cols-12">
+                          <FieldShell label="Fabricante" className="xl:col-span-6">
+                            <InputBase
+                              type="text"
+                              name="fabricante"
+                              placeholder="Ej: Laboratorio"
+                              className="focus:border-amber-500/30"
+                            />
+                          </FieldShell>
+
+                          <FieldShell label="Lote" className="xl:col-span-6">
+                            <InputBase
+                              type="text"
+                              name="lote"
+                              placeholder="Ej: LOTE-456"
+                              className="focus:border-amber-500/30"
+                            />
+                          </FieldShell>
+                        </div>
+                      </details>
                     </>
                   ) : null}
 
                   {categoria === "control_preventivo" ? (
                     <>
                       <div className="grid gap-4 xl:grid-cols-12">
-                        <FieldShell label="Tipo de control" className="xl:col-span-4">
-                          <InputBase
-                            type="text"
-                            name="tipo_control"
-                            placeholder="Ej: Chequeo clínico"
-                            className="focus:border-white/20"
-                          />
-                        </FieldShell>
-
-                        <FieldShell label="Próximo control" className="xl:col-span-4">
+                        <FieldShell label="Próximo control" className="xl:col-span-6">
                           <InputBase
                             type="date"
                             name="fecha_proximo_evento"
@@ -493,7 +567,7 @@ export function RegistrarAplicacionModal({
                           />
                         </FieldShell>
 
-                        <FieldShell label="Institución" className="xl:col-span-4">
+                        <FieldShell label="Institución" className="xl:col-span-6">
                           <InputBase
                             type="text"
                             name="institucion"
@@ -503,35 +577,26 @@ export function RegistrarAplicacionModal({
                         </FieldShell>
                       </div>
 
-                      <div className="grid gap-4 xl:grid-cols-12">
-                        <FieldShell label="Motivo" className="xl:col-span-4">
-                          <TextareaBase
-                            name="motivo"
-                            rows={3}
-                            placeholder="Ej: Revisión preventiva anual"
-                            className="focus:border-white/20"
-                          />
-                        </FieldShell>
-
-                        <FieldShell label="Hallazgos resumen" className="xl:col-span-4">
-                          <TextareaBase
-                            name="hallazgos_resumen"
-                            rows={3}
-                            placeholder="Ej: Sin hallazgos relevantes"
-                            className="focus:border-white/20"
-                          />
-                        </FieldShell>
-
-                        <FieldShell label="Indicaciones" className="xl:col-span-4">
-                          <TextareaBase
-                            name="indicaciones"
-                            rows={3}
-                            placeholder="Ej: Continuar seguimiento preventivo"
-                            className="focus:border-white/20"
-                          />
-                        </FieldShell>
-                      </div>
+                      <FieldShell label="Resumen de la visita">
+                        <TextareaBase
+                          name="hallazgos_resumen"
+                          rows={4}
+                          placeholder="Escribí un resumen breve del control preventivo..."
+                          className="focus:border-white/20"
+                        />
+                      </FieldShell>
                     </>
+                  ) : null}
+
+                  {categoria !== "control_preventivo" ? (
+                    <FieldShell label="Institución (opcional)">
+                      <InputBase
+                        type="text"
+                        name="institucion"
+                        placeholder="Ej: Veterinaria Ejemplo"
+                        className="focus:border-white/20"
+                      />
+                    </FieldShell>
                   ) : null}
 
                   <div className="grid gap-4 xl:grid-cols-12">
