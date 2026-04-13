@@ -1,31 +1,25 @@
 export type LibretaItem = {
   id_registro: string;
   tipo: string;
-  categoria: string | null;
-  titulo: string | null;
   descripcion: string;
   fecha_aplicacion: string;
-  fecha_proximo_evento: string | null;
-
+  observaciones: string | null;
+  titulo: string | null;
+  categoria: string | null;
   producto_nombre: string | null;
   fabricante: string | null;
   lote: string | null;
-  via_aplicacion: string | null;
-
   profesional_nombre: string | null;
   profesional_matricula: string | null;
-  institucion: string | null;
-  observaciones: string | null;
+  institucion?: string | null;
   estado_validacion: string;
-
+  fecha_proximo_evento: string | null;
+  via_aplicacion?: string | null;
   id_servicio?: string | null;
 
-  // Vacunas
   vacuna_aplicacion_unica?: boolean | null;
   esquema_refuerzo_dias?: number | null;
-  esquema_refuerzo?: string | null; // fallback visual temporal
 
-  // Desparasitación
   desparasitacion_alcance?: string | null;
   principio_activo?: string | null;
   forma_administracion?: string | null;
@@ -33,10 +27,7 @@ export type LibretaItem = {
   cantidad_dias?: number | null;
   frecuencia_horas?: number | null;
 
-  // Control preventivo
   hallazgos_resumen?: string | null;
-
-  // Adjuntos
   cantidad_adjuntos?: number;
   tiene_adjuntos?: boolean;
 };
