@@ -75,16 +75,22 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
   const categoria = getLibretaCategoria(item);
 
   if (categoria === "vacunacion" || categoria === "vacuna") {
+    const esquemaDisplay =
+      item.vacuna_aplicacion_unica === true
+        ? "Aplicación única"
+        : item.esquema_refuerzo_dias
+          ? `Cada ${item.esquema_refuerzo_dias} días`
+          : item.esquema_refuerzo;
+
     return (
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <DetailRow label="Producto" value={item.producto_nombre} />
-        <DetailRow label="Enfermedad objetivo" value={item.enfermedad_objetivo} />
         <DetailRow label="Próxima acción" value={formatFecha(item.fecha_proximo_evento)} />
+        <DetailRow label="Institución" value={item.institucion} />
         <DetailRow label="Fabricante" value={item.fabricante} />
         <DetailRow label="Lote" value={item.lote} />
         <DetailRow label="Vía de aplicación" value={item.via_aplicacion} />
-        <DetailRow label="Dosis" value={item.dosis} />
-        <DetailRow label="Esquema / refuerzo" value={item.esquema_refuerzo} />
+        <DetailRow label="Esquema / refuerzo" value={esquemaDisplay} />
       </div>
     );
   }
@@ -92,8 +98,16 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
   if (
     categoria === "desparasitacion_interna" ||
     categoria === "desparasitacion_externa" ||
+    categoria === "desparasitacion_mixta" ||
     item.tipo === "desparasitacion"
   ) {
+    const pautaDisplay =
+      item.desparasitacion_aplicacion_unica === true
+        ? "Aplicación única"
+        : item.cantidad_dias && item.frecuencia_horas
+          ? `${item.cantidad_dias} día(s) · cada ${item.frecuencia_horas} horas`
+          : null;
+
     return (
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <DetailRow label="Producto" value={item.producto_nombre} />
@@ -102,12 +116,20 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
         <DetailRow label="Principio activo" value={item.principio_activo} />
         <DetailRow label="Fabricante" value={item.fabricante} />
         <DetailRow label="Lote" value={item.lote} />
-        <DetailRow label="Vía de aplicación" value={item.via_aplicacion} />
-        <DetailRow label="Dosis" value={item.dosis} />
+        <DetailRow
+          label="Forma de administración"
+          value={item.forma_administracion || item.via_aplicacion}
+        />
+        <DetailRow label="Pauta" value={pautaDisplay} />
+        <DetailRowNumber
+          label="Cantidad de días"
+          value={item.cantidad_dias}
+          suffix=" día(s)"
+        />
         <DetailRowNumber
           label="Frecuencia"
-          value={item.frecuencia_dias}
-          suffix=" días"
+          value={item.frecuencia_horas}
+          suffix=" horas"
         />
       </div>
     );
@@ -116,12 +138,9 @@ function LibretaDetails({ item }: { item: LibretaItem }) {
   if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
     return (
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <DetailRow label="Tipo de control" value={item.tipo_control} />
         <DetailRow label="Próximo control" value={formatFecha(item.fecha_proximo_evento)} />
         <DetailRow label="Institución" value={item.institucion} />
-        <DetailRow label="Motivo" value={item.control_motivo} />
-        <DetailRow label="Hallazgos resumen" value={item.hallazgos_resumen} />
-        <DetailRow label="Indicaciones" value={item.indicaciones} />
+        <DetailRow label="Resumen de la visita" value={item.hallazgos_resumen} />
       </div>
     );
   }
