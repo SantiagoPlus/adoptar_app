@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
   CalendarDays,
-  ChevronRight,
+  ChevronDown,
   ClipboardPlus,
   ClipboardList,
   Activity,
@@ -13,7 +13,6 @@ import {
   Bug,
 } from "lucide-react";
 import { RegistrarAplicacionModal } from "./registrar-aplicacion-modal";
-import { EventoDetalleModal } from "../evento-detalle-modal";
 import type { LibretaItem } from "../types";
 
 type LibretaView = "prevencion" | "clinica" | "vida";
@@ -203,8 +202,9 @@ function getEstadoProteccionMeta(item: LibretaItem) {
     label: "PROTEGIDO",
     className:
       "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20",
-    fechaVisible: formatFecha(fechaAccionRaw),
-  };
+      fechaVisible: formatFecha(fechaAccionRaw),
+    };
+  }
 }
 
 function matchesLibretaView(item: LibretaItem, view: LibretaView) {
@@ -258,7 +258,75 @@ function getEmptyMessage(view: LibretaView) {
   };
 }
 
-function getSecondaryMeta(item: LibretaItem) {
+function getDisplayTitle(item: LibretaItem) {
+  const categoria = getLibretaCategoria(item);
+
+  if (item.titulo?.trim()) return item.titulo;
+
+  if (categoria === "vacunacion" && item.producto_nombre) {
+    return `Vacuna antirrábica`.toUpperCase().includes(
+      item.producto_nombre.toUpperCase(),
+    )
+      ? item.producto_nombre
+      : `Vacuna · ${item.producto_nombre}`;
+  }
+
+  if (
+    (categoria === "desparasitacion_interna" ||
+      categoria === "desparasitacion_externa" ||
+      categoria === "desparasitacion_mixta") &&
+    item.producto_nombre
+  ) {
+    return item.producto_nombre;
+  }
+
+  if (categoria === "control_preventivo") {
+    return "Control preventivo";
+  }
+
+  return item.descripcion || "Registro";
+}
+
+function getCollapsedSubtitle(item: LibretaItem) {
+  const categoria = getLibretaCategoria(item);
+
+  if (categoria === "vacunacion" || categoria === "vacuna") {
+    if (item.vacuna_aplicacion_unica) return "Sin refuerzo pendiente.";
+    if (item.esquema_refuerzo_dias) {
+      return `Refuerzo cada ${item.esquema_refuerzo_dias} días.`;
+    }
+    return "Registro preventivo.";
+  }
+
+  if (
+    categoria === "desparasitacion_interna" ||
+    categoria === "desparasitacion_externa" ||
+    categoria === "desparasitacion_mixta" ||
+    item.tipo === "desparasitacion"
+  ) {
+    if (item.desparasitacion_aplicacion_unica) {
+      return "Aplicación única.";
+    }
+
+    if (item.cantidad_dias && item.frecuencia_horas) {
+      return `${item.cantidad_dias} día(s), cada ${item.frecuencia_horas} horas.`;
+    }
+
+    if (item.forma_administracion) {
+      return `${item.forma_administracion}.`;
+    }
+
+    return "Seguimiento preventivo.";
+  }
+
+  if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
+    return item.hallazgos_resumen || "Visita preventiva registrada.";
+  }
+
+  return item.descripcion || "Registro preventivo.";
+}
+
+function getTechnicalMeta(item: LibretaItem) {
   const categoria = getLibretaCategoria(item);
 
   if (categoria === "vacunacion" || categoria === "vacuna") {
@@ -273,11 +341,10 @@ function getSecondaryMeta(item: LibretaItem) {
       item.producto_nombre
         ? { label: "Producto", value: item.producto_nombre }
         : null,
-      refuerzo ? { label: "Refuerzo", value: refuerzo } : null,
-      item.via_aplicacion
-        ? { label: "Vía", value: item.via_aplicacion }
-        : null,
-      item.lote ? { label: "Lote", value: item.lote } : null,
+      item.fabricante ? { label: "Marca", value: item.fabricante } : null,
+      item.via_aplicacion ? { label: "Aplicado en", value: item.via_aplicacion } : null,
+      item.lote ? { label: "N° de lote", value: item.lote } : null,
+      refuerzo ? { label: "Refuerzo previsto", value: refuerzo } : null,
     ].filter(Boolean) as { label: string; value: string }[];
   }
 
@@ -298,11 +365,11 @@ function getSecondaryMeta(item: LibretaItem) {
       item.producto_nombre
         ? { label: "Producto", value: item.producto_nombre }
         : null,
-      item.principio_activo
-        ? { label: "Activo", value: item.principio_activo }
-        : null,
       item.desparasitacion_alcance
         ? { label: "Alcance", value: item.desparasitacion_alcance }
+        : null,
+      item.principio_activo
+        ? { label: "Principio activo", value: item.principio_activo }
         : null,
       item.forma_administracion
         ? { label: "Forma", value: item.forma_administracion }
@@ -310,47 +377,66 @@ function getSecondaryMeta(item: LibretaItem) {
           ? { label: "Forma", value: item.via_aplicacion }
           : null,
       pauta ? { label: "Pauta", value: pauta } : null,
+      item.fabricante ? { label: "Marca", value: item.fabricante } : null,
+      item.lote ? { label: "N° de lote", value: item.lote } : null,
     ].filter(Boolean) as { label: string; value: string }[];
   }
 
   if (categoria === "control_preventivo" || item.tipo === "control_preventivo") {
     return [
-      item.institucion ? { label: "Institución", value: item.institucion } : null,
       item.hallazgos_resumen
-        ? { label: "Resumen", value: item.hallazgos_resumen }
+        ? { label: "Resumen de la visita", value: item.hallazgos_resumen }
         : null,
     ].filter(Boolean) as { label: string; value: string }[];
   }
 
+  return [];
+}
+
+function getContextMeta(item: LibretaItem) {
   return [
-    item.producto_nombre ? { label: "Producto", value: item.producto_nombre } : null,
-    item.lote ? { label: "Lote", value: item.lote } : null,
+    { label: "Aplicado el", value: formatFecha(item.fecha_aplicacion) },
+    {
+      label: "Próxima acción",
+      value: item.fecha_proximo_evento
+        ? formatFecha(item.fecha_proximo_evento)
+        : "Sin próxima fecha",
+    },
+    { label: "Validación", value: getValidationMeta(item.estado_validacion).label },
+    item.profesional_nombre
+      ? {
+          label: "Profesional",
+          value: item.profesional_matricula
+            ? `${item.profesional_nombre} (${item.profesional_matricula})`
+            : item.profesional_nombre,
+        }
+      : null,
+    item.institucion ? { label: "Institución", value: item.institucion } : null,
+    item.observaciones ? { label: "Observaciones", value: item.observaciones } : null,
+    item.tiene_adjuntos
+      ? {
+          label: "Adjuntos",
+          value: `${item.cantidad_adjuntos ?? 0} archivo(s) vinculados`,
+        }
+      : null,
   ].filter(Boolean) as { label: string; value: string }[];
 }
 
-function getDisplayTitle(item: LibretaItem) {
-  const categoria = getLibretaCategoria(item);
-
-  if (item.titulo?.trim()) return item.titulo;
-
-  if (categoria === "vacunacion" && item.producto_nombre) {
-    return `Vacuna · ${item.producto_nombre}`;
-  }
-
-  if (
-    (categoria === "desparasitacion_interna" ||
-      categoria === "desparasitacion_externa" ||
-      categoria === "desparasitacion_mixta") &&
-    item.producto_nombre
-  ) {
-    return item.producto_nombre;
-  }
-
-  if (categoria === "control_preventivo") {
-    return "Control preventivo";
-  }
-
-  return item.descripcion || "Registro";
+function DetailPill({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[1rem] border border-white/10 bg-white/[0.03] px-4 py-3">
+      <p className="mb-1 text-[10px] font-black uppercase tracking-[0.24em] text-white/30">
+        {label}
+      </p>
+      <p className="text-sm text-white/85">{value}</p>
+    </div>
+  );
 }
 
 function FeedbackBanner({
@@ -414,9 +500,8 @@ export function LibretaContent({
   const error = searchParams.get("error");
   const dbError = searchParams.get("db_error");
 
-  const [detalleOpen, setDetalleOpen] = useState(false);
-  const [detalleItem, setDetalleItem] = useState<LibretaItem | null>(null);
   const [view, setView] = useState<LibretaView>("prevencion");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const libretaOrdenada = useMemo(() => {
     return [...libreta].sort((a, b) => {
@@ -434,13 +519,6 @@ export function LibretaContent({
 
   return (
     <div>
-      <EventoDetalleModal
-        open={detalleOpen}
-        onClose={() => setDetalleOpen(false)}
-        kind="libreta"
-        item={detalleItem}
-      />
-
       <FeedbackBanner ok={ok} error={error} dbError={dbError} />
 
       <section className="rounded-[22px] border border-white/10 bg-[#080808] p-5 md:p-6">
@@ -552,15 +630,23 @@ export function LibretaContent({
               const tone = getLibretaTone(item);
               const validationMeta = getValidationMeta(item.estado_validacion);
               const estadoProteccionMeta = getEstadoProteccionMeta(item);
-              const secondaryMeta = getSecondaryMeta(item);
               const displayTitle = getDisplayTitle(item);
+              const collapsedSubtitle = getCollapsedSubtitle(item);
+              const technicalMeta = getTechnicalMeta(item);
+              const contextMeta = getContextMeta(item);
+              const isExpanded = expandedId === item.id_registro;
 
               return (
                 <article
                   key={item.id_registro}
-                  className="rounded-[18px] border border-white/10 bg-white/[0.02] px-5 py-4 transition hover:border-white/15 hover:bg-white/[0.03]"
+                  className={[
+                    "rounded-[20px] border px-5 py-4 transition",
+                    isExpanded
+                      ? "border-white/15 bg-white/[0.04]"
+                      : "border-white/10 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.03]",
+                  ].join(" ")}
                 >
-                  <div className="grid grid-cols-[56px_minmax(0,1fr)_170px_44px] items-center gap-4">
+                  <div className="grid grid-cols-[56px_minmax(0,1fr)_auto_44px] items-center gap-4">
                     <div
                       className={[
                         "flex h-14 w-14 items-center justify-center rounded-[14px] border",
@@ -600,34 +686,9 @@ export function LibretaContent({
                         {displayTitle.toUpperCase()}
                       </h4>
 
-                      {secondaryMeta.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/55">
-                          {secondaryMeta.map((meta) => (
-                            <span key={`${item.id_registro}-${meta.label}`}>
-                              {meta.label}:{" "}
-                              <span className="text-white/75">{meta.value}</span>
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      {item.profesional_nombre ? (
-                        <p className="mt-1.5 text-[13px] text-white/55">
-                          Vet:{" "}
-                          <span className="text-white/75">
-                            {item.profesional_nombre}
-                            {item.profesional_matricula
-                              ? ` (${item.profesional_matricula})`
-                              : ""}
-                          </span>
-                        </p>
-                      ) : null}
-
-                      {item.observaciones ? (
-                        <p className="mt-1.5 truncate text-[13px] italic text-white/35">
-                          “{item.observaciones}”
-                        </p>
-                      ) : null}
+                      <p className="mt-1.5 truncate text-[14px] text-white/45">
+                        {collapsedSubtitle}
+                      </p>
                     </div>
 
                     <div className="text-right">
@@ -649,16 +710,105 @@ export function LibretaContent({
                     <div className="flex justify-end">
                       <button
                         type="button"
-                        onClick={() => {
-                          setDetalleItem(item);
-                          setDetalleOpen(true);
-                        }}
-                        className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/35 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
+                        onClick={() =>
+                          setExpandedId((current) =>
+                            current === item.id_registro ? null : item.id_registro,
+                          )
+                        }
+                        className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.04] text-white/45 transition hover:bg-white/[0.07] hover:text-white active:scale-95"
+                        aria-expanded={isExpanded}
+                        aria-label={isExpanded ? "Cerrar detalle" : "Abrir detalle"}
                       >
-                        <ChevronRight className="h-4.5 w-4.5" strokeWidth={1.5} />
+                        <ChevronDown
+                          className={[
+                            "h-4.5 w-4.5 transition-transform duration-200",
+                            isExpanded ? "rotate-180" : "",
+                          ].join(" ")}
+                          strokeWidth={1.5}
+                        />
                       </button>
                     </div>
                   </div>
+
+                  {isExpanded ? (
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <div className="mb-4 flex items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={[
+                              "rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                              validationMeta.className,
+                            ].join(" ")}
+                          >
+                            {validationMeta.label}
+                          </span>
+
+                          <span
+                            className={[
+                              "rounded-md px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                              estadoProteccionMeta.className,
+                            ].join(" ")}
+                          >
+                            {estadoProteccionMeta.label}
+                          </span>
+
+                          {item.tiene_adjuntos ? (
+                            <span className="rounded-md border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/70">
+                              {item.cantidad_adjuntos ?? 0} ADJUNTO(S)
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setExpandedId(null)}
+                          className="rounded-[0.9rem] border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-emerald-300 transition hover:border-emerald-500/30 hover:bg-emerald-500/15"
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+
+                      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+                        <div className="rounded-[1.35rem] border border-white/10 bg-black/20 p-4">
+                          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/30">
+                            Detalle técnico
+                          </p>
+
+                          {technicalMeta.length > 0 ? (
+                            <div className="grid gap-3 md:grid-cols-2">
+                              {technicalMeta.map((meta) => (
+                                <DetailPill
+                                  key={`${item.id_registro}-tech-${meta.label}`}
+                                  label={meta.label}
+                                  value={meta.value}
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="rounded-[1rem] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/55">
+                              No hay detalle técnico adicional para este registro.
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="rounded-[1.35rem] border border-white/10 bg-black/20 p-4">
+                          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.24em] text-white/30">
+                            Contexto del registro
+                          </p>
+
+                          <div className="space-y-3">
+                            {contextMeta.map((meta) => (
+                              <DetailPill
+                                key={`${item.id_registro}-ctx-${meta.label}`}
+                                label={meta.label}
+                                value={meta.value}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                 </article>
               );
             })
