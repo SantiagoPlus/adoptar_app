@@ -24,29 +24,6 @@ function toNullable(value: string) {
   return value.trim() ? value.trim() : null;
 }
 
-function parseDateValue(value: string) {
-  const normalized = value.trim();
-  if (!normalized) return null;
-
-  const date = new Date(`${normalized}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return date;
-}
-
-function getDiffDays(start: string, end: string) {
-  const startDate = parseDateValue(start);
-  const endDate = parseDateValue(end);
-
-  if (!startDate || !endDate) return null;
-
-  const diffMs = endDate.getTime() - startDate.getTime();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 0) return null;
-  return diffDays;
-}
-
 function parsePositiveInteger(value: string) {
   const normalized = value.trim();
   if (!normalized) return null;
@@ -55,6 +32,16 @@ function parsePositiveInteger(value: string) {
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
 
   return Math.round(parsed);
+}
+
+function parseBoolean(value: FormDataEntryValue | null) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+
+  if (!normalized) return null;
+  if (["true", "1", "yes", "si", "sí", "on"].includes(normalized)) return true;
+  if (["false", "0", "no", "off"].includes(normalized)) return false;
+
+  return null;
 }
 
 export async function registrarAplicacion(formData: FormData) {
@@ -71,23 +58,6 @@ export async function registrarAplicacion(formData: FormData) {
   const fechaAplicacion = normalizeText(formData.get("fecha_aplicacion"));
   const fechaProximoEvento = normalizeText(formData.get("fecha_proximo_evento"));
   const observaciones = normalizeText(formData.get("observaciones"));
-
-  const productoNombre = normalizeText(formData.get("producto_nombre"));
-  const fabricante = normalizeText(formData.get("fabricante"));
-  const lote = normalizeText(formData.get("lote"));
-  const viaAplicacion = normalizeText(formData.get("via_aplicacion"));
-  const dosis = normalizeText(formData.get("dosis"));
-
-  const enfermedadObjetivo = normalizeText(formData.get("enfermedad_objetivo"));
-  const esquemaRefuerzo = normalizeText(formData.get("esquema_refuerzo"));
-
-  const principioActivo = normalizeText(formData.get("principio_activo"));
-  const frecuenciaDiasInput = normalizeText(formData.get("frecuencia_dias"));
-
-  const tipoControl = normalizeText(formData.get("tipo_control"));
-  const motivo = normalizeText(formData.get("motivo"));
-  const hallazgosResumen = normalizeText(formData.get("hallazgos_resumen"));
-  const indicaciones = normalizeText(formData.get("indicaciones"));
   const institucion = normalizeText(formData.get("institucion"));
 
   const profesionalNombre = normalizeText(formData.get("profesional_nombre"));
@@ -97,7 +67,7 @@ export async function registrarAplicacion(formData: FormData) {
     redirect(`/auth/login?next=/mascotas/${idMascota}`);
   }
 
-  if (!idMascota || !categoriaUI || !titulo || !fechaAplicacion) {
+  if (!idMascota || !categoriaUI || !fechaAplicacion) {
     redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
   }
 
@@ -108,20 +78,49 @@ export async function registrarAplicacion(formData: FormData) {
   let rpcErrorMessage: string | null = null;
 
   if (categoriaUI === "vacunacion") {
+    const productoNombre = normalizeText(formData.get("producto_nombre"));
+    const fabricante = normalizeText(formData.get("fabricante"));
+    const lote = normalizeText(formData.get("lote"));
+    const viaAplicacion = normalizeText(formData.get("via_aplicacion"));
+    const aplicacionUnica = parseBoolean(
+      formData.get("vacuna_aplicacion_unica"),
+    );
+    const esquemaRefuerzoDias = parsePositiveInteger(
+      normalizeText(formData.get("esquema_refuerzo_dias")),
+    );
+
+    if (!productoNombre || !viaAplicacion || aplicacionUnica === null) {
+      redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
+    }
+
+    if (aplicacionUnica === false && !esquemaRefuerzoDias) {
+      redirect(
+        `/mascotas/${idMascota}?tab=libreta&error=esquema_refuerzo_requerido`,
+      );
+    }
+
     const { error } = await supabase.rpc("registrar_evento_vacuna", {
       p_id_mascota: idMascota,
-      p_titulo: titulo,
+      p_titulo: toNullable(titulo),
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_producto_nombre: toNullable(productoNombre) ?? titulo,
+      p_producto_nombre: productoNombre,
       p_fabricante: toNullable(fabricante),
       p_lote: toNullable(lote),
-      p_via_aplicacion: toNullable(viaAplicacion),
-      p_dosis: toNullable(dosis),
-      p_enfermedad_objetivo: toNullable(enfermedadObjetivo),
-      p_esquema_refuerzo: toNullable(esquemaRefuerzo),
+      p_via_aplicacion: viaAplicacion,
+      p_dosis: null,
+      p_enfermedad_objetivo: null,
+      p_esquema_refuerzo:
+        aplicacionUnica === true
+          ? "aplicación única"
+          : esquemaRefuerzoDias?.toString() ?? null,
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
+      p_aplicacion_unica: aplicacionUnica,
+      p_esquema_refuerzo_dias: esquemaRefuerzoDias,
+      p_institucion: toNullable(institucion),
+      p_observaciones: toNullable(observaciones),
+      p_id_servicio: null,
     });
 
     if (error) {
@@ -133,26 +132,57 @@ export async function registrarAplicacion(formData: FormData) {
     categoriaUI === "desparasitacion_interna" ||
     categoriaUI === "desparasitacion_externa"
   ) {
-    const frecuenciaDias =
-      parsePositiveInteger(frecuenciaDiasInput) ??
-      getDiffDays(fechaAplicacion, fechaProximoEvento);
+    const alcance =
+      categoriaUI === "desparasitacion_externa" ? "externa" : "interna";
+    const productoNombre = normalizeText(formData.get("producto_nombre"));
+    const principioActivo = normalizeText(formData.get("principio_activo"));
+    const fabricante = normalizeText(formData.get("fabricante"));
+    const lote = normalizeText(formData.get("lote"));
+    const formaAdministracion = normalizeText(
+      formData.get("forma_administracion"),
+    );
+    const aplicacionUnica = parseBoolean(
+      formData.get("desparasitacion_aplicacion_unica"),
+    );
+    const cantidadDias = parsePositiveInteger(
+      normalizeText(formData.get("cantidad_dias")),
+    );
+    const frecuenciaHoras = parsePositiveInteger(
+      normalizeText(formData.get("frecuencia_horas")),
+    );
+
+    if (!productoNombre || !formaAdministracion || aplicacionUnica === null) {
+      redirect(`/mascotas/${idMascota}?tab=libreta&error=campos_obligatorios`);
+    }
+
+    if (aplicacionUnica === false && (!cantidadDias || !frecuenciaHoras)) {
+      redirect(
+        `/mascotas/${idMascota}?tab=libreta&error=tratamiento_incompleto`,
+      );
+    }
 
     const { error } = await supabase.rpc("registrar_evento_desparasitacion", {
       p_id_mascota: idMascota,
-      p_alcance: categoriaUI === "desparasitacion_externa" ? "externa" : "interna",
-      p_titulo: titulo,
+      p_alcance: alcance,
+      p_titulo: toNullable(titulo),
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_producto_nombre: toNullable(productoNombre) ?? titulo,
+      p_producto_nombre: productoNombre,
       p_principio_activo: toNullable(principioActivo),
       p_fabricante: toNullable(fabricante),
       p_lote: toNullable(lote),
-      p_via_aplicacion: toNullable(viaAplicacion),
-      p_dosis: toNullable(dosis),
+      p_via_aplicacion: formaAdministracion,
+      p_dosis: null,
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
-      p_frecuencia_dias: frecuenciaDias,
+      p_frecuencia_dias: null,
       p_observaciones: toNullable(observaciones),
+      p_forma_administracion: formaAdministracion,
+      p_aplicacion_unica: aplicacionUnica,
+      p_cantidad_dias: cantidadDias,
+      p_frecuencia_horas: frecuenciaHoras,
+      p_institucion: toNullable(institucion),
+      p_id_servicio: null,
     });
 
     if (error) {
@@ -161,19 +191,22 @@ export async function registrarAplicacion(formData: FormData) {
   }
 
   if (categoriaUI === "control_preventivo") {
+    const hallazgosResumen = normalizeText(formData.get("hallazgos_resumen"));
+
     const { error } = await supabase.rpc("registrar_evento_control_preventivo", {
       p_id_mascota: idMascota,
-      p_titulo: titulo,
+      p_titulo: toNullable(titulo),
       p_fecha_evento: fechaAplicacion,
       p_fecha_proxima_accion: toNullable(fechaProximoEvento),
-      p_tipo_control: toNullable(tipoControl),
-      p_motivo: toNullable(motivo),
+      p_tipo_control: null,
+      p_motivo: null,
       p_hallazgos_resumen: toNullable(hallazgosResumen),
-      p_indicaciones: toNullable(indicaciones),
+      p_indicaciones: null,
       p_profesional_nombre: toNullable(profesionalNombre),
       p_profesional_matricula: toNullable(profesionalMatricula),
       p_institucion: toNullable(institucion),
       p_observaciones: toNullable(observaciones),
+      p_id_servicio: null,
     });
 
     if (error) {
